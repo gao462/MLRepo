@@ -42,12 +42,14 @@ WARNING = 40
 ERROR   = 50
 
 
-def default_logger() -> logging.Logger:
+def default_logger(*args, **kargs) -> logging.Logger:
     r"""
     Create default logger.
 
     Args
     ----
+    - *args
+    - **kargs
 
     Returns
     -------
@@ -77,14 +79,16 @@ UNIVERSAL_LOGGER = default_logger()
 MAX = 79
 
 
-def update_universal_logger(logger: logging.Logger) -> None:
+def update_universal_logger(*args, logger: logging.Logger, **kargs) -> None:
     r"""
     Update universal logger by given logger.
 
     Args
     ----
+    - *args
     - logger
         New logger.
+    - **kargs
 
     Returns
     -------
@@ -95,14 +99,16 @@ def update_universal_logger(logger: logging.Logger) -> None:
     UNIVERSAL_LOGGER = logger
 
 
-def update_max(val: int) -> None:
+def update_max(*args, val: int, **kargs) -> None:
     r"""
     Update maximum number of characters.
 
     Args
     ----
+    - *args
     - val
         Maximum.
+    - **kargs
 
     Returns
     -------
@@ -142,16 +148,18 @@ CLRFIX[WARNING] = "\033[{:s}mWARNING \033[0m".format(CLR_PINK)
 CLRFIX[ERROR]   = "\033[{:s}mERROR   \033[0m".format(CLR_RED)
 
 
-def check_format(level: int, msg: str) -> None:
+def check_format(*args, level: int, msg: str, **kargs) -> None:
     r"""
     Check message format.
 
     Args
     ----
+    - *args
     - level
         Logging level.
     - msg
         Message.
+    - **kargs
 
     Returns
     -------
@@ -195,7 +203,7 @@ def log(level: int, fmt:str, *args, **kargs) -> None:
     """
     # Get message string.
     msg = fmt.format(*args, **kargs)
-    check_format(level, msg)
+    check_format(level=level, msg=msg)
 
     # Use universal logger for multiple-line logging.
     global UNIVERSAL_LOGGER

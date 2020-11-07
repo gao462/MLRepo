@@ -1,7 +1,7 @@
 # Import typing.
 from typing import Any
 from typing import Tuple as MultiReturn
-from typing import Tuple, Union, List
+from typing import Tuple, Union, List, Dict
 
 # Import dependencies.
 import sys
@@ -46,9 +46,9 @@ class Word(object):
     Token word.
     """
     def set(
-        self,
+        self, *args,
         val: int, text: str,
-        row: int, level: Union[int, None], column: int,
+        row: int, level: Union[int, None], column: int, **kargs,
     ) -> None:
         r"""
         Set word attributes.
@@ -56,6 +56,7 @@ class Word(object):
         Args
         ----
         - self
+        - *args
         - val
             Token integer.
         - text
@@ -66,6 +67,7 @@ class Word(object):
             Token indent level.
         - column
             Token column index.
+        - **kargs
 
         Returns
         -------
@@ -80,13 +82,15 @@ class Word(object):
         self.column = column
 
     @property
-    def position(self) -> str:
+    def position(self, *args, **kargs) -> str:
         r"""
         Position string.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -102,13 +106,15 @@ class Code(object):
     r"""
     Tokenized code with indent of a file.
     """
-    def __init__(self) -> None:
+    def __init__(self, *args, **kargs) -> None:
         r"""
         Initialize.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -135,13 +141,15 @@ class Code(object):
             self.RX_FIRST, self.RX_SENTENCE_BREAK, self.RX_LATER,
         )
 
-    def __len__(self) -> int:
+    def __len__(self, *args, **kargs) -> int:
         r"""
         Length.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -152,7 +160,7 @@ class Code(object):
         # Get directly.
         return len(self.memory) - self.ptr
 
-    def load_file(self, path: str) -> None:
+    def load_file(self, path: str, *args, **kargs) -> None:
         r"""
         Load code tokens from given file.
 
@@ -161,6 +169,8 @@ class Code(object):
         - self
         - path
             File path.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -179,13 +189,15 @@ class Code(object):
         # Review text lines and file tokens as lines of tokens.
         self.review()
 
-    def load_texts(self) -> None:
+    def load_texts(self, *args, **kargs) -> None:
         r"""
         Load text lines from given file.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -206,13 +218,15 @@ class Code(object):
                 self.texts.append((level, line))
         file.close()
 
-    def load_tokens(self) -> None:
+    def load_tokens(self, *args, **kargs) -> None:
         r"""
         Load tokens from given file.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -229,13 +243,15 @@ class Code(object):
                 self.tokens.append(itr)
         file.close()
 
-    def rule_texts(self) -> None:
+    def rule_texts(self, *args, **kargs) -> None:
         r"""
         Check rules over text lines.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -243,21 +259,23 @@ class Code(object):
         """
         # Check each text lines.
         for i, line in enumerate(self.texts):
-            self.line_rule_length(i + 1, line)
-            self.line_rule_char(i + 1, line)
-            self.line_rule_break(i + 1, line)
+            self.line_rule_length(index=i + 1, line=line)
+            self.line_rule_char(index=i + 1, line=line)
+            self.line_rule_break(index=i + 1, line=line)
 
-    def line_rule_length(self, index: int, line: str) -> None:
+    def line_rule_length(self, *args, index: int, line: str, **kargs) -> None:
         r"""
         Check length rule over a text line.
 
         Args
         ----
         - self
+        - *args
         - index
             Line index.
         - line
             Line content.
+        - **kargs
 
         Returns
         -------
@@ -276,17 +294,19 @@ class Code(object):
         else:
             pass
 
-    def line_rule_char(self, index: int, line: str) -> None:
+    def line_rule_char(self, *args, index: int, line: str, **kargs) -> None:
         r"""
         Check character rule over a text line.
 
         Args
         ----
         - self
+        - *args
         - index
             Line index.
         - line
             Line content.
+        - **kargs
 
         Returns
         -------
@@ -305,17 +325,19 @@ class Code(object):
         else:
             pass
 
-    def line_rule_break(self, index: int, line: str) -> None:
+    def line_rule_break(self, *args, index: int, line: str, **kargs) -> None:
         r"""
         Check line break rule over a text line.
 
         Args
         ----
         - self
+        - *args
         - index
             Line index.
         - line
             Line content.
+        - **kargs
 
         Returns
         -------
@@ -333,13 +355,15 @@ class Code(object):
         else:
             pass
 
-    def review(self) -> None:
+    def review(self, *args, **kargs) -> None:
         r"""
         Review text lines and tokens as lines of tokens.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -373,7 +397,9 @@ class Code(object):
 
             # Construct the initial word.
             word = Word()
-            word.set(val, content, start, level, index)
+            word.set(
+                val=val, text=content, row=start, level=level, column=index,
+            )
             self.memory.append(word)
 
             # Get tokens of the same lines.
@@ -381,7 +407,9 @@ class Code(object):
             while (self.tokens[0][2][0] in targets):
                 val, content, (start, index), (end, _), _ = self.tokens.pop(0)
                 word = Word()
-                word.set(val, content, start, None, index)
+                word.set(
+                    val=val, text=content, row=start, level=None, column=index,
+                )
                 self.memory.append(word)
 
         # A file has an implicit EOF line.
@@ -389,7 +417,9 @@ class Code(object):
             # Append the last EOF word.
             val, content, (start, index), (end, _), _ = self.tokens.pop(0)
             word = Word()
-            word.set(val, content, start, None, index)
+            word.set(
+                val=val, text=content, row=start, level=None, column=index,
+            )
             self.memory.append(word)
 
             # Clear raw text and token buffers.
@@ -403,13 +433,15 @@ class Code(object):
             )
             raise NotImplementedError
 
-    def reset(self) -> None:
+    def reset(self, *args, **kargs) -> None:
         r"""
         Reset scanning status.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -418,13 +450,15 @@ class Code(object):
         # Reset word pointer.
         self.ptr = 0
 
-    def next(self) -> None:
+    def next(self, *args, **kargs) -> None:
         r"""
         Move to next scanning status.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -434,13 +468,15 @@ class Code(object):
         self.ptr += 1
 
     @property
-    def top(self) -> Word:
+    def top(self, *args, **kargs) -> Word:
         r"""
         Get the first focusing word.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -451,7 +487,7 @@ class Code(object):
         # Get directly.
         return self.memory[self.ptr]
 
-    def preview(self, shift: int) -> Word:
+    def preview(self, shift: int, *args, **kargs) -> Word:
         r"""
         Get the preview of word shifted from first focusing word.
 
@@ -460,6 +496,8 @@ class Code(object):
         - self
         - shift
             Shifting offset.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -470,7 +508,9 @@ class Code(object):
         # Get directly.
         return self.memory[self.ptr + shift]
 
-    def fit(self, level: int, target: Union[int, str, None]) -> bool:
+    def fit(
+        self, level: int, target: Union[int, str, None], *args, **kargs,
+    ) -> bool:
         r"""
         Check if scanning token fits the target.
 
@@ -482,6 +522,8 @@ class Code(object):
         - target
             Target token ID or text.
             If None, it means anything.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -497,13 +539,15 @@ class Code(object):
         else:
             return flag and (target is None or obj.text == target)
 
-    def eof(self) -> bool:
+    def eof(self, *args, **kargs) -> bool:
         r"""
         Get EOF signal.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -514,7 +558,9 @@ class Code(object):
         # Check EOF token.
         return self.fit(0, token.ENDMARKER)
 
-    def paragraphs(self, contents: List[str]) -> List[List[str]]:
+    def paragraphs(self, contents: List[str], *args, **kargs) -> List[
+        List[str],
+    ]:
         r"""
         Break given content into list of paragraphs.
 
@@ -523,6 +569,8 @@ class Code(object):
         - self
         - contents
             Given contents.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -592,6 +640,19 @@ class Code(object):
 # -----------------------------------------------------------------------------
 # << Document Objects >>
 # Documentize tokenized code files, and check style rules in the meanwhile.
+#
+# In this level, a document directory controller will traverse every folder in
+# MLRepo. At each folder, controller will identify all python files, and
+# generate their markdown notes by their file controllers. Generated notes is
+# then merged into README file inside current directory.
+#
+# In the README file, super links to exact Github code position are also
+# created for global or in-global-class level classes, functions, and blocks.
+# Styled code snaps for those parts are also attached with them.
+#
+# After the generation, a strict description matching is applied on classes
+# with inheritance relationships so that inherited classes only extends
+# function argument names and description details of inheriting classes.
 # -----------------------------------------------------------------------------
 # *****************************************************************************
 # =============================================================================
@@ -604,13 +665,15 @@ class Document(object):
     # Define constants.
     GITHUB = "https://github.com/gao462/MLRepo"
 
-    def __init__(self) -> None:
+    def __init__(self, *args, **kargs) -> None:
         r"""
         Initialize.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -638,13 +701,15 @@ class Document(object):
         error("{:s}.parse, is not implemented.", self.__class__.__name__)
         raise NotImplementedError
 
-    def markdown(self) -> List[str]:
+    def markdown(self, *args, **kargs) -> List[str]:
         r"""
         Generate Markdown.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -661,13 +726,15 @@ class DirectoryDocument(Document):
     r"""
     Document for a directory.
     """
-    def __init__(self) -> None:
+    def __init__(self, *args, **kargs) -> None:
         r"""
         Initialize.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -676,7 +743,7 @@ class DirectoryDocument(Document):
         # Nothing is required.
         pass
 
-    def parse(self, root: str) -> None:
+    def parse(self, root: str, *args, **kargs) -> None:
         r"""
         Parse content.
 
@@ -685,12 +752,15 @@ class DirectoryDocument(Document):
         - self
         - root
             Root of the project.
+        - *args
+        - **kargs
 
         Returns
         -------
 
         """
         # Traverse the tree.
+        self.root = root
         self.subdirs = []
         self.files = []
         self.readme = []
@@ -737,18 +807,187 @@ class DirectoryDocument(Document):
         else:
             pass
 
+    def fetch(self, dirdoc: Document, *args, **kargs) -> MultiReturn[
+        Dict[str, str], Dict[str, Dict[str, Document]],
+    ]:
+        r"""
+        Fetch class inheritance from given directory document.
+
+        Args
+        ----
+        - self
+        - dirdoc
+            Directory document.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+        - mapping
+            Inheritance mapping.
+        - loaded
+            Loaded class documents.
+
+        """
+        # Create mapping.
+        mapping = {}
+        loaded = {}
+
+        # Get relative path as module path.
+        _, relative = dirdoc.root.split(os.path.join(" ", "MLRepo", " ")[1:-1])
+        relative = relative.replace(os.path.join(" ", " ")[1:-1], ".")
+
+        # Traverse file documents.
+        for filedoc in dirdoc.files:
+            # Get sources and inheritances.
+            sources = {}
+            for key, vals in filedoc.modules.modules.items():
+                for itr in vals:
+                    sources[itr.split(' ')[0]] = key
+            inherits = {}
+            local = []
+            for _, section in filedoc.sections.sections:
+                for child in section.children:
+                    if (isinstance(child, ClassDocument)):
+                        name = "{:s}.{:s}".format(relative, child.name)
+                        inherits[name] = child.super
+                        functions = {}
+                        for itr in child.series.children:
+                            if (isinstance(itr, FunctionDocument)):
+                                functions[itr.name] = itr
+                            else:
+                                pass
+                        loaded[name] = functions
+                        local.append(child.name)
+                    else:
+                        pass
+
+            # Locate super sources.
+            for key, val in inherits.items():
+                if (val in sources):
+                    name = "{:s}.{:s}".format(sources[val], val)
+                elif (val in local):
+                    name = "{:s}.{:s}".format(relative, val)
+                else:
+                    # Inheritance from python lib is ignored.
+                    continue
+                mapping[key] = name
+
+        # Traverse sub directory documents.
+        for subdirdoc in dirdoc.subdirs:
+            submapping, subloaded = self.fetch(subdirdoc)
+            for key, val in submapping.items():
+                mapping[key] = val
+            for key, val in subloaded.items():
+                loaded[key] = val
+        return mapping, loaded
+
+    def match(self, *args, **kargs) -> None:
+        r"""
+        Match class inheritance.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Fetch from root folder.
+        mapping, loaded = self.fetch(self.subdirs[1])
+        for key, val in mapping.items():
+            child = loaded[key]
+            father = loaded[val]
+            for func in child.keys():
+                if (func in father):
+                    # Get arguments of two types.
+                    ch_l, ch_r = [], []
+                    fa_l, fa_r = [], []
+                    buf = ch_l
+                    for itr in child[func].doc.args[:-1]:
+                        if (itr[0] == "*args"):
+                            buf = ch_r
+                        else:
+                            buf.append(itr[0])
+                    buf = fa_l
+                    for itr in father[func].doc.args[:-1]:
+                        if (itr[0] == "*args"):
+                            buf = fa_r
+                        else:
+                            buf.append(itr[0])
+
+                    # Get minimum length of two argument types.
+                    min_l = min(len(ch_l), len(fa_l))
+                    min_r = min(len(ch_r), len(fa_r))
+
+                    # Force arguments to match.
+                    for ch, fa in zip(ch_l[:min_l], fa_l[:min_l]):
+                        if (ch != fa):
+                            error(
+                                "{:s}, {:s}, children argument \"{:s}\"," \
+                                " does not match father argument \"{:s}\".",
+                                "{:s}.expect".format(self.__class__.__name__),
+                                "\033[31;1;47;1m{:s}({:s}).{:s}\033[0m".format(
+                                    key, val, func,
+                                ),
+                                ch, fa,
+                            )
+                            raise RuntimeError
+                        else:
+                            pass
+                    for ch, fa in zip(ch_r[:min_r], fa_r[:min_r]):
+                        if (ch != fa):
+                            error(
+                                "{:s}, {:s}, children argument \"{:s}\"," \
+                                " does not match father argument \"{:s}\".",
+                                "{:s}.expect".format(self.__class__.__name__),
+                                "\033[31;1;47;1m{:s}({:s}).{:s}\033[0m".format(
+                                    key, val, func,
+                                ),
+                                ch, fa,
+                            )
+                            raise RuntimeError
+                        else:
+                            pass
+
+                    # Force returns to match.
+                    ch_r = child[func].doc.returns
+                    fa_r = father[func].doc.returns
+                    min_r = min(len(ch_r), len(fa_r))
+                    for ch, fa in zip(ch_r[:min_r], fa_r[:min_r]):
+                        if (ch[0] != fa[0]):
+                            error(
+                                "{:s}, {:s}, children return \"{:s}\"," \
+                                " does not match father return \"{:s}\".",
+                                "{:s}.expect".format(self.__class__.__name__),
+                                "\033[31;1;47;1m{:s}({:s}).{:s}\033[0m".format(
+                                    key, val, func,
+                                ),
+                                ch[0], fa[0],
+                            )
+                            raise RuntimeError
+                        else:
+                            pass
+                else:
+                    pass
+
 
 class FileDocument(Document):
     r"""
     Document for a file.
     """
-    def __init__(self) -> None:
+    def __init__(self, *args, **kargs) -> None:
         r"""
         Initialize.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -757,7 +996,7 @@ class FileDocument(Document):
         # Nothing is required.
         pass
 
-    def parse(self, path: str) -> None:
+    def parse(self, path: str, *args, **kargs) -> None:
         r"""
         Parse content.
 
@@ -766,13 +1005,15 @@ class FileDocument(Document):
         - self
         - path
             Path of documentizing file.
+        - *args
+        - **kargs
 
         Returns
         -------
 
         """
         # Load tokenized code.
-        _, self.path = path.split(os.path.join("", "MLRepo", ""))
+        _, self.path = path.split(os.path.join(" ", "MLRepo", " ")[1:-1])
         self.code = Code()
         self.code.load_file(self.path)
         self.code.reset()
@@ -783,13 +1024,15 @@ class FileDocument(Document):
         self.modules.parse(self.code)
         self.sections.parse(self.code)
 
-    def markdown(self) -> List[str]:
+    def markdown(self, *args, **kargs) -> List[str]:
         r"""
         Generate Markdown.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -818,7 +1061,9 @@ class CodeDocument(Document):
     r"""
     Document prototype for code.
     """
-    def __init__(self, path: str, level: int, hierarchy: int) -> None:
+    def __init__(
+        self, path: str, level: int, hierarchy: int, *args, **kargs,
+    ) -> None:
         r"""
         Initialize.
 
@@ -831,6 +1076,8 @@ class CodeDocument(Document):
             Indent level.
         - hierarchy
             Hierarchy order.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -841,7 +1088,7 @@ class CodeDocument(Document):
         self.LEVEL = level
         self.HIERARCHY = hierarchy
 
-    def expect(self, *args) -> None:
+    def expect(self, *args, **kargs) -> None:
         r"""
         Expect next several code words to be the arguments.
 
@@ -849,6 +1096,7 @@ class CodeDocument(Document):
         ----
         - self
         - *args
+        - **kargs
 
         Returns
         -------
@@ -909,7 +1157,7 @@ class ModuleDocument(CodeDocument):
     r"""
     Document for module imports.
     """
-    def parse(self, code: Code) -> None:
+    def parse(self, code: Code, *args, **kargs) -> None:
         r"""
         Parse content.
 
@@ -918,6 +1166,8 @@ class ModuleDocument(CodeDocument):
         - self
         - code
             Tokenized code.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -981,7 +1231,7 @@ class ModuleDocument(CodeDocument):
             self.expect(
                 "from", "pytorch", ".", "logging", "import", "debug", ",",
                 "info1", ",", "info2", ",", "focus", ",", "warning", ",",
-                "error", token.NEWLINE
+                "error", token.NEWLINE,
             )
             self.append("pytorch.logging", "debug")
             self.append("pytorch.logging", "info1")
@@ -1003,7 +1253,9 @@ class ModuleDocument(CodeDocument):
                 self.position, module, ", ".join(identifiers),
             )
 
-    def append(self, module: str, identifier: Union[str, None]) -> None:
+    def append(
+        self, module: str, identifier: Union[str, None], *args, **kargs,
+    ) -> None:
         r"""
         Append an import opertation.
 
@@ -1014,6 +1266,8 @@ class ModuleDocument(CodeDocument):
             Module name.
         - identifier
             Identifier name.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -1041,13 +1295,15 @@ class ModuleDocument(CodeDocument):
                 self.modules[module] = []
             self.modules[module].append(identifier)
 
-    def append_until(self) -> None:
+    def append_until(self, *args, **kargs) -> None:
         r"""
         Append import operations until a blank line.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -1062,13 +1318,15 @@ class ModuleDocument(CodeDocument):
             for itr in imported.identifiers:
                 self.append(imported.name, itr)
 
-    def markdown(self) -> List[str]:
+    def markdown(self, *args, **kargs) -> List[str]:
         r"""
         Generate Markdown.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -1088,7 +1346,7 @@ class GlobalDocument(CodeDocument):
     r"""
     Document for global level codes.
     """
-    def parse(self, code: Code) -> None:
+    def parse(self, code: Code, *args, **kargs) -> None:
         r"""
         Parse content.
 
@@ -1097,6 +1355,8 @@ class GlobalDocument(CodeDocument):
         - self
         - code
             Tokenized code.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -1114,13 +1374,15 @@ class GlobalDocument(CodeDocument):
             series.parse(self.code)
             self.sections.append((intro, series))
 
-    def markdown(self) -> List[str]:
+    def markdown(self, *args, **kargs) -> List[str]:
         r"""
         Generate Markdown.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -1145,7 +1407,7 @@ class IntroductionDocument(CodeDocument):
     r"""
     Document for introduction codes.
     """
-    def parse(self, code: Code) -> None:
+    def parse(self, code: Code, *args, **kargs) -> None:
         r"""
         Parse content.
 
@@ -1154,6 +1416,8 @@ class IntroductionDocument(CodeDocument):
         - self
         - code
             Tokenized code.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -1245,13 +1509,15 @@ class IntroductionDocument(CodeDocument):
         self.expect(intro_line2, token.NL)
         self.expect(intro_line1, token.NL)
 
-    def markdown(self) -> List[str]:
+    def markdown(self, *args, **kargs) -> List[str]:
         r"""
         Generate Markdown.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -1273,7 +1539,7 @@ class SeriesDocument(CodeDocument):
     r"""
     Document for a series of codes (any hierarchy).
     """
-    def parse(self, code: Code) -> None:
+    def parse(self, code: Code, *args, **kargs) -> None:
         r"""
         Parse content.
 
@@ -1282,6 +1548,8 @@ class SeriesDocument(CodeDocument):
         - self
         - code
             Tokenized code.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -1367,13 +1635,15 @@ class SeriesDocument(CodeDocument):
             # First flag turns off after one loop.
             first = False
 
-    def markdown(self) -> List[str]:
+    def markdown(self, *args, **kargs) -> List[str]:
         r"""
         Generate Markdown.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -1395,10 +1665,18 @@ class SeriesDocument(CodeDocument):
             flag1 = isinstance(child, BlockDocument)
             flag2 = (self.HIERARCHY in (GLOBAL, CLASS))
             if (flag1 and flag2):
-                notes.append("- Block")
+                position = "{:s}/blob/master/{:s}#L{:s}".format(
+                    child.GITHUB, child.PATH,
+                    child.position[1:-1].split(", ")[0].split(" ")[1],
+                )
+                notes.append("- [Block]({:s})".format(position))
                 for itr in child.paragraphs:
                     notes.append("")
                     notes.append("  {:s}".format(" ".join(itr)))
+                notes.append("  ```python")
+                for itr in child.markdown():
+                    notes.append("  {:s}".format(itr))
+                notes.append("  ```")
             else:
                 notes.extend(child.markdown())
         return notes
@@ -1418,7 +1696,7 @@ class ClassDocument(CodeDocument):
     r"""
     Document for a class definition.
     """
-    def parse(self, code: Code) -> None:
+    def parse(self, code: Code, *args, **kargs) -> None:
         r"""
         Parse content.
 
@@ -1427,6 +1705,8 @@ class ClassDocument(CodeDocument):
         - self
         - code
             Tokenized code.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -1495,13 +1775,15 @@ class ClassDocument(CodeDocument):
         self.series = SeriesDocument(self.PATH, self.LEVEL + 1, self.HIERARCHY)
         self.series.parse(self.code)
 
-    def markdown(self) -> List[str]:
+    def markdown(self, *args, **kargs) -> List[str]:
         r"""
         Generate Markdown.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -1551,7 +1833,7 @@ class FunctionDocument(CodeDocument):
     r"""
     Document for a function definition.
     """
-    def parse(self, code: Code) -> None:
+    def parse(self, code: Code, *args, **kargs) -> None:
         r"""
         Parse content.
 
@@ -1560,6 +1842,8 @@ class FunctionDocument(CodeDocument):
         - self
         - code
             Tokenized code.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -1718,13 +2002,15 @@ class FunctionDocument(CodeDocument):
         self.series = SeriesDocument(self.PATH, self.LEVEL + 1, self.HIERARCHY)
         self.series.parse(self.code)
 
-    def validate(self) -> None:
+    def validate(self, *args, **kargs) -> None:
         r"""
         Validate description with arguments and returns.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -1806,13 +2092,15 @@ class FunctionDocument(CodeDocument):
                 )
                 raise RuntimeError
 
-    def markdown(self) -> List[str]:
+    def markdown(self, *args, **kargs) -> List[str]:
         r"""
         Generate Markdown.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -1875,14 +2163,14 @@ class FunctionDocument(CodeDocument):
                 self.args.children, self.doc.args,
             ):
                 if (name in ("self", "cls")):
-                    notes.append("  > - **{:s}**".format(name))
+                    notes.append("  > - *{:s}*".format(name))
                 elif (name == "*args"):
-                    notes.append("  > - **{:s}**".format("\\*args"))
+                    notes.append("  > - *{:s}*".format("\\*args"))
                 elif (name == "**kargs"):
-                    notes.append("  > - **{:s}**".format("\\*\\*kargs"))
+                    notes.append("  > - *{:s}*".format("\\*\\*kargs"))
                 else:
                     notes.append(
-                        "  > - **{:s}**: *{:s}*".format(name, hint.full_name),
+                        "  > - *{:s}*: `{:s}`".format(name, hint.full_name),
                     )
                     for itr in paragraphs:
                         notes.append("  >   {:s}".format(" ".join(itr)))
@@ -1895,7 +2183,7 @@ class FunctionDocument(CodeDocument):
                 self.returns.children, self.doc.returns,
             ):
                 notes.append(
-                    "  > - **{:s}**: *{:s}*".format(name, hint.full_name),
+                    "  > - *{:s}*: `{:s}`".format(name, hint.full_name),
                 )
                 for itr in paragraphs:
                     notes.append("  >   {:s}".format(" ".join(itr)))
@@ -1905,10 +2193,20 @@ class FunctionDocument(CodeDocument):
             hint = self.returns
             name, paragraphs = self.doc.returns[0]
             notes.append(
-                "  > - **{:s}**: *{:s}*".format(name, hint.full_name),
+                "  > - *{:s}*: `{:s}`".format(name, hint.full_name),
             )
             for itr in paragraphs:
                 notes.append("  >   {:s}".format(" ".join(itr)))
+
+        # Add children notes with indent.
+        notes.append("")
+        notes.append("  ```python")
+        for itr in self.series.markdown():
+            if (len(itr) == 0):
+                notes.append(itr)
+            else:
+                notes.append("  {:s}".format(itr))
+        notes.append("  ```")
         return notes
 
 
@@ -1928,7 +2226,7 @@ class BlockDocument(CodeDocument):
     r"""
     Document for a block of code lines.
     """
-    def parse(self, code: Code) -> None:
+    def parse(self, code: Code, *args, **kargs) -> None:
         r"""
         Parse content.
 
@@ -1937,6 +2235,8 @@ class BlockDocument(CodeDocument):
         - self
         - code
             Tokenized code.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -2035,6 +2335,25 @@ class BlockDocument(CodeDocument):
             child.parse(self.code)
             self.children.append(child)
 
+    def markdown(self, *args, **kargs) -> List[str]:
+        r"""
+        Generate Markdown.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+        - notes
+            Markdown notes.
+
+        """
+        # Return no-implementation message.
+        return ["# Code Styled Copy (CSC) is not implemented."]
+
 
 # =============================================================================
 # *****************************************************************************
@@ -2056,7 +2375,7 @@ class ImportDocument(CodeDocument):
     r"""
     Document for an import code line.
     """
-    def parse(self, code: Code) -> None:
+    def parse(self, code: Code, *args, **kargs) -> None:
         r"""
         Parse content.
 
@@ -2065,6 +2384,8 @@ class ImportDocument(CodeDocument):
         - self
         - code
             Tokenized code.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -2086,13 +2407,15 @@ class ImportDocument(CodeDocument):
             self.parse_identifiers()
         self.expect(token.NEWLINE)
 
-    def parse_name(self) -> None:
+    def parse_name(self, *args, **kargs) -> None:
         r"""
         Parse name.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -2109,13 +2432,15 @@ class ImportDocument(CodeDocument):
             self.expect(token.NAME)
         self.name = ".".join(names)
 
-    def parse_identifiers(self) -> None:
+    def parse_identifiers(self, *args, **kargs) -> None:
         r"""
         Parse identifiers.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -2136,7 +2461,9 @@ class ConstDocument(CodeDocument):
     r"""
     Document for a constant code line.
     """
-    def __init__(self, *args, constants: List[Union[int, str]]) -> None:
+    def __init__(
+        self, *args, constants: List[Union[int, str]], **kargs,
+    ) -> None:
         r"""
         Initialize.
 
@@ -2146,18 +2473,19 @@ class ConstDocument(CodeDocument):
         - *args
         - constants
             Constant words in the code line.
+        - **kargs
 
         Returns
         -------
 
         """
         # Super.
-        CodeDocument.__init__(self, *args)
+        CodeDocument.__init__(self, *args, **kargs)
 
         # Save necessary attributes.
         self.CONSTS = constants
 
-    def parse(self, code: Code) -> None:
+    def parse(self, code: Code, *args, **kargs) -> None:
         r"""
         Parse content.
 
@@ -2166,6 +2494,8 @@ class ConstDocument(CodeDocument):
         - self
         - code
             Tokenized code.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -2180,7 +2510,7 @@ class DocStringDocument(CodeDocument):
     r"""
     Document for a document string for class/function.
     """
-    def parse(self, code: Code) -> None:
+    def parse(self, code: Code, *args, **kargs) -> None:
         r"""
         Parse content.
 
@@ -2189,6 +2519,8 @@ class DocStringDocument(CodeDocument):
         - self
         - code
             Tokenized code.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -2255,7 +2587,7 @@ class ClassDocDocument(DocStringDocument):
     r"""
     Document for a document string for class.
     """
-    def parse(self, code: Code) -> None:
+    def parse(self, code: Code, *args, **kargs) -> None:
         r"""
         Parse content.
 
@@ -2264,6 +2596,8 @@ class ClassDocDocument(DocStringDocument):
         - self
         - code
             Tokenized code.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -2280,7 +2614,7 @@ class FunctionDocDocument(DocStringDocument):
     r"""
     Document for a document string for function.
     """
-    def parse(self, code: Code) -> None:
+    def parse(self, code: Code, *args, **kargs) -> None:
         r"""
         Parse content.
 
@@ -2289,6 +2623,8 @@ class FunctionDocDocument(DocStringDocument):
         - self
         - code
             Tokenized code.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -2342,7 +2678,9 @@ class FunctionDocDocument(DocStringDocument):
         else:
             self.details = self.parse_details(parts[3])
 
-    def parse_args(self, part: List[str]) -> List[Tuple[str, List[List[str]]]]:
+    def parse_args(
+        self, part: List[str], *args, **kargs,
+    ) -> List[Tuple[str, List[List[str]]]]:
         r"""
         Parse argument description.
 
@@ -2351,6 +2689,8 @@ class FunctionDocDocument(DocStringDocument):
         - self
         - part
             Text content of argument description.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -2406,7 +2746,7 @@ class FunctionDocDocument(DocStringDocument):
         return desc
 
     def parse_returns(
-        self, part: List[str],
+        self, part: List[str], *args, **kargs,
     ) -> List[Tuple[str, List[List[str]]]]:
         r"""
         Parse return description.
@@ -2416,6 +2756,8 @@ class FunctionDocDocument(DocStringDocument):
         - self
         - part
             Text content of return description.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -2465,7 +2807,7 @@ class DecorateDocument(CodeDocument):
     r"""
     Document for a function decorator line.
     """
-    def parse(self, code: Code) -> None:
+    def parse(self, code: Code, *args, **kargs) -> None:
         r"""
         Parse content.
 
@@ -2474,6 +2816,8 @@ class DecorateDocument(CodeDocument):
         - self
         - code
             Tokenized code.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -2504,7 +2848,7 @@ class ArgumentDocument(CodeDocument):
     r"""
     Document for function arguments.
     """
-    def __init__(self, *args, multiple: bool) -> None:
+    def __init__(self, *args, multiple: bool, **kargs) -> None:
         r"""
         Initialize.
 
@@ -2514,18 +2858,19 @@ class ArgumentDocument(CodeDocument):
         - *args
         - multiple
             If True, the arguments are cross-line.
+        - **kargs
 
         Returns
         -------
 
         """
         # Super.
-        CodeDocument.__init__(self, *args)
+        CodeDocument.__init__(self, *args, **kargs)
 
         # Save necessary attributes.
         self.MULTIPLE = multiple
 
-    def parse(self, code: Code) -> None:
+    def parse(self, code: Code, *args, **kargs) -> None:
         r"""
         Parse content.
 
@@ -2534,6 +2879,8 @@ class ArgumentDocument(CodeDocument):
         - self
         - code
             Tokenized code.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -2545,6 +2892,8 @@ class ArgumentDocument(CodeDocument):
         self.children = []
 
         # Parse each pair of name and type hint.
+        get_args = False
+        get_kargs = False
         while (True):
             # Check ending signal.
             if (self.code.eof() or self.code.fit(
@@ -2567,6 +2916,13 @@ class ArgumentDocument(CodeDocument):
 
             # Parse hint except for some special names.
             if (name in ("self", "cls", "*args", "**kargs")):
+                # Variable argument and keyword argument are required.
+                if (name == "*args"):
+                    get_args = True
+                elif (name == "**kargs"):
+                    get_kargs = True
+                else:
+                    pass
                 hint = None
             else:
                 self.expect(":")
@@ -2600,13 +2956,24 @@ class ArgumentDocument(CodeDocument):
                 self.expect(token.NL)
             else:
                 pass
+        if (get_args and get_kargs):
+            pass
+        else:
+            error(
+                "{:s}, \"{:s}\", {:s}, \"*args\" and \"**kargs\" are" \
+                " required.",
+                "{:s}.parse".format(self.__class__.__name__),
+                self.PATH,
+                "\033[31;1;47;1m{:s}\033[0m".format(self.position),
+            )
+            raise RuntimeError
 
 
 class TypeHintDocument(CodeDocument):
     r"""
     Document for a type hint.
     """
-    def parse(self, code: Code) -> None:
+    def parse(self, code: Code, *args, **kargs) -> None:
         r"""
         Parse content.
 
@@ -2615,6 +2982,8 @@ class TypeHintDocument(CodeDocument):
         - self
         - code
             Tokenized code.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -2647,18 +3016,22 @@ class TypeHintDocument(CodeDocument):
                 offset = 0
 
             # Parse all children type hints.
-            child = TypeHintDocument(
-                self.PATH, self.LEVEL + offset, self.HIERARCHY,
-            )
-            child.parse(self.code)
-            self.children.append(child)
             while (not self.code.eof() and not self.code.fit(self.LEVEL, "]")):
-                self.expect(",")
                 child = TypeHintDocument(
                     self.PATH, self.LEVEL + offset, self.HIERARCHY,
                 )
                 child.parse(self.code)
                 self.children.append(child)
+                if (self.code.fit(self.LEVEL, "]")):
+                    break
+                else:
+                    self.LEVEL += offset
+                    self.expect(",")
+                    if (self.code.fit(self.LEVEL, token.NL)):
+                        self.expect(token.NL)
+                    else:
+                        pass
+                    self.LEVEL -= offset
 
             # Right paranthese.
             self.expect("]")
@@ -2666,13 +3039,15 @@ class TypeHintDocument(CodeDocument):
             pass
 
     @property
-    def full_name(self) -> str:
+    def full_name(self, *args, **kargs) -> str:
         r"""
         Get full name including all children for the type hint.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -2692,7 +3067,7 @@ class ReturnDocument(TypeHintDocument):
     r"""
     Document for function arguments.
     """
-    def parse(self, code: Code) -> None:
+    def parse(self, code: Code, *args, **kargs) -> None:
         r"""
         Parse content.
 
@@ -2701,6 +3076,8 @@ class ReturnDocument(TypeHintDocument):
         - self
         - code
             Tokenized code.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -2725,13 +3102,15 @@ class ReturnDocument(TypeHintDocument):
             )
 
     @property
-    def multiple(self) -> bool:
+    def multiple(self, *args, **kargs) -> bool:
         r"""
         Check if this is a multiple-return document.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -2747,7 +3126,7 @@ class OperateDocument(CodeDocument):
     r"""
     Document for an operation code line.
     """
-    def parse(self, code: Code) -> None:
+    def parse(self, code: Code, *args, **kargs) -> None:
         r"""
         Parse content.
 
@@ -2756,6 +3135,8 @@ class OperateDocument(CodeDocument):
         - self
         - code
             Tokenized code.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -2794,7 +3175,7 @@ class ConditionDocument(CodeDocument):
     r"""
     Document for a conditional code line.
     """
-    def parse(self, code: Code) -> None:
+    def parse(self, code: Code, *args, **kargs) -> None:
         r"""
         Parse content.
 
@@ -2803,6 +3184,8 @@ class ConditionDocument(CodeDocument):
         - self
         - code
             Tokenized code.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -2830,13 +3213,15 @@ class ConditionDocument(CodeDocument):
         self.child = SeriesDocument(self.PATH, self.LEVEL + 1, SHORT)
         self.child.parse(self.code)
 
-    def markdown(self) -> List[str]:
+    def markdown(self, *args, **kargs) -> List[str]:
         r"""
         Generate Markdown.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -2879,7 +3264,7 @@ class ElseDocument(CodeDocument):
     r"""
     Document for an else-statement code line.
     """
-    def parse(self, code: Code) -> None:
+    def parse(self, code: Code, *args, **kargs) -> None:
         r"""
         Parse content.
 
@@ -2888,6 +3273,8 @@ class ElseDocument(CodeDocument):
         - self
         - code
             Tokenized code.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -2905,13 +3292,15 @@ class ElseDocument(CodeDocument):
         self.child = SeriesDocument(self.PATH, self.LEVEL + 1, SHORT)
         self.child.parse(self.code)
 
-    def markdown(self) -> List[str]:
+    def markdown(self, *args, **kargs) -> List[str]:
         r"""
         Generate Markdown.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -2938,7 +3327,7 @@ class ForDocument(CodeDocument):
     r"""
     Document for a for-statement code line.
     """
-    def parse(self, code: Code) -> None:
+    def parse(self, code: Code, *args, **kargs) -> None:
         r"""
         Parse content.
 
@@ -2947,6 +3336,8 @@ class ForDocument(CodeDocument):
         - self
         - code
             Tokenized code.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -2991,13 +3382,15 @@ class ForDocument(CodeDocument):
         self.child = SeriesDocument(self.PATH, self.LEVEL + 1, SHORT)
         self.child.parse(self.code)
 
-    def markdown(self) -> List[str]:
+    def markdown(self, *args, **kargs) -> List[str]:
         r"""
         Generate Markdown.
 
         Args
         ----
         - self
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -3028,7 +3421,7 @@ class ParantheseDocument(CodeDocument):
     }
     KEYS = ["(", "[", "{"]
 
-    def __init__(self, *args, left: str) -> None:
+    def __init__(self, *args, left: str, **kargs) -> None:
         r"""
         Initialize.
 
@@ -3038,19 +3431,20 @@ class ParantheseDocument(CodeDocument):
         - *args
         - left
             Left paranthese.
+        - **kargs
 
         Returns
         -------
 
         """
         # Super.
-        CodeDocument.__init__(self, *args)
+        CodeDocument.__init__(self, *args, **kargs)
 
         # Save necessary attributes.
         self.LEFT = left
         self.RIGHT = self.DICT[left]
 
-    def parse(self, code: Code) -> None:
+    def parse(self, code: Code, *args, **kargs) -> None:
         r"""
         Parse content.
 
@@ -3059,6 +3453,8 @@ class ParantheseDocument(CodeDocument):
         - self
         - code
             Tokenized code.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -3083,12 +3479,19 @@ class ParantheseDocument(CodeDocument):
         self.LEVEL += int(self.multiple)
 
         # Parse each line inside the paranthese pair.
+        comma = False
         while (True):
             # Check ending signal.
             if (self.code.eof() or self.code.fit(
                 self.LEVEL - int(self.multiple), self.RIGHT,
             )):
                 break
+            else:
+                pass
+
+            # Mark comma for later style checking.
+            if (self.code.top.text == ","):
+                comma = True
             else:
                 pass
 
@@ -3123,7 +3526,7 @@ class ParantheseDocument(CodeDocument):
                     self.expect(token.NL)
                     self.memory.append("\n")
                     continue
-                elif (self.LEFT == "("):
+                elif (self.LEFT == "(" and not comma):
                     self.expect(token.NL)
                     break
                 else:
@@ -3158,12 +3561,14 @@ class ParantheseDocument(CodeDocument):
 # =============================================================================
 
 
-def script_logger() -> logging.Logger:
+def script_logger(*args, **kargs) -> logging.Logger:
     r"""
     Create script logger.
 
     Args
     ----
+    - *args
+    - **kargs
 
     Returns
     -------
@@ -3191,7 +3596,7 @@ def script_logger() -> logging.Logger:
     return logger
 
 
-def main(root: str) -> None:
+def main(root: str, *args, **kargs) -> None:
     r"""
     Main branch.
 
@@ -3199,16 +3604,20 @@ def main(root: str) -> None:
     ----
     - root
         Root.
+    - *args
+    - **kargs
 
     Returns
     -------
 
     """
     # Reset logging level.
-    update_universal_logger(script_logger())
+    update_universal_logger(logger=script_logger())
 
     # Get the document.
-    DirectoryDocument().parse(root)
+    doc = DirectoryDocument()
+    doc.parse(root)
+    doc.match()
 
 
 # Main entrance.
