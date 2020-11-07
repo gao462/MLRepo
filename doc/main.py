@@ -1827,7 +1827,14 @@ class FunctionDocument(CodeDocument):
         )
 
         # Get all argument names.
-        arg_names = [itr[0] for itr in self.args.children]
+        arg_names = []
+        for itr in self.args.children:
+            if (itr[0] == "*args"):
+                arg_names.append("\\*args")
+            elif (itr[0] == "**kargs"):
+                arg_names.append("\\*\\*kargs")
+            else:
+                arg_names.append(itr[0])
         arg_names = ", ".join(arg_names)
 
         # Use function and argument names as title.
@@ -1867,8 +1874,12 @@ class FunctionDocument(CodeDocument):
             for (name, hint), (_, paragraphs) in zip(
                 self.args.children, self.doc.args,
             ):
-                if (name in ("self", "cls", "*args", "**kargs")):
+                if (name in ("self", "cls")):
                     notes.append("  > - **{:s}**".format(name))
+                elif (name == "*args"):
+                    notes.append("  > - **{:s}**".format("\\*args"))
+                elif (name == "**kargs"):
+                    notes.append("  > - **{:s}**".format("\\*\\*kargs"))
                 else:
                     notes.append(
                         "  > - **{:s}**: *{:s}*".format(name, hint.full_name),

@@ -83,7 +83,7 @@
   > **Returns**
   > No returns.
 
-- Function [**log**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L179)(*level, fmt, *args, **kargs*)
+- Function [**log**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L179)(*level, fmt, \*args, \*\*kargs*)
 
   Log debug message.
 
@@ -95,8 +95,8 @@
   >   Logging level.
   > - **fmt**: *str*
   >   Formatter.
-  > - ***args**
-  > - ****kargs**
+  > - **\*args**
+  > - **\*\*kargs**
 
   > **Returns**
   > No returns.
@@ -105,7 +105,7 @@
 
 1, debug (10). 2, info1 (20). 3, info2 (25). 4, focus (30). 5, warning (40). 6, error (50).
 
-- Function [**debug**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L248)(**args, **kargs*)
+- Function [**debug**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L248)(*\*args, \*\*kargs*)
 
   Log debug message.
 
@@ -113,13 +113,13 @@
   > No decorators.
 
   > **Arguments**
-  > - ***args**
-  > - ****kargs**
+  > - **\*args**
+  > - **\*\*kargs**
 
   > **Returns**
   > No returns.
 
-- Function [**info1**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L265)(**args, **kargs*)
+- Function [**info1**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L265)(*\*args, \*\*kargs*)
 
   Log info (dark) message.
 
@@ -127,13 +127,13 @@
   > No decorators.
 
   > **Arguments**
-  > - ***args**
-  > - ****kargs**
+  > - **\*args**
+  > - **\*\*kargs**
 
   > **Returns**
   > No returns.
 
-- Function [**info2**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L282)(**args, **kargs*)
+- Function [**info2**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L282)(*\*args, \*\*kargs*)
 
   Log info (bright) message.
 
@@ -141,13 +141,13 @@
   > No decorators.
 
   > **Arguments**
-  > - ***args**
-  > - ****kargs**
+  > - **\*args**
+  > - **\*\*kargs**
 
   > **Returns**
   > No returns.
 
-- Function [**focus**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L299)(**args, **kargs*)
+- Function [**focus**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L299)(*\*args, \*\*kargs*)
 
   Log focusing message.
 
@@ -155,13 +155,13 @@
   > No decorators.
 
   > **Arguments**
-  > - ***args**
-  > - ****kargs**
+  > - **\*args**
+  > - **\*\*kargs**
 
   > **Returns**
   > No returns.
 
-- Function [**warning**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L316)(**args, **kargs*)
+- Function [**warning**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L316)(*\*args, \*\*kargs*)
 
   Log warning message.
 
@@ -169,13 +169,13 @@
   > No decorators.
 
   > **Arguments**
-  > - ***args**
-  > - ****kargs**
+  > - **\*args**
+  > - **\*\*kargs**
 
   > **Returns**
   > No returns.
 
-- Function [**error**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L333)(**args, **kargs*)
+- Function [**error**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L333)(*\*args, \*\*kargs*)
 
   Log error message.
 
@@ -183,8 +183,8 @@
   > No decorators.
 
   > **Arguments**
-  > - ***args**
-  > - ****kargs**
+  > - **\*args**
+  > - **\*\*kargs**
 
   > **Returns**
   > No returns.

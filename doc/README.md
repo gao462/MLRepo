@@ -330,7 +330,7 @@ Documentize tokenized code files, and check style rules in the meanwhile.
     > **Returns**
     > No returns.
 
-  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L623)(*self, *args, **kargs*)
+  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L623)(*self, \*args, \*\*kargs*)
 
     Parse content.
 
@@ -339,8 +339,8 @@ Documentize tokenized code files, and check style rules in the meanwhile.
 
     > **Arguments**
     > - **self**
-    > - ***args**
-    > - ****kargs**
+    > - **\*args**
+    > - **\*\*kargs**
 
     > **Returns**
     > No returns.
@@ -464,7 +464,7 @@ Documentize tokenized code files, and check style rules in the meanwhile.
     > **Returns**
     > No returns.
 
-  - Function [**expect**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L844)(*self, *args*)
+  - Function [**expect**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L844)(*self, \*args*)
 
     Expect next several code words to be the arguments.
 
@@ -473,7 +473,7 @@ Documentize tokenized code files, and check style rules in the meanwhile.
 
     > **Arguments**
     > - **self**
-    > - ***args**
+    > - **\*args**
 
     > **Returns**
     > No returns.
@@ -735,11 +735,11 @@ Code document for function definition.
 
 Code document on block level. This document will deal with a series of consecutive code lines (without any blank lines or dedent) starting with or without comment descriptions.
 
-- Class [**BlockDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1916)(*CodeDocument*)
+- Class [**BlockDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1927)(*CodeDocument*)
 
   Document for a block of code lines.
 
-  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1920)(*self, code*)
+  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1931)(*self, code*)
 
     Parse content.
 
@@ -760,11 +760,11 @@ Code document on line level. These documents will memorize essential information
 
 A single code line may corresponds to multiple text lines, e.g., multiple lines between a pair of parantheses. Slash line break for too long text lines is forbidden except for strings.
 
-- Class [**ImportDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2044)(*CodeDocument*)
+- Class [**ImportDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2055)(*CodeDocument*)
 
   Document for an import code line.
 
-  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2048)(*self, code*)
+  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2059)(*self, code*)
 
     Parse content.
 
@@ -779,7 +779,7 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
     > **Returns**
     > No returns.
 
-  - Function [**parse_name**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2078)(*self*)
+  - Function [**parse_name**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2089)(*self*)
 
     Parse name.
 
@@ -792,7 +792,7 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
     > **Returns**
     > No returns.
 
-  - Function [**parse_identifiers**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2101)(*self*)
+  - Function [**parse_identifiers**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2112)(*self*)
 
     Parse identifiers.
 
@@ -805,11 +805,11 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
     > **Returns**
     > No returns.
 
-- Class [**ConstDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2124)(*CodeDocument*)
+- Class [**ConstDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2135)(*CodeDocument*)
 
   Document for a constant code line.
 
-  - Function [**__init__**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2128)(*self, *args, constants*)
+  - Function [**__init__**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2139)(*self, \*args, constants*)
 
     Initialize.
 
@@ -818,14 +818,14 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
 
     > **Arguments**
     > - **self**
-    > - ***args**
+    > - **\*args**
     > - **constants**: *List[Union[int, str]]*
     >   Constant words in the code line.
 
     > **Returns**
     > No returns.
 
-  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2149)(*self, code*)
+  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2160)(*self, code*)
 
     Parse content.
 
@@ -840,11 +840,11 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
     > **Returns**
     > No returns.
 
-- Class [**DocStringDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2168)(*CodeDocument*)
+- Class [**DocStringDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2179)(*CodeDocument*)
 
   Document for a document string for class/function.
 
-  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2172)(*self, code*)
+  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2183)(*self, code*)
 
     Parse content.
 
@@ -859,11 +859,11 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
     > **Returns**
     > No returns.
 
-- Class [**ClassDocDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2243)(*DocStringDocument*)
+- Class [**ClassDocDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2254)(*DocStringDocument*)
 
   Document for a document string for class.
 
-  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2247)(*self, code*)
+  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2258)(*self, code*)
 
     Parse content.
 
@@ -878,11 +878,11 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
     > **Returns**
     > No returns.
 
-- Class [**FunctionDocDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2268)(*DocStringDocument*)
+- Class [**FunctionDocDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2279)(*DocStringDocument*)
 
   Document for a document string for function.
 
-  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2272)(*self, code*)
+  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2283)(*self, code*)
 
     Parse content.
 
@@ -897,7 +897,7 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
     > **Returns**
     > No returns.
 
-  - Function [**parse_args**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2334)(*self, part*)
+  - Function [**parse_args**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2345)(*self, part*)
 
     Parse argument description.
 
@@ -913,7 +913,7 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
     > - **desc**: *List[Tuple[str, List[List[str]]]]*
     >   A list of argument names and their description paragraphs.
 
-  - Function [**parse_returns**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2397)(*self, part*)
+  - Function [**parse_returns**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2408)(*self, part*)
 
     Parse return description.
 
@@ -929,11 +929,11 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
     > - **desc**: *List[Tuple[str, List[List[str]]]]*
     >   A list of return names and their description paragraphs.
 
-- Class [**DecorateDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2453)(*CodeDocument*)
+- Class [**DecorateDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2464)(*CodeDocument*)
 
   Document for a function decorator line.
 
-  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2457)(*self, code*)
+  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2468)(*self, code*)
 
     Parse content.
 
@@ -948,11 +948,11 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
     > **Returns**
     > No returns.
 
-- Class [**ArgumentDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2492)(*CodeDocument*)
+- Class [**ArgumentDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2503)(*CodeDocument*)
 
   Document for function arguments.
 
-  - Function [**__init__**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2496)(*self, *args, multiple*)
+  - Function [**__init__**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2507)(*self, \*args, multiple*)
 
     Initialize.
 
@@ -961,14 +961,14 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
 
     > **Arguments**
     > - **self**
-    > - ***args**
+    > - **\*args**
     > - **multiple**: *bool*
     >   If True, the arguments are cross-line.
 
     > **Returns**
     > No returns.
 
-  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2517)(*self, code*)
+  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2528)(*self, code*)
 
     Parse content.
 
@@ -983,11 +983,11 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
     > **Returns**
     > No returns.
 
-- Class [**TypeHintDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2594)(*CodeDocument*)
+- Class [**TypeHintDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2605)(*CodeDocument*)
 
   Document for a type hint.
 
-  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2598)(*self, code*)
+  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2609)(*self, code*)
 
     Parse content.
 
@@ -1002,7 +1002,7 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
     > **Returns**
     > No returns.
 
-  - Function [**full_name**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2657)(*self*)
+  - Function [**full_name**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2668)(*self*)
 
     Get full name including all children for the type hint.
 
@@ -1016,11 +1016,11 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
     > - **msg**: *str*
     >   Full name.
 
-- Class [**ReturnDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2680)(*TypeHintDocument*)
+- Class [**ReturnDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2691)(*TypeHintDocument*)
 
   Document for function arguments.
 
-  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2684)(*self, code*)
+  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2695)(*self, code*)
 
     Parse content.
 
@@ -1035,7 +1035,7 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
     > **Returns**
     > No returns.
 
-  - Function [**multiple**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2716)(*self*)
+  - Function [**multiple**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2727)(*self*)
 
     Check if this is a multiple-return document.
 
@@ -1049,11 +1049,11 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
     > - **flag**: *bool*
     >   If True, this is a multiple-return document.
 
-- Class [**OperateDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2735)(*CodeDocument*)
+- Class [**OperateDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2746)(*CodeDocument*)
 
   Document for an operation code line.
 
-  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2739)(*self, code*)
+  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2750)(*self, code*)
 
     Parse content.
 
@@ -1068,11 +1068,11 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
     > **Returns**
     > No returns.
 
-- Class [**ConditionDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2782)(*CodeDocument*)
+- Class [**ConditionDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2793)(*CodeDocument*)
 
   Document for a conditional code line.
 
-  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2786)(*self, code*)
+  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2797)(*self, code*)
 
     Parse content.
 
@@ -1087,7 +1087,7 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
     > **Returns**
     > No returns.
 
-  - Function [**markdown**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2822)(*self*)
+  - Function [**markdown**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2833)(*self*)
 
     Generate Markdown.
 
@@ -1101,7 +1101,7 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
     > - **notes**: *List[str]*
     >   Markdown notes.
 
-- Class [**IfDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2851)(*ConditionDocument*)
+- Class [**IfDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2862)(*ConditionDocument*)
 
   Document for an if-statement code line.
 
@@ -1109,7 +1109,7 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
 
     Define constants.
 
-- Class [**ElifDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2859)(*ConditionDocument*)
+- Class [**ElifDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2870)(*ConditionDocument*)
 
   Document for an elif-statement code line.
 
@@ -1117,11 +1117,11 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
 
     Define constants.
 
-- Class [**ElseDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2867)(*CodeDocument*)
+- Class [**ElseDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2878)(*CodeDocument*)
 
   Document for an else-statement code line.
 
-  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2871)(*self, code*)
+  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2882)(*self, code*)
 
     Parse content.
 
@@ -1136,7 +1136,7 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
     > **Returns**
     > No returns.
 
-  - Function [**markdown**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2897)(*self*)
+  - Function [**markdown**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2908)(*self*)
 
     Generate Markdown.
 
@@ -1150,7 +1150,7 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
     > - **notes**: *List[str]*
     >   Markdown notes.
 
-- Class [**WhileDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2918)(*ConditionDocument*)
+- Class [**WhileDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2929)(*ConditionDocument*)
 
   Document for a while-statement code line.
 
@@ -1158,11 +1158,11 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
 
     Define constants.
 
-- Class [**ForDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2926)(*CodeDocument*)
+- Class [**ForDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2937)(*CodeDocument*)
 
   Document for a for-statement code line.
 
-  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2930)(*self, code*)
+  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2941)(*self, code*)
 
     Parse content.
 
@@ -1177,7 +1177,7 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
     > **Returns**
     > No returns.
 
-  - Function [**markdown**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2983)(*self*)
+  - Function [**markdown**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2994)(*self*)
 
     Generate Markdown.
 
@@ -1191,7 +1191,7 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
     > - **notes**: *List[str]*
     >   Markdown notes.
 
-- Class [**ParantheseDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3008)(*CodeDocument*)
+- Class [**ParantheseDocument**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3019)(*CodeDocument*)
 
   Document for a cross-line paranthese code line.
 
@@ -1199,7 +1199,7 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
 
     Define consntants.
 
-  - Function [**__init__**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3020)(*self, *args, left*)
+  - Function [**__init__**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3031)(*self, \*args, left*)
 
     Initialize.
 
@@ -1208,14 +1208,14 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
 
     > **Arguments**
     > - **self**
-    > - ***args**
+    > - **\*args**
     > - **left**: *str*
     >   Left paranthese.
 
     > **Returns**
     > No returns.
 
-  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3042)(*self, code*)
+  - Function [**parse**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3053)(*self, code*)
 
     Parse content.
 
@@ -1234,7 +1234,7 @@ A single code line may corresponds to multiple text lines, e.g., multiple lines 
 
 Main branch starts here.
 
-- Function [**script_logger**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3150)()
+- Function [**script_logger**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3161)()
 
   Create script logger.
 
@@ -1248,7 +1248,7 @@ Main branch starts here.
   > - **logger**: *logging.Logger*
   >   Default logger.
 
-- Function [**main**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3183)(*root*)
+- Function [**main**](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3194)(*root*)
 
   Main branch.
 
