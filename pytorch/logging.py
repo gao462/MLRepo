@@ -1,3 +1,6 @@
+# Import future.
+from __future__ import annotations
+
 # Import typing.
 from typing import Any
 from typing import Tuple as MultiReturn
@@ -34,15 +37,15 @@ else:
 
 
 # Different levels as integers.
-DEBUG   = 10
-INFO1   = 20
-INFO2   = 25
-FOCUS   = 30
+DEBUG = 10
+INFO1 = 20
+INFO2 = 25
+FOCUS = 30
 WARNING = 40
-ERROR   = 50
+ERROR = 50
 
 
-def default_logger(*args, **kargs) -> logging.Logger:
+def default_logger(*args: object, **kargs: object) -> logging.Logger:
     r"""
     Create default logger.
 
@@ -58,7 +61,7 @@ def default_logger(*args, **kargs) -> logging.Logger:
 
     """
     # Allocate logger.
-    logger = logging.getLogger('default_logger')
+    logger = logging.getLogger("default_logger")
     logger.setLevel(level=DEBUG)
 
     # Define logging line format.
@@ -76,10 +79,12 @@ def default_logger(*args, **kargs) -> logging.Logger:
 
 # Univeral logger and maximum number of characters.
 UNIVERSAL_LOGGER = default_logger()
-MAX = 79
+MAX = 10 + 79
 
 
-def update_universal_logger(*args, logger: logging.Logger, **kargs) -> None:
+def update_universal_logger(
+    *args: object, logger: logging.Logger, **kargs: object,
+) -> None:
     r"""
     Update universal logger by given logger.
 
@@ -99,7 +104,7 @@ def update_universal_logger(*args, logger: logging.Logger, **kargs) -> None:
     UNIVERSAL_LOGGER = logger
 
 
-def update_max(*args, val: int, **kargs) -> None:
+def update_max(*args: object, val: int, **kargs: object) -> None:
     r"""
     Update maximum number of characters.
 
@@ -120,35 +125,35 @@ def update_max(*args, val: int, **kargs) -> None:
 
 
 # Colorful ASCII code on ConEmu palette.
-CLR_BLACK  = "30"
+CLR_BLACK = "30"
 CLR_ORANGE = "31"
-CLR_TEAL   = "32"
-CLR_OLIVE  = "33"
-CLR_CADET  = "34"
+CLR_TEAL = "32"
+CLR_OLIVE = "33"
+CLR_CADET = "34"
 CLR_PURPLE = "35"
-CLR_NAVY   = "36"
-CLR_PALE   = "37"
-CLR_GRAY   = "30;1"
-CLR_RED    = "31;1"
-CLR_GREEN  = "32;1"
+CLR_NAVY = "36"
+CLR_PALE = "37"
+CLR_GRAY = "30;1"
+CLR_RED = "31;1"
+CLR_GREEN = "32;1"
 CLR_YELLOW = "33;1"
-CLR_BLUE   = "34;1"
-CLR_PINK   = "35;1"
-CLR_CYAN   = "36;1"
-CLR_WHITE  = "37;1"
+CLR_BLUE = "34;1"
+CLR_PINK = "35;1"
+CLR_CYAN = "36;1"
+CLR_WHITE = "37;1"
 
 
 # Colorful fix-length level.
 CLRFIX = {}
-CLRFIX[DEBUG]   = "\033[{:s}mDEBUG   \033[0m".format(CLR_YELLOW)
-CLRFIX[INFO1]   = "\033[{:s}mINFO    \033[0m".format(CLR_CYAN)
-CLRFIX[INFO2]   = "\033[{:s}mINFO    \033[0m".format(CLR_BLUE)
-CLRFIX[FOCUS]   = "\033[{:s}mINFO    \033[0m".format(CLR_GREEN)
+CLRFIX[DEBUG] = "\033[{:s}mDEBUG   \033[0m".format(CLR_YELLOW)
+CLRFIX[INFO1] = "\033[{:s}mINFO    \033[0m".format(CLR_CYAN)
+CLRFIX[INFO2] = "\033[{:s}mINFO    \033[0m".format(CLR_BLUE)
+CLRFIX[FOCUS] = "\033[{:s}mINFO    \033[0m".format(CLR_GREEN)
 CLRFIX[WARNING] = "\033[{:s}mWARNING \033[0m".format(CLR_PINK)
-CLRFIX[ERROR]   = "\033[{:s}mERROR   \033[0m".format(CLR_RED)
+CLRFIX[ERROR] = "\033[{:s}mERROR   \033[0m".format(CLR_RED)
 
 
-def check_format(*args, level: int, msg: str, **kargs) -> None:
+def check_format(*args: object, level: int, msg: str, **kargs: object) -> None:
     r"""
     Check message format.
 
@@ -165,26 +170,24 @@ def check_format(*args, level: int, msg: str, **kargs) -> None:
     -------
 
     """
-    # Message starts with (class.function, ), and end with dot.
-    buf = msg.split(", ")[0].split(".")
-    if (len(buf) == 2 or level in (INFO1, INFO2, FOCUS)):
+    # Message must start with a captial character.
+    if (msg[0].isdigit() or msg[0].isupper()):
         pass
     else:
         warning(
-            "__main__.check_format, message should start with \"class." \
-            "function, \".",
+            "Message should start with a captial char.",
         )
 
-    # Message ends with dot.
+    # Message must end with dot.
     if (msg[-1] == "."):
         pass
     else:
         warning(
-            "__main__.check_format, message should end with \".\".",
+            "Message should end with \".\".",
         )
 
 
-def log(level: int, fmt:str, *args, **kargs) -> None:
+def log(level: int, fmt:str, *args: object, **kargs: object) -> None:
     r"""
     Log debug message.
 
@@ -242,23 +245,27 @@ def log(level: int, fmt:str, *args, **kargs) -> None:
 # *****************************************************************************
 # -----------------------------------------------------------------------------
 # << Define Logging Operations >>
-# 1, debug (10).
-# 2, info1 (20).
-# 3, info2 (25).
-# 4, focus (30).
-# 5, warning (40).
-# 6, error (50).
+# Operations are just `log` function with fixed logging level integer.
+# The corresponding values are given in the paranthese.
+# 1, `debug` (10).
+# 2, `info1` (20).
+# 3, `info2` (25).
+# 4, `focus` (30).
+# 5, `warning` (40).
+# 6, `error` (50).
 # -----------------------------------------------------------------------------
 # *****************************************************************************
 # =============================================================================
 
 
-def debug(*args, **kargs) -> None:
+def debug(fmt: str, *args: object, **kargs: object) -> None:
     r"""
     Log debug message.
 
     Args
     ----
+    - fmt
+        Formatter.
     - *args
     - **kargs
 
@@ -267,15 +274,17 @@ def debug(*args, **kargs) -> None:
 
     """
     # Send message to universal logger.
-    log(DEBUG, *args, **kargs)
+    log(DEBUG, fmt, *args, **kargs)
 
 
-def info1(*args, **kargs) -> None:
+def info1(fmt: str, *args: object, **kargs: object) -> None:
     r"""
     Log info (dark) message.
 
     Args
     ----
+    - fmt
+        Formatter.
     - *args
     - **kargs
 
@@ -284,15 +293,17 @@ def info1(*args, **kargs) -> None:
 
     """
     # Send message to universal logger.
-    log(INFO1, *args, **kargs)
+    log(INFO1, fmt, *args, **kargs)
 
 
-def info2(*args, **kargs) -> None:
+def info2(fmt: str, *args: object, **kargs: object) -> None:
     r"""
     Log info (bright) message.
 
     Args
     ----
+    - fmt
+        Formatter.
     - *args
     - **kargs
 
@@ -301,15 +312,17 @@ def info2(*args, **kargs) -> None:
 
     """
     # Send message to universal logger.
-    log(INFO2, *args, **kargs)
+    log(INFO2, fmt, *args, **kargs)
 
 
-def focus(*args, **kargs) -> None:
+def focus(fmt: str, *args: object, **kargs: object) -> None:
     r"""
     Log focusing message.
 
     Args
     ----
+    - fmt
+        Formatter.
     - *args
     - **kargs
 
@@ -318,15 +331,17 @@ def focus(*args, **kargs) -> None:
 
     """
     # Send message to universal logger.
-    log(FOCUS, *args, **kargs)
+    log(FOCUS, fmt, *args, **kargs)
 
 
-def warning(*args, **kargs) -> None:
+def warning(fmt: str, *args: object, **kargs: object) -> None:
     r"""
     Log warning message.
 
     Args
     ----
+    - fmt
+        Formatter.
     - *args
     - **kargs
 
@@ -335,15 +350,17 @@ def warning(*args, **kargs) -> None:
 
     """
     # Send message to universal logger.
-    log(WARNING, *args, **kargs)
+    log(WARNING, fmt, *args, **kargs)
 
 
-def error(*args, **kargs) -> None:
+def error(fmt: str, *args: object, **kargs: object) -> None:
     r"""
     Log error message.
 
     Args
     ----
+    - fmt
+        Formatter.
     - *args
     - **kargs
 
@@ -352,4 +369,4 @@ def error(*args, **kargs) -> None:
 
     """
     # Send message to universal logger.
-    log(ERROR, *args, **kargs)
+    log(ERROR, fmt, *args, **kargs)

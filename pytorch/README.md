@@ -3,261 +3,67 @@
 
 ## pytorch/logging.py
 
-- Dependent on: `typing`, `sys`, `os`, `logging`.
+- Dependent on: `__future__`, `typing`, `sys`, `os`, `logging`
+
+  > ```python
+  > # Import future.
+  > from __future__ import annotations
+  >
+  > # Import typing.
+  > from typing import Any
+  > from typing import Tuple as MultiReturn
+  >
+  > # Import dependencies.
+  > import sys
+  > import os
+  > import logging
+  >
+  > # Add development library to path.
+  > if (os.path.basename(os.getcwd()) == "MLRepo"):
+  >     sys.path.append(os.path.join("."))
+  > else:
+  >     print("Code must strictly work in \"MLRepo\".")
+  >     exit()
+  >
+  > # Import logging.
+  >
+  > # Import dependencies.
+  > ```
 
 ### Define Logging Utilities
 
 1, Create default logger. 2, Universal logger. 3, Update universal logger by given logger. 4, Check message format. 5, Output multiple-line message.
 
-- [Block](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L36)
+#### Block: Different levels ...
 
-  Different levels as integers.
-  ```python
-  # Code Styled Copy (CSC) is not implemented.
-  ```
+#### Function: default_logger
 
-- Function [**default_logger**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L45)(*\*args, \*\*kargs*)
+#### Block: Univeral logger a...
 
-  Create default logger.
+#### Function: update_universal_logger
 
-  > **Decorators**
-  > No decorators.
+#### Function: update_max
 
-  > **Arguments**
-  > - *\*args*
-  > - *\*\*kargs*
+#### Block: Colorful ASCII co...
 
-  > **Returns**
-  > - *logger*: `logging.Logger`
-  >   Default logger.
+#### Block: Colorful fix-leng...
 
-  ```python
-  # Code Styled Copy (CSC) is not implemented.
+#### Function: check_format
 
-  # Code Styled Copy (CSC) is not implemented.
-
-  # Code Styled Copy (CSC) is not implemented.
-
-  # Code Styled Copy (CSC) is not implemented.
-  ```
-
-- [Block](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L77)
-
-  Univeral logger and maximum number of characters.
-  ```python
-  # Code Styled Copy (CSC) is not implemented.
-  ```
-
-- Function [**update_universal_logger**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L82)(*\*args, logger, \*\*kargs*)
-
-  Update universal logger by given logger.
-
-  > **Decorators**
-  > No decorators.
-
-  > **Arguments**
-  > - *\*args*
-  > - *logger*: `logging.Logger`
-  >   New logger.
-  > - *\*\*kargs*
-
-  > **Returns**
-  > No returns.
-
-  ```python
-  # Code Styled Copy (CSC) is not implemented.
-  ```
-
-- Function [**update_max**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L102)(*\*args, val, \*\*kargs*)
-
-  Update maximum number of characters.
-
-  > **Decorators**
-  > No decorators.
-
-  > **Arguments**
-  > - *\*args*
-  > - *val*: `int`
-  >   Maximum.
-  > - *\*\*kargs*
-
-  > **Returns**
-  > No returns.
-
-  ```python
-  # Code Styled Copy (CSC) is not implemented.
-  ```
-
-- [Block](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L122)
-
-  Colorful ASCII code on ConEmu palette.
-  ```python
-  # Code Styled Copy (CSC) is not implemented.
-  ```
-
-- [Block](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L141)
-
-  Colorful fix-length level.
-  ```python
-  # Code Styled Copy (CSC) is not implemented.
-  ```
-
-- Function [**check_format**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L151)(*\*args, level, msg, \*\*kargs*)
-
-  Check message format.
-
-  > **Decorators**
-  > No decorators.
-
-  > **Arguments**
-  > - *\*args*
-  > - *level*: `int`
-  >   Logging level.
-  > - *msg*: `str`
-  >   Message.
-  > - *\*\*kargs*
-
-  > **Returns**
-  > No returns.
-
-  ```python
-  # Code Styled Copy (CSC) is not implemented.
-
-  # Code Styled Copy (CSC) is not implemented.
-  ```
-
-- Function [**log**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L187)(*level, fmt, \*args, \*\*kargs*)
-
-  Log debug message.
-
-  > **Decorators**
-  > No decorators.
-
-  > **Arguments**
-  > - *level*: `int`
-  >   Logging level.
-  > - *fmt*: `str`
-  >   Formatter.
-  > - *\*args*
-  > - *\*\*kargs*
-
-  > **Returns**
-  > No returns.
-
-  ```python
-  # Code Styled Copy (CSC) is not implemented.
-
-  # Code Styled Copy (CSC) is not implemented.
-  ```
+#### Function: log
 
 ### Define Logging Operations
 
-1, debug (10). 2, info1 (20). 3, info2 (25). 4, focus (30). 5, warning (40). 6, error (50).
+Operations are just `log` function with fixed logging level integer. The corresponding values are given in the paranthese. 1, `debug` (10). 2, `info1` (20). 3, `info2` (25). 4, `focus` (30). 5, `warning` (40). 6, `error` (50).
 
-- Function [**debug**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L256)(*\*args, \*\*kargs*)
+#### Function: debug
 
-  Log debug message.
+#### Function: info1
 
-  > **Decorators**
-  > No decorators.
+#### Function: info2
 
-  > **Arguments**
-  > - *\*args*
-  > - *\*\*kargs*
+#### Function: focus
 
-  > **Returns**
-  > No returns.
+#### Function: warning
 
-  ```python
-  # Code Styled Copy (CSC) is not implemented.
-  ```
-
-- Function [**info1**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L273)(*\*args, \*\*kargs*)
-
-  Log info (dark) message.
-
-  > **Decorators**
-  > No decorators.
-
-  > **Arguments**
-  > - *\*args*
-  > - *\*\*kargs*
-
-  > **Returns**
-  > No returns.
-
-  ```python
-  # Code Styled Copy (CSC) is not implemented.
-  ```
-
-- Function [**info2**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L290)(*\*args, \*\*kargs*)
-
-  Log info (bright) message.
-
-  > **Decorators**
-  > No decorators.
-
-  > **Arguments**
-  > - *\*args*
-  > - *\*\*kargs*
-
-  > **Returns**
-  > No returns.
-
-  ```python
-  # Code Styled Copy (CSC) is not implemented.
-  ```
-
-- Function [**focus**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L307)(*\*args, \*\*kargs*)
-
-  Log focusing message.
-
-  > **Decorators**
-  > No decorators.
-
-  > **Arguments**
-  > - *\*args*
-  > - *\*\*kargs*
-
-  > **Returns**
-  > No returns.
-
-  ```python
-  # Code Styled Copy (CSC) is not implemented.
-  ```
-
-- Function [**warning**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L324)(*\*args, \*\*kargs*)
-
-  Log warning message.
-
-  > **Decorators**
-  > No decorators.
-
-  > **Arguments**
-  > - *\*args*
-  > - *\*\*kargs*
-
-  > **Returns**
-  > No returns.
-
-  ```python
-  # Code Styled Copy (CSC) is not implemented.
-  ```
-
-- Function [**error**](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L341)(*\*args, \*\*kargs*)
-
-  Log error message.
-
-  > **Decorators**
-  > No decorators.
-
-  > **Arguments**
-  > - *\*args*
-  > - *\*\*kargs*
-
-  > **Returns**
-  > No returns.
-
-  ```python
-  # Code Styled Copy (CSC) is not implemented.
-  ```
+#### Function: error
