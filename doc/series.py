@@ -302,10 +302,22 @@ class ClassDocument(CodeDocument):
         else:
             link = self.super
 
-        # Title is class name with its super link.
+        # Title is class name.
         console, markdown = [], []
         console.append("#### Class: \033[32;1m{:s}\033[0m".format(self.name))
         markdown.append("#### Class: {:s}".format(self.name))
+
+        # Super link to source code is required.
+        source = os.path.join(
+            self.FILEDOC.GITHUB, "blob", "master", self.FILEDOC.path,
+        )
+        source = "{:s}#L{:d}".format(source, self.row)
+        console.append("")
+        markdown.append("")
+        console.append("- Source: [Github]({:s})".format(source))
+        markdown.append("- Source: [Github]({:s})".format(source))
+
+        # Super class is required.
         console.append("")
         markdown.append("")
         console.append("- Super: \033[32m{:s}\033[0m".format(self.super))
@@ -429,6 +441,16 @@ class FunctionDocument(CodeDocument):
         )
         markdown.append("#### Function: {:s}".format(self.name))
 
+        # Super link to source code is required.
+        source = os.path.join(
+            self.FILEDOC.GITHUB, "blob", "master", self.FILEDOC.path,
+        )
+        source = "{:s}#L{:d}".format(source, self.row)
+        console.append("")
+        markdown.append("")
+        console.append("- Source: [Github]({:s})".format(source))
+        markdown.append("- Source: [Github]({:s})".format(source))
+
         # Block notes is just a list of its statments notes.
         self.notes_console = console
         self.notes_markdown = markdown
@@ -524,6 +546,16 @@ class OPBlockDocument(CodeDocument):
         console, markdown = [], []
         console.append("#### Block: \033[30;1m{:s}\033[0m".format(title))
         markdown.append("#### Block: {:s}".format(title))
+
+        # Super link to source code is required.
+        source = os.path.join(
+            self.FILEDOC.GITHUB, "blob", "master", self.FILEDOC.path,
+        )
+        source = "{:s}#L{:d}".format(source, self.row)
+        console.append("")
+        markdown.append("")
+        console.append("- Source: [Github]({:s})".format(source))
+        markdown.append("- Source: [Github]({:s})".format(source))
 
         # Block notes is just a list of its statments notes.
         self.notes_console = console

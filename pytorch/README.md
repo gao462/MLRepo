@@ -55,21 +55,39 @@
 
 #### Block: Different levels ...
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L39)
+
 #### Function: default_logger
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L48)
 
 #### Block: Univeral logger a...
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L80)
+
 #### Function: update_universal_logger
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L85)
 
 #### Function: update_max
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L107)
+
 #### Block: Colorful ASCII co...
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L127)
 
 #### Block: Colorful fix-leng...
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L146)
+
 #### Function: check_format
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L156)
+
 #### Function: log
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L190)
 
 ### Define Logging Operations
 
@@ -77,12 +95,24 @@ Operations are just `log` function with fixed logging level integer. The corresp
 
 #### Function: debug
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L261)
+
 #### Function: info1
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L280)
 
 #### Function: info2
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L299)
+
 #### Function: focus
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L318)
 
 #### Function: warning
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L337)
+
 #### Function: error
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L356)

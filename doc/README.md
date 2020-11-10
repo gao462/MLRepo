@@ -95,9 +95,13 @@ Code document on global level. It contains module import document which traces a
 
 #### Class: ModuleDocument
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/globe.py#L43)
+
 - Super: [CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-codedocument)
 
 #### Class: GlobalDocument
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/globe.py#L268)
 
 - Super: [CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-codedocument)
 
@@ -142,15 +146,23 @@ Document is overall prototype, and is used for file system related things. CodeD
 
 #### Class: Document
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L41)
+
 - Super: object
 
 #### Block: Hierarchy constants.
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L86)
+
 #### Class: FileSysDocument
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L94)
 
 - Super: [Document](#class-document)
 
 #### Class: CodeDocument
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L160)
 
 - Super: [Document](#class-document)
 
@@ -191,6 +203,8 @@ Document is overall prototype, and is used for file system related things. CodeD
 Main branch starts from here.
 
 #### Block: Generate all notes.
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L36)
 
 ---
 
@@ -236,13 +250,19 @@ A block often start with several comments lines, except that in a branch with on
 
 #### Class: BlockDocument
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L45)
+
 - Super: [CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-codedocument)
 
 #### Class: ImportBlockDocument
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L99)
+
 - Super: [BlockDocument](#class-blockdocument)
 
 #### Class: ConstBlockDocument
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L234)
 
 - Super: [BlockDocument](#class-blockdocument)
 
@@ -289,33 +309,57 @@ Style related constants and utility functions are also defined.
 
 #### Class: Word
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L44)
+
 - Super: object
 
 #### Class: Line
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L126)
 
 - Super: object
 
 #### Block: Define essential ...
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L348)
+
 #### Block: Define single wor...
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L353)
 
 #### Block: Overwrite compose...
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L359)
+
 #### Block: Define not-word w...
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L364)
 
 #### Block: Define sentence w...
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L370)
+
 #### Block: Define sentence r...
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L376)
+
 #### Class: Code
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L383)
 
 - Super: object
 
 #### Function: line_rule_length
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L953)
+
 #### Function: recover
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L1052)
+
 #### Function: paragraphize
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L1080)
 
 ---
 
@@ -362,6 +406,8 @@ It will mutually import with ClassDocument, FunctionDocument, OPBlockDocument. T
 
 #### Class: SeriesDocument
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L48)
+
 - Super: [CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-codedocument)
 
 ### Class Code Document Objects
@@ -369,6 +415,8 @@ It will mutually import with ClassDocument, FunctionDocument, OPBlockDocument. T
 Code document for a definition of class. It can mutually import with SeriesDocument, thus it is put in this file.
 
 #### Class: ClassDocument
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L196)
 
 - Super: [CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-codedocument)
 
@@ -378,6 +426,8 @@ Code document for a definition of function. It can mutually import with SeriesDo
 
 #### Class: FunctionDocument
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L345)
+
 - Super: [CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-codedocument)
 
 ### Operation Block Code Document Objects
@@ -385,6 +435,8 @@ Code document for a definition of function. It can mutually import with SeriesDo
 Code document for a block of operation code. It can mutually import with SeriesDocument, thus it is put in this file.
 
 #### Class: OPBlockDocument
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L473)
 
 - Super: [CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-codedocument)
 
@@ -430,17 +482,25 @@ Code document for a line of statement. Different statement types have their own 
 
 #### Class: CommentDocument
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L42)
+
 - Super: [CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-codedocument)
 
 #### Class: ImportDocument
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L171)
 
 - Super: [CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-codedocument)
 
 #### Class: ConstDocument
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L474)
+
 - Super: [CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-codedocument)
 
 #### Class: IntroDocument
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L594)
 
 - Super: [CommentDocument](#class-commentdocument)
 
@@ -495,10 +555,16 @@ After the generation, a strict description matching is applied on classes with i
 
 #### Class: DirectoryDocument
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L62)
+
 - Super: [FileSysDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-filesysdocument)
 
 #### Class: FileDocument
 
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L235)
+
 - Super: [FileSysDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-filesysdocument)
 
 #### Function: toc
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L350)
