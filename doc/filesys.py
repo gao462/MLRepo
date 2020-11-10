@@ -9,6 +9,7 @@ from typing import List
 # Import dependencies.
 import sys
 import os
+import re
 
 # Add development library to path.
 if (os.path.basename(os.getcwd()) == "MLRepo"):
@@ -198,8 +199,10 @@ class DirectoryDocument(FileSysDocument):
             markdown.extend(["", "---", ""])
             console.extend(filedoc.notes_console)
             markdown.extend(filedoc.notes_markdown)
-        self.notes_console = console
-        self.notes_markdown = markdown
+
+        # Generate table of content.
+        self.notes_console = toc(console) + console
+        self.notes_markdown = toc(markdown) + markdown
 
         # Save markdown note as README.
         file = open(os.path.join(self.path, "README.md"), "w")
@@ -342,3 +345,55 @@ class FileDocument(FileSysDocument):
         # Clear children notes for memory efficency.
         self.modules.notes_console.clear()
         self.modules.notes_markdown.clear()
+
+
+def toc(notes: List[str], *args: object, **kargs: object) -> List[str]:
+    r"""
+    Generate table of content from given notes.
+
+    Args
+    ----
+    - notes
+        Notes.
+    - *args
+    - **kargs
+
+    Returns
+    -------
+    - toc
+        Notes for table of content.
+
+    """
+    # Registrate all headers by Github header reference behavior.
+    headers: List[Tuple[int, str, str]] = []
+    for itr in notes:
+        # Header level matters.
+        level = 0
+        while (level < len(itr) and itr[level] == "#"):
+            level += 1
+        if (level == 0):
+            continue
+        else:
+            pass
+
+        # Get header text.
+        text = itr[level + 1:]
+        refer = text
+
+        # Github reference ignores ".".
+        refer = re.sub(r"\.", "", refer)
+
+        # Github reference ignores colorful ASCII.
+        refer = re.sub(r"\033\[[^m]+m", "", refer)
+
+        # Github reference replace consecutive non-word chars by a "-".
+        refer = re.sub(r"[^\w]+", "-", refer.lower().strip())
+        headers.append((level, text, refer))
+
+    # Generate TOC.
+    toc = ["* Table of Content"]
+    for level, text, refer in headers:
+        indent = "  " * (level - 1)
+        link = "{:s}* [{:s}](#{:s})".format(indent, text, refer)
+        toc.append(link)
+    return toc

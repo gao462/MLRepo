@@ -1,3 +1,56 @@
+* Table of Content
+  * [doc/globe.py](#doc-globepy)
+    * [Global Code Document Objects](#global-code-document-objects)
+      * [Class: ModuleDocument](#class-moduledocument)
+      * [Class: GlobalDocument](#class-globaldocument)
+  * [doc/base.py](#doc-basepy)
+    * [Document Prototype Objects](#document-prototype-objects)
+      * [Class: Document](#class-document)
+      * [Block: Hierarchy constants.](#block-hierarchy-constants)
+      * [Class: FileSysDocument](#class-filesysdocument)
+      * [Class: CodeDocument](#class-codedocument)
+  * [doc/main.py](#doc-mainpy)
+    * [Main](#main)
+      * [Block: Generate all notes.](#block-generate-all-notes)
+  * [doc/block.py](#doc-blockpy)
+    * [Block Code Document Objects](#block-code-document-objects)
+      * [Class: BlockDocument](#class-blockdocument)
+      * [Class: ImportBlockDocument](#class-importblockdocument)
+      * [Class: ConstBlockDocument](#class-constblockdocument)
+  * [doc/code.py](#doc-codepy)
+    * [Code Objects](#code-objects)
+      * [Class: Word](#class-word)
+      * [Class: Line](#class-line)
+      * [Block: Define essential ...](#block-define-essential)
+      * [Block: Define single wor...](#block-define-single-wor)
+      * [Block: Overwrite compose...](#block-overwrite-compose)
+      * [Block: Define not-word w...](#block-define-not-word-w)
+      * [Block: Define sentence w...](#block-define-sentence-w)
+      * [Block: Define sentence r...](#block-define-sentence-r)
+      * [Class: Code](#class-code)
+      * [Function: line_rule_length](#function-line_rule_length)
+      * [Function: recover](#function-recover)
+      * [Function: paragraphize](#function-paragraphize)
+  * [doc/series.py](#doc-seriespy)
+    * [Series Code Document Objects](#series-code-document-objects)
+      * [Class: SeriesDocument](#class-seriesdocument)
+    * [Class Code Document Objects](#class-code-document-objects)
+      * [Class: ClassDocument](#class-classdocument)
+    * [Function Code Document Objects](#function-code-document-objects)
+      * [Class: FunctionDocument](#class-functiondocument)
+    * [Operation Block Code Document Objects](#operation-block-code-document-objects)
+      * [Class: OPBlockDocument](#class-opblockdocument)
+  * [doc/statement.py](#doc-statementpy)
+    * [Statement Code Document Objects](#statement-code-document-objects)
+      * [Class: CommentDocument](#class-commentdocument)
+      * [Class: ImportDocument](#class-importdocument)
+      * [Class: ConstDocument](#class-constdocument)
+      * [Class: IntroDocument](#class-introdocument)
+  * [doc/filesys.py](#doc-filesyspy)
+    * [File System Document Objects](#file-system-document-objects)
+      * [Class: DirectoryDocument](#class-directorydocument)
+      * [Class: FileDocument](#class-filedocument)
+      * [Function: toc](#function-toc)
 
 ---
 
@@ -394,7 +447,7 @@ Code document for a line of statement. Different statement types have their own 
 
 ## doc/filesys.py
 
-- Dependent on: `__future__`, `typing`, `sys`, `os`, `pytorch.logging`, `doc.code`, `doc.base`, `doc.globe`, `doc.series`
+- Dependent on: `__future__`, `typing`, `sys`, `os`, `re`, `pytorch.logging`, `doc.code`, `doc.base`, `doc.globe`, `doc.series`
 
   > ```python
   > # Import future.
@@ -408,6 +461,7 @@ Code document for a line of statement. Different statement types have their own 
   > # Import dependencies.
   > import sys
   > import os
+  > import re
   >
   > # Add development library to path.
   > if (os.path.basename(os.getcwd()) == "MLRepo"):
@@ -445,3 +499,5 @@ After the generation, a strict description matching is applied on classes with i
 #### Class: FileDocument
 
 - Super: [FileSysDocument](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L94)
+
+#### Function: toc

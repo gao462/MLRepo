@@ -1,3 +1,22 @@
+* Table of Content
+  * [pytorch/logging.py](#pytorch-loggingpy)
+    * [Define Logging Utilities](#define-logging-utilities)
+      * [Block: Different levels ...](#block-different-levels)
+      * [Function: default_logger](#function-default_logger)
+      * [Block: Univeral logger a...](#block-univeral-logger-a)
+      * [Function: update_universal_logger](#function-update_universal_logger)
+      * [Function: update_max](#function-update_max)
+      * [Block: Colorful ASCII co...](#block-colorful-ascii-co)
+      * [Block: Colorful fix-leng...](#block-colorful-fix-leng)
+      * [Function: check_format](#function-check_format)
+      * [Function: log](#function-log)
+    * [Define Logging Operations](#define-logging-operations)
+      * [Function: debug](#function-debug)
+      * [Function: info1](#function-info1)
+      * [Function: info2](#function-info2)
+      * [Function: focus](#function-focus)
+      * [Function: warning](#function-warning)
+      * [Function: error](#function-error)
 
 ---
 
