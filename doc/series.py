@@ -10,6 +10,7 @@ from typing import List, Union
 import sys
 import os
 import token
+import re
 
 # Add development library to path.
 if (os.path.basename(os.getcwd()) == "MLRepo"):
@@ -281,23 +282,23 @@ class ClassDocument(CodeDocument):
         """
         # Search for the super location.
         if (self.super in self.FILEDOC.modules.identifiers):
-            link = "[{:s}]({:s})".format(
-                self.super, self.FILEDOC.ROOTDOC.classes[
-                    "{:s}.{:s}".format(
-                        self.FILEDOC.modules.identifiers[self.super],
-                        self.super,
-                    )
-                ],
+            # Get Github page.
+            layers = self.FILEDOC.modules.identifiers[self.super].split(".")
+            page = os.path.join(
+                self.FILEDOC.GITHUB, "tree", "main", *layers[:-1],
             )
+
+            # Get in-page reference.
+            refer = "Class: {:s}".format(self.super)
+            refer = re.sub(r"\.", "", refer)
+            refer = re.sub(r"[^\w]+", "-", refer.lower().strip())
+            link = "[{:s}]({:s}#{:s})".format(self.super, page, refer)
         elif (self.super in self.FILEDOC.classes):
-            link = "[{:s}]({:s})".format(
-                self.super, self.FILEDOC.ROOTDOC.classes[
-                    "{:s}.{:s}".format(
-                        self.FILEDOC.me,
-                        self.super,
-                    )
-                ],
-            )
+            # Get in-page reference directly.
+            refer = "Class: {:s}".format(self.super)
+            refer = re.sub(r"\.", "", refer)
+            refer = re.sub(r"[^\w]+", "-", refer.lower().strip())
+            link = "[{:s}](#{:s})".format(self.super, refer)
         else:
             link = self.super
 
