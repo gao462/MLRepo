@@ -87,7 +87,7 @@ class TypeHintDocument(doc.base.CodeDocument):
 
         # Get type name.
         obj = self.code.get()
-        name = self.parse_type(obj)
+        self.name = self.parse_type(obj)
 
         # Get children type hint if it exists.
         if (obj.check("[", level=self.LEVEL)):
@@ -121,7 +121,7 @@ class TypeHintDocument(doc.base.CodeDocument):
                 filedoc=self.FILEDOC,
             )
             hint.parse(self.code)
-            self.children.append(name)
+            self.children.append(hint)
 
             # Get break.
             if (obj.check("]", level=self.LEVEL)):
@@ -169,6 +169,30 @@ class TypeHintDocument(doc.base.CodeDocument):
             buf.append(line.get().text)
             line.match(token.NAME, level=self.LEVEL)
         return ".".join(buf)
+
+    def text(self: TypeHintDocument, *args: object, **kargs: object) -> str:
+        r"""
+        Get text message of type hint.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+        - msg
+            Message.
+
+        """
+        # Get name recursively.
+        if (len(self.children) > 0):
+            recursive = [itr.text() for itr in self.children]
+            recursive = "[{:s}]".format(", ".join(recursive))
+        else:
+            recursive = ""
+        return "{:s}{:s}".format(self.name, recursive)
 
 
 class ArgumentDocument(doc.base.CodeDocument):

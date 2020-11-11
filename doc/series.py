@@ -138,6 +138,9 @@ class SeriesDocument(doc.base.CodeDocument):
 
         Returns
         -------
+        - flag
+            Signal of ending of a series.
+            It is equivalent to dedent at the first next non-trival line.
 
         """
         # Move the pointer to next non-trival line.
@@ -352,7 +355,8 @@ class ClassDocument(doc.base.CodeDocument):
             link = "[{:s}]({:s}#{:s})".format(self.super, page, refer)
 
         # Title is class name.
-        self.markdown.append("#### Class: {:s}.{:s}".format(
+        self.markdown.extend(["---", ""])
+        self.markdown.append("## Class: {:s}.{:s}".format(
             self.FILEDOC.ME, self.name,
         ))
 
@@ -373,14 +377,24 @@ class ClassDocument(doc.base.CodeDocument):
             self.markdown.append("")
             self.markdown.append(" ".join(itr))
 
+        # Return to TOC, file.
+        self.markdown.append("")
+        self.markdown.append(
+            "[[TOC]](#table-of-content) [[File]](#{:s})".format(
+                doc.filesys.github_header("File: {:s}".format(
+                    self.FILEDOC.PATH,
+                )),
+            ),
+        )
+
         # Get body note as a code block
         self.body.notes()
-        self.markdown.append("")
+        buf = []
         for itr in self.body.markdown:
             if (len(itr) == 0 or itr[0] != "#"):
-                self.markdown.append(itr)
-            elif (itr[5] in ("F", "B")):
-                self.markdown.append("#" + itr)
+                buf.append(itr)
+            elif (itr[3] in ("F", "B")):
+                buf.append("#" + itr)
             else:
                 error(
                     "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
@@ -388,6 +402,11 @@ class ClassDocument(doc.base.CodeDocument):
                     self.FILEDOC.PATH, "line {:d}".format(self.row),
                 )
                 raise RuntimeError
+        self.markdown.append("")
+        self.markdown.append("- Members:")
+        self.markdown.extend(doc.filesys.toc(buf)[2:])
+        self.markdown.append("")
+        self.markdown.extend(buf)
 
         # Clear children notes for memory efficency.
         self.body.markdown.clear()
@@ -512,13 +531,15 @@ class FunctionDocument(doc.base.CodeDocument):
         except that console notes will use ASCII color codes for some keywords.
         """
         # Title is function name.
+        self.markdown.extend(["---", ""])
         if (self.HIERARCHY == doc.base.GLOBAL):
-            self.markdown.append("#### Function: {:s}.{:s}".format(
-                self.FILEDOC.ME, self.name,
+            self.markdown.append("## Function: {:s}.{:s}".format(
+                self.FILEDOC.ME, self.name.replace("_", "\\_"),
             ))
         else:
-            self.markdown.append("#### Function: {:s}.{:s}.{:s}".format(
-                self.FILEDOC.ME, self.SUPERIOR.SUPERIOR.name, self.name,
+            self.markdown.append("## Function: {:s}.{:s}.{:s}".format(
+                self.FILEDOC.ME, self.SUPERIOR.SUPERIOR.name,
+                self.name.replace("_", "\\_"),
             ))
 
         # Super link to source code is required.
@@ -537,10 +558,64 @@ class FunctionDocument(doc.base.CodeDocument):
         # Add arguments.
         self.markdown.append("")
         self.markdown.append("> **Arguments**")
+        ptr = 0
+        while (ptr < len(self.description.descs["args"])):
+            # The first argument has no breaks.
+            if (ptr == 0):
+                pass
+            else:
+                self.markdown.append(">")
+
+            # Get name and type hint first.
+            name = self.description.descs["args"][ptr]
+            hint = self.description.descs["args"][ptr + 1]
+            ptr += 2
+
+            # Some arguments have no attachment.
+            if (name in ("self", "cls")):
+                self.markdown.append("> - **{:s}**: *{:s}*".format(name, hint))
+                continue
+            elif (name == "*args"):
+                self.markdown.append("> - **{:s}**: *{:s}*".format(
+                    "\\*args", hint,
+                ))
+                continue
+            elif (name == "**kargs"):
+                self.markdown.append("> - **{:s}**: *{:s}*".format(
+                    "\\*\\*kargs", hint,
+                ))
+                continue
+            else:
+                self.markdown.append("> - **{:s}**: *{:s}*".format(name, hint))
+
+            # Output argument paragraphs with indent.
+            for itr in self.description.descs["args"][ptr]:
+                self.markdown.append(">")
+                self.markdown.append(">   {:s}".format(" ".join(itr)))
+            ptr += 1
 
         # Add returns.
         self.markdown.append("")
         self.markdown.append("> **Returns**")
+        ptr = 0
+        while (ptr < len(self.description.descs["returns"])):
+            # The first argument has no breaks.
+            if (ptr == 0):
+                pass
+            else:
+                self.markdown.append(">")
+
+            # Get name and type hint first.
+            name = self.description.descs["returns"][ptr]
+            hint = self.description.descs["returns"][ptr + 1]
+            attach = self.description.descs["returns"][ptr + 2]
+            ptr += 3
+            self.markdown.append("> - **{:s}**: *{:s}*".format(name, hint))
+
+            # Output argument paragraphs with indent.
+            for itr in attach:
+                self.markdown.append(">")
+                self.markdown.append(">   {:s}".format(" ".join(itr)))
 
         # Add description 2 here.
         for itr in self.description.descs["paragraphs_2"]:
@@ -558,9 +633,27 @@ class FunctionDocument(doc.base.CodeDocument):
                 self.markdown.append("> {:s}".format(itr))
         self.markdown.append("> ```")
 
-        # Return to TOC.
+        # Return to class.
+        if (self.HIERARCHY == doc.base.GLOBAL):
+            class_link = ""
+        else:
+            holder = self.SUPERIOR.SUPERIOR
+            class_link = " [[Class]](#{:s})".format(
+                doc.filesys.github_header("Class: {:s}.{:s}".format(
+                    holder.FILEDOC.ME, holder.name,
+                )),
+            )
+
+        # Return to TOC, file.
         self.markdown.append("")
-        self.markdown.append("[[TOC]](#table-of-content)")
+        self.markdown.append(
+            "[[TOC]](#table-of-content) [[File]](#{:s}){:s}".format(
+                doc.filesys.github_header("File: {:s}".format(
+                    self.FILEDOC.PATH,
+                )),
+                class_link,
+            ),
+        )
 
         # Clear children notes for memory efficency.
         self.body.markdown.clear()
@@ -681,12 +774,13 @@ class OPBlockDocument(doc.base.CodeDocument):
             title = title[0:self.MAX - 3].strip() + "..."
         else:
             pass
+        self.markdown.extend(["---", ""])
         if (self.HIERARCHY == doc.base.GLOBAL):
-            self.markdown.append("#### Block: {:s}: {:s}".format(
+            self.markdown.append("## Block: {:s}: {:s}".format(
                 self.FILEDOC.ME, title,
             ))
         else:
-            self.markdown.append("#### Block: {:s}.{:s}: {:s}".format(
+            self.markdown.append("## Block: {:s}.{:s}: {:s}".format(
                 self.FILEDOC.ME, self.SUPERIOR.SUPERIOR.name, title,
             ))
 
@@ -708,9 +802,27 @@ class OPBlockDocument(doc.base.CodeDocument):
                 self.markdown.append("> {:s}".format(itr))
         self.markdown.append("> ```")
 
-        # Return to TOC.
+        # Return to class.
+        if (self.HIERARCHY == doc.base.GLOBAL):
+            class_link = ""
+        else:
+            holder = self.SUPERIOR.SUPERIOR
+            class_link = " [[Class]](#{:s})".format(
+                doc.filesys.github_header("Class: {:s}.{:s}".format(
+                    holder.FILEDOC.ME, holder.name,
+                )),
+            )
+
+        # Return to TOC, file.
         self.markdown.append("")
-        self.markdown.append("[[TOC]](#table-of-content)")
+        self.markdown.append(
+            "[[TOC]](#table-of-content) [[File]](#{:s}){:s}".format(
+                doc.filesys.github_header("File: {:s}".format(
+                    self.FILEDOC.PATH,
+                )),
+                class_link,
+            ),
+        )
 
         # Clear children notes for memory efficency.
         pass

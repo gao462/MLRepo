@@ -137,8 +137,6 @@ class CodeDocument(Document):
         ----
         - self
         - *args
-        - path
-            Path of its file document.
         - level
             Indent level.
         - hierarchy

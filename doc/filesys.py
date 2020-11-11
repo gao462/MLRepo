@@ -364,20 +364,20 @@ class FileDocument(doc.base.FileSysDocument):
         For most part of the notes, they will share the same Markdown syntex
         except that console notes will use ASCII color codes for some keywords.
         """
-        # Create title by file path.
-        self.markdown.append("## {:s}".format(self.PATH))
-
-        # Extend notes by imported modules.
-        self.modules.notes()
-        self.markdown.append("")
-        self.markdown.extend(self.modules.markdown)
-
         # Extend notes by global sections.
         self.sections.notes()
-        self.markdown.append("")
         self.markdown.extend(self.sections.markdown)
 
+        # Extend notes by module imports.
+        self.modules.notes()
+
+        # Generate file header and TOC.
+        index = [""] + toc(self.markdown)[2:]
+        self.markdown = index + [""] + self.markdown
+        self.markdown = ["## File: {:s}".format(self.PATH)] + self.markdown
+
         # Clear children notes for memory efficency.
+        self.sections.markdown.clear()
         self.modules.markdown.clear()
 
 

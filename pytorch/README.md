@@ -1,60 +1,55 @@
 ## Table Of Content
 
-* [pytorch/logging.py](#pytorchloggingpy)
-  * [Define Logging Utilities](#define-logging-utilities)
-    * [Block: pytorch.logging: Different levels...](#block-pytorchlogging-different-levels)
-    * [Function: pytorch.logging.default_logger](#function-pytorchloggingdefault_logger)
-    * [Block: pytorch.logging: Univeral logger a...](#block-pytorchlogging-univeral-logger-a)
-    * [Function: pytorch.logging.update_universal_logger](#function-pytorchloggingupdate_universal_logger)
-    * [Function: pytorch.logging.update_max](#function-pytorchloggingupdate_max)
-    * [Block: pytorch.logging: Colorful ASCII co...](#block-pytorchlogging-colorful-ascii-co)
-    * [Block: pytorch.logging: Colorful fix-leng...](#block-pytorchlogging-colorful-fix-leng)
-    * [Function: pytorch.logging.check_format](#function-pytorchloggingcheck_format)
-    * [Function: pytorch.logging.log](#function-pytorchlogginglog)
-  * [Define Logging Operations](#define-logging-operations)
-    * [Function: pytorch.logging.debug](#function-pytorchloggingdebug)
-    * [Function: pytorch.logging.info1](#function-pytorchlogginginfo1)
-    * [Function: pytorch.logging.info2](#function-pytorchlogginginfo2)
-    * [Function: pytorch.logging.focus](#function-pytorchloggingfocus)
-    * [Function: pytorch.logging.warning](#function-pytorchloggingwarning)
-    * [Function: pytorch.logging.error](#function-pytorchloggingerror)
+* [File: pytorch/logging.py](#file-pytorchloggingpy)
+* [Section: Define Logging Utilities](#section-define-logging-utilities)
+* [Block: pytorch.logging: Different levels...](#block-pytorchlogging-different-levels)
+* [Function: pytorch.logging.default\_logger](#function-pytorchloggingdefault-_logger)
+* [Block: pytorch.logging: Univeral logger a...](#block-pytorchlogging-univeral-logger-a)
+* [Function: pytorch.logging.update\_universal\_logger](#function-pytorchloggingupdate-_universal-_logger)
+* [Function: pytorch.logging.update\_max](#function-pytorchloggingupdate-_max)
+* [Block: pytorch.logging: Colorful ASCII co...](#block-pytorchlogging-colorful-ascii-co)
+* [Block: pytorch.logging: Colorful fix-leng...](#block-pytorchlogging-colorful-fix-leng)
+* [Function: pytorch.logging.check\_format](#function-pytorchloggingcheck-_format)
+* [Function: pytorch.logging.log](#function-pytorchlogginglog)
+* [Section: Define Logging Operations](#section-define-logging-operations)
+* [Function: pytorch.logging.debug](#function-pytorchloggingdebug)
+* [Function: pytorch.logging.info1](#function-pytorchlogginginfo1)
+* [Function: pytorch.logging.info2](#function-pytorchlogginginfo2)
+* [Function: pytorch.logging.focus](#function-pytorchloggingfocus)
+* [Function: pytorch.logging.warning](#function-pytorchloggingwarning)
+* [Function: pytorch.logging.error](#function-pytorchloggingerror)
 
 ---
 
-## pytorch/logging.py
+## File: pytorch/logging.py
 
-- Dependent on: `__future__`, `typing`, `sys`, `os`, `logging`
+* [Section: Define Logging Utilities](#section-define-logging-utilities)
+* [Block: pytorch.logging: Different levels...](#block-pytorchlogging-different-levels)
+* [Function: pytorch.logging.default\_logger](#function-pytorchloggingdefault-_logger)
+* [Block: pytorch.logging: Univeral logger a...](#block-pytorchlogging-univeral-logger-a)
+* [Function: pytorch.logging.update\_universal\_logger](#function-pytorchloggingupdate-_universal-_logger)
+* [Function: pytorch.logging.update\_max](#function-pytorchloggingupdate-_max)
+* [Block: pytorch.logging: Colorful ASCII co...](#block-pytorchlogging-colorful-ascii-co)
+* [Block: pytorch.logging: Colorful fix-leng...](#block-pytorchlogging-colorful-fix-leng)
+* [Function: pytorch.logging.check\_format](#function-pytorchloggingcheck-_format)
+* [Function: pytorch.logging.log](#function-pytorchlogginglog)
+* [Section: Define Logging Operations](#section-define-logging-operations)
+* [Function: pytorch.logging.debug](#function-pytorchloggingdebug)
+* [Function: pytorch.logging.info1](#function-pytorchlogginginfo1)
+* [Function: pytorch.logging.info2](#function-pytorchlogginginfo2)
+* [Function: pytorch.logging.focus](#function-pytorchloggingfocus)
+* [Function: pytorch.logging.warning](#function-pytorchloggingwarning)
+* [Function: pytorch.logging.error](#function-pytorchloggingerror)
 
-  > ```python
-  > # Import future.
-  > from __future__ import annotations
-  >
-  > # Import typing.
-  > from typing import Any
-  > from typing import Tuple as MultiReturn
-  >
-  > # Import dependencies.
-  > import sys
-  > import os
-  > import logging
-  >
-  > # Add development library to path.
-  > if (os.path.basename(os.getcwd()) == "MLRepo"):
-  >     sys.path.append(os.path.join("."))
-  > else:
-  >     print("Code must strictly work in \"MLRepo\".")
-  >     exit()
-  >
-  > # Import logging.
-  >
-  > # Import dependencies.
-  > ```
-
-### Define Logging Utilities
+## Section: Define Logging Utilities
 
 1, Create default logger. 2, Universal logger. 3, Update universal logger by given logger. 4, Check message format. 5, Output multiple-line message.
 
-#### Block: pytorch.logging: Different levels...
+[[TOC]](#table-of-content) [[File]](#file-pytorchloggingpy)
+
+---
+
+## Block: pytorch.logging: Different levels...
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L39)
 
@@ -68,17 +63,25 @@
 > ERROR = 50
 > ```
 
-[[TOC]](#table-of-content)
+[[TOC]](#table-of-content) [[File]](#file-pytorchloggingpy)
 
-#### Function: pytorch.logging.default_logger
+---
+
+## Function: pytorch.logging.default\_logger
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L48)
 
 Create default logger.
 
 > **Arguments**
+> - **\*args**: *object*
+>
+> - **\*\*kargs**: *object*
 
 > **Returns**
+> - **logger**: *logging.Logger*
+>
+>   Default logger.
 
 > ```python
 > # Allocate logger.
@@ -98,9 +101,11 @@ Create default logger.
 > return logger
 > ```
 
-[[TOC]](#table-of-content)
+[[TOC]](#table-of-content) [[File]](#file-pytorchloggingpy)
 
-#### Block: pytorch.logging: Univeral logger a...
+---
+
+## Block: pytorch.logging: Univeral logger a...
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L80)
 
@@ -110,15 +115,24 @@ Create default logger.
 > MAX = 10 + 79
 > ```
 
-[[TOC]](#table-of-content)
+[[TOC]](#table-of-content) [[File]](#file-pytorchloggingpy)
 
-#### Function: pytorch.logging.update_universal_logger
+---
+
+## Function: pytorch.logging.update\_universal\_logger
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L85)
 
 Update universal logger by given logger.
 
 > **Arguments**
+> - **\*args**: *object*
+>
+> - **logger**: *logging.Logger*
+>
+>   New logger.
+>
+> - **\*\*kargs**: *object*
 
 > **Returns**
 
@@ -128,15 +142,24 @@ Update universal logger by given logger.
 > UNIVERSAL_LOGGER = logger
 > ```
 
-[[TOC]](#table-of-content)
+[[TOC]](#table-of-content) [[File]](#file-pytorchloggingpy)
 
-#### Function: pytorch.logging.update_max
+---
+
+## Function: pytorch.logging.update\_max
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L107)
 
 Update maximum number of characters.
 
 > **Arguments**
+> - **\*args**: *object*
+>
+> - **val**: *int*
+>
+>   Maximum.
+>
+> - **\*\*kargs**: *object*
 
 > **Returns**
 
@@ -146,9 +169,11 @@ Update maximum number of characters.
 > MAX = val
 > ```
 
-[[TOC]](#table-of-content)
+[[TOC]](#table-of-content) [[File]](#file-pytorchloggingpy)
 
-#### Block: pytorch.logging: Colorful ASCII co...
+---
+
+## Block: pytorch.logging: Colorful ASCII co...
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L127)
 
@@ -172,9 +197,11 @@ Update maximum number of characters.
 > CLR_WHITE = "37;1"
 > ```
 
-[[TOC]](#table-of-content)
+[[TOC]](#table-of-content) [[File]](#file-pytorchloggingpy)
 
-#### Block: pytorch.logging: Colorful fix-leng...
+---
+
+## Block: pytorch.logging: Colorful fix-leng...
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L146)
 
@@ -189,15 +216,28 @@ Update maximum number of characters.
 > CLRFIX[ERROR] = "\033[{:s}mERROR   \033[0m".format(CLR_RED)
 > ```
 
-[[TOC]](#table-of-content)
+[[TOC]](#table-of-content) [[File]](#file-pytorchloggingpy)
 
-#### Function: pytorch.logging.check_format
+---
+
+## Function: pytorch.logging.check\_format
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L156)
 
 Check message format.
 
 > **Arguments**
+> - **\*args**: *object*
+>
+> - **level**: *int*
+>
+>   Logging level.
+>
+> - **msg**: *str*
+>
+>   Message.
+>
+> - **\*\*kargs**: *object*
 
 > **Returns**
 
@@ -219,15 +259,28 @@ Check message format.
 >     )
 > ```
 
-[[TOC]](#table-of-content)
+[[TOC]](#table-of-content) [[File]](#file-pytorchloggingpy)
 
-#### Function: pytorch.logging.log
+---
+
+## Function: pytorch.logging.log
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L190)
 
 Log debug message.
 
 > **Arguments**
+> - **level**: *int*
+>
+>   Logging level.
+>
+> - **fmt**: *str*
+>
+>   Formatter.
+>
+> - **\*args**: *object*
+>
+> - **\*\*kargs**: *object*
 
 > **Returns**
 
@@ -269,19 +322,30 @@ Log debug message.
 >         previous = style
 > ```
 
-[[TOC]](#table-of-content)
+[[TOC]](#table-of-content) [[File]](#file-pytorchloggingpy)
 
-### Define Logging Operations
+## Section: Define Logging Operations
 
 Operations are just `log` function with fixed logging level integer. The corresponding values are given in the paranthese. 1, `debug` (10). 2, `info1` (20). 3, `info2` (25). 4, `focus` (30). 5, `warning` (40). 6, `error` (50).
 
-#### Function: pytorch.logging.debug
+[[TOC]](#table-of-content) [[File]](#file-pytorchloggingpy)
+
+---
+
+## Function: pytorch.logging.debug
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L261)
 
 Log debug message.
 
 > **Arguments**
+> - **fmt**: *str*
+>
+>   Formatter.
+>
+> - **\*args**: *object*
+>
+> - **\*\*kargs**: *object*
 
 > **Returns**
 
@@ -290,15 +354,24 @@ Log debug message.
 > log(DEBUG, fmt, *args, **kargs)
 > ```
 
-[[TOC]](#table-of-content)
+[[TOC]](#table-of-content) [[File]](#file-pytorchloggingpy)
 
-#### Function: pytorch.logging.info1
+---
+
+## Function: pytorch.logging.info1
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L280)
 
 Log info (dark) message.
 
 > **Arguments**
+> - **fmt**: *str*
+>
+>   Formatter.
+>
+> - **\*args**: *object*
+>
+> - **\*\*kargs**: *object*
 
 > **Returns**
 
@@ -307,15 +380,24 @@ Log info (dark) message.
 > log(INFO1, fmt, *args, **kargs)
 > ```
 
-[[TOC]](#table-of-content)
+[[TOC]](#table-of-content) [[File]](#file-pytorchloggingpy)
 
-#### Function: pytorch.logging.info2
+---
+
+## Function: pytorch.logging.info2
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L299)
 
 Log info (bright) message.
 
 > **Arguments**
+> - **fmt**: *str*
+>
+>   Formatter.
+>
+> - **\*args**: *object*
+>
+> - **\*\*kargs**: *object*
 
 > **Returns**
 
@@ -324,15 +406,24 @@ Log info (bright) message.
 > log(INFO2, fmt, *args, **kargs)
 > ```
 
-[[TOC]](#table-of-content)
+[[TOC]](#table-of-content) [[File]](#file-pytorchloggingpy)
 
-#### Function: pytorch.logging.focus
+---
+
+## Function: pytorch.logging.focus
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L318)
 
 Log focusing message.
 
 > **Arguments**
+> - **fmt**: *str*
+>
+>   Formatter.
+>
+> - **\*args**: *object*
+>
+> - **\*\*kargs**: *object*
 
 > **Returns**
 
@@ -341,15 +432,24 @@ Log focusing message.
 > log(FOCUS, fmt, *args, **kargs)
 > ```
 
-[[TOC]](#table-of-content)
+[[TOC]](#table-of-content) [[File]](#file-pytorchloggingpy)
 
-#### Function: pytorch.logging.warning
+---
+
+## Function: pytorch.logging.warning
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L337)
 
 Log warning message.
 
 > **Arguments**
+> - **fmt**: *str*
+>
+>   Formatter.
+>
+> - **\*args**: *object*
+>
+> - **\*\*kargs**: *object*
 
 > **Returns**
 
@@ -358,15 +458,24 @@ Log warning message.
 > log(WARNING, fmt, *args, **kargs)
 > ```
 
-[[TOC]](#table-of-content)
+[[TOC]](#table-of-content) [[File]](#file-pytorchloggingpy)
 
-#### Function: pytorch.logging.error
+---
+
+## Function: pytorch.logging.error
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L356)
 
 Log error message.
 
 > **Arguments**
+> - **fmt**: *str*
+>
+>   Formatter.
+>
+> - **\*args**: *object*
+>
+> - **\*\*kargs**: *object*
 
 > **Returns**
 
@@ -375,4 +484,4 @@ Log error message.
 > log(ERROR, fmt, *args, **kargs)
 > ```
 
-[[TOC]](#table-of-content)
+[[TOC]](#table-of-content) [[File]](#file-pytorchloggingpy)

@@ -958,9 +958,9 @@ def line_rule_length(
 
     Args
     ----
-    - *args
     - text
         Line content.
+    - *args
     - index
         Line index.
     - path

@@ -266,6 +266,8 @@ class ImportBlockDocument(BlockDocument):
             Row ID.
         - text
             Requiring text.
+        - *args
+        - **kargs
 
         Returns
         -------
@@ -396,10 +398,6 @@ class ConstBlockDocument(doc.base.CodeDocument):
 
         Returns
         -------
-        - console
-            Console notes.
-        - markdown
-            Markdown notes.
 
         This will generate notes for console and markdown in the same time.
         For most part of the notes, they will share the same Markdown syntex

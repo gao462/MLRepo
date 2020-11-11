@@ -122,6 +122,8 @@ class CommentDocument(doc.base.CodeDocument):
         Args
         ----
         - self
+        - texts
+            A list of parsed comment texts.
         - *args
         - **kargs
 
@@ -385,10 +387,6 @@ class ImportDocument(doc.base.CodeDocument):
             Module name.
         - module2
             Module rename.
-        - identifier
-            Identifier name.
-        - identifier2
-            Identifier rename.
         - *args
         - **kargs
 
@@ -481,6 +479,8 @@ class IntroDocument(CommentDocument):
         Args
         ----
         - self
+        - texts
+            A list of parsed introduction texts.
         - *args
         - **kargs
 
@@ -551,10 +551,20 @@ class IntroDocument(CommentDocument):
         except that console notes will use ASCII color codes for some keywords.
         """
         # Statement note is just its code lines without indents.
-        self.markdown.append("### {:s}".format(self.title))
+        self.markdown.append("## Section: {:s}".format(self.title))
+        self.markdown.append("")
         for itr in self.paragraphs:
-            self.markdown.append("")
             self.markdown.append(" ".join(itr))
+
+        # Return to TOC, file.
+        self.markdown.append("")
+        self.markdown.append(
+            "[[TOC]](#table-of-content) [[File]](#{:s})".format(
+                doc.filesys.github_header("File: {:s}".format(
+                    self.FILEDOC.PATH,
+                )),
+            ),
+        )
 
 
 class DescriptionDocument(doc.base.CodeDocument):
@@ -661,7 +671,7 @@ class DescriptionDocument(doc.base.CodeDocument):
         Args
         ----
         - self
-        - text
+        - texts
             A list of decoding texts.
         - *args
         - **kargs
@@ -689,7 +699,7 @@ class ClassDescDocument(DescriptionDocument):
         Args
         ----
         - self
-        - text
+        - texts
             A list of decoding texts.
         - *args
         - **kargs
@@ -725,7 +735,7 @@ class FuncDescDocument(DescriptionDocument):
         Args
         ----
         - self
-        - text
+        - texts
             A list of decoding texts.
         - *args
         - **kargs
@@ -828,9 +838,8 @@ class FuncDescDocument(DescriptionDocument):
         texts = self.descs["args"]
 
         # Argument description has constant head.
-        buf = []
         if (texts[0] == "Args" and texts[1] == "----"):
-            buf.extend(texts[0:2])
+            pass
         else:
             error(
                 "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
@@ -842,12 +851,41 @@ class FuncDescDocument(DescriptionDocument):
         # Traverse later contents.
         ptr = 0
         texts = texts[2:]
+        num = 0
+        buf = []
         while (ptr < len(texts)):
             # Get argument name.
             name = texts[ptr][2:]
             ptr += 1
             attach = []
+
+            # Get definition.
+            if (num == len(argdoc.items)):
+                error(
+                    "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+                    " defined arguments are less than described arguments.",
+                    self.FILEDOC.PATH, "line {:d}".format(self.row),
+                )
+                raise RuntimeError
+            else:
+                pass
+            given, hint = argdoc.items[num]
+            num += 1
+
+            # Argument name should match given definition.
+            if (name == given):
+                pass
+            else:
+                error(
+                    "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+                    " defined argument \"{:s}\" does not match described" \
+                    " argument name \"{:s}\".",
+                    self.FILEDOC.PATH, "line {:d}".format(self.row),
+                    given, name,
+                )
+                raise RuntimeError
             buf.append(name)
+            buf.append(hint.text())
 
             # Some arguments have no attachment.
             if (name in ("self", "cls", "*args", "**kargs")):
@@ -873,6 +911,19 @@ class FuncDescDocument(DescriptionDocument):
                 )
                 raise RuntimeError
             buf.append(attach)
+        self.descs["args"] = buf
+
+        # Check if there is argument without description.
+        if (num == len(argdoc.items)):
+            pass
+        else:
+            error(
+                "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+                " some defined arguments (\"{:s}\", ...)have no descriptions.",
+                self.FILEDOC.PATH, "line {:d}".format(self.row),
+                argdoc.items[num][0],
+            )
+            raise RuntimeError
 
     def review_returns(
         self: FuncDescDocument, returndoc: doc.func.TypeHintDocument,
@@ -884,8 +935,6 @@ class FuncDescDocument(DescriptionDocument):
         Args
         ----
         - self
-        - argdoc
-            Argument document.
         - returndoc
             Return document.
         - *args
@@ -899,13 +948,77 @@ class FuncDescDocument(DescriptionDocument):
         texts = self.descs["returns"]
 
         # Argument description has constant head.
-        buf = []
         if (texts[0] == "Returns" and texts[1] == "-------"):
-            buf.extend(texts[0:2])
+            pass
         else:
             error(
                 "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
                 " return document has constant head.",
+                self.FILEDOC.PATH, "line {:d}".format(self.row),
+            )
+            raise RuntimeError
+
+        # Decode return document into a list a return type hints.
+        if (returndoc.name == "None"):
+            returndoc = []
+        elif (returndoc.name == "MultiReturn"):
+            returndoc = returndoc.children
+        else:
+            returndoc = [returndoc]
+
+        # Traverse later contents.
+        ptr = 0
+        texts = texts[2:]
+        num = 0
+        buf = []
+        while (ptr < len(texts)):
+            # Get argument name.
+            name = texts[ptr][2:]
+            ptr += 1
+            attach = []
+
+            # Get definition.
+            if (num == len(returndoc)):
+                error(
+                    "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+                    " defined returns are less than described returns.",
+                    self.FILEDOC.PATH, "line {:d}".format(self.row),
+                )
+                raise RuntimeError
+            else:
+                pass
+            hint = returndoc[num]
+            num += 1
+            buf.append(name)
+            buf.append(hint.text())
+
+            # Get attachment.
+            while (ptr < len(texts)):
+                if (texts[ptr][0].isspace()):
+                    pass
+                else:
+                    break
+                attach.append(texts[ptr][UNIT:])
+                ptr += 1
+            try:
+                attach = paragraphize(attach)
+            except:
+                error(
+                    "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+                    " fail to translate paragraphs.",
+                    self.FILEDOC.PATH, "line {:d}".format(self.row),
+                )
+                raise RuntimeError
+            buf.append(attach)
+        self.descs["returns"] = buf
+
+        # Check if there is argument without description.
+        if (num == len(returndoc)):
+            pass
+        else:
+            error(
+                "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+                " some defined returns have no descriptions.",
                 self.FILEDOC.PATH, "line {:d}".format(self.row),
             )
             raise RuntimeError

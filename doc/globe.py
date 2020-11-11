@@ -342,5 +342,5 @@ class GlobalDocument(doc.base.CodeDocument):
 
         # Clear children notes for memory efficency.
         for intro, series in self.sections:
-            intro.markdown.clear()
+            intro.notes()
             series.markdown.clear()
