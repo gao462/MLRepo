@@ -34,5 +34,5 @@ from doc.filesys import DirectoryDocument
 
 
 # Generate all notes.
-doc = DirectoryDocument(rootdoc=None)
-doc.parse(os.path.abspath("."))
+doc = DirectoryDocument(os.path.abspath("."), rootdoc=None)
+doc.parse()

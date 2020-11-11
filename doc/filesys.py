@@ -4,7 +4,7 @@ from __future__ import annotations
 # Import typing.
 from typing import Any
 from typing import Tuple as MultiReturn
-from typing import List
+from typing import List, Tuple, Union, Dict
 
 # Import dependencies.
 import sys
@@ -23,9 +23,9 @@ from pytorch.logging import debug, info1, info2, focus, warning, error
 
 # Import dependencies.
 from doc.code import Code
-from doc.base import FileSysDocument, GLOBAL
-from doc.globe import ModuleDocument, GlobalDocument
-from doc.series import ClassDocument
+import doc.base
+import doc.globe
+import doc.series
 
 
 # =============================================================================
@@ -59,22 +59,25 @@ from doc.series import ClassDocument
 # =============================================================================
 
 
-class DirectoryDocument(FileSysDocument):
+class DirectoryDocument(doc.base.FileSysDocument):
     r"""
     Document for a directory.
     """
-    def parse(
-        self: DirectoryDocument, path: str, *args: object, **kargs: object,
+    def __init__(
+        self: DirectoryDocument, path: str, *args: object,
+        rootdoc: Union[DirectoryDocument, None], **kargs: object,
     ) -> None:
         r"""
-        Parse content.
+        Initialize.
 
         Args
         ----
         - self
         - path
-            Path of documentizing file.
+            Path of this document.
         - *args
+        - rootdoc
+            Document for root directory.
         - **kargs
 
         Returns
@@ -82,13 +85,33 @@ class DirectoryDocument(FileSysDocument):
 
         """
         # Super.
-        FileSysDocument.parse(self, path, *args, **kargs)
+        doc.base.FileSysDocument.__init__(self, path, *args, **kargs)
 
+        # Save necessary attributes.
+        self.ROOTDOC = self if rootdoc is None else rootdoc
+
+        # File system should trace definitions.
+        self.classes: Dict[str, str] = {}
+
+    def parse(self: DirectoryDocument, *args: object, **kargs: object) -> None:
+        r"""
+        Parse content.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
         # Traverse the tree.
         self.subdirs = []
         self.files = []
-        for itr in os.listdir(path):
-            itr = os.path.join(path, itr)
+        for itr in os.listdir(self.PATH):
+            itr = os.path.join(self.PATH, itr)
             if (os.path.isdir(itr)):
                 base = os.path.basename(itr)
                 if (base == "__pycache__"):
@@ -98,18 +121,18 @@ class DirectoryDocument(FileSysDocument):
                     # Hidden directory should be ignored.
                     pass
                 else:
-                    dirdoc = DirectoryDocument(rootdoc=self.ROOTDOC)
-                    dirdoc.parse(itr)
+                    dirdoc = DirectoryDocument(itr, rootdoc=self.ROOTDOC)
+                    dirdoc.parse()
                     self.subdirs.append(dirdoc)
             elif (os.path.isfile(itr)):
                 base, ext = os.path.splitext(itr)
                 base = os.path.basename(base)
                 if (ext == ".py"):
                     if (base == "__init__"):
-                        warning("Skip for now.")
+                        warning("Skip \"{:s}\" for now.".format(itr))
                     else:
-                        filedoc = FileDocument(rootdoc=self.ROOTDOC)
-                        filedoc.parse(itr)
+                        filedoc = FileDocument(itr, rootdoc=self.ROOTDOC)
+                        filedoc.parse()
                         self.files.append(filedoc)
                 elif (ext in (".md", ".sh")):
                     # Some extension name should be ignored.
@@ -134,7 +157,7 @@ class DirectoryDocument(FileSysDocument):
         self.register()
 
         # Root specific operations.
-        if (os.path.basename(self.path) == self.ROOT):
+        if (os.path.basename(self.PATH) == self.ROOT):
             self.root()
         else:
             pass
@@ -164,9 +187,9 @@ class DirectoryDocument(FileSysDocument):
         for filedoc in self.files:
             for key, row in filedoc.classes.items():
                 location = "{:s}/blob/master/{:s}{:s}".format(
-                    self.GITHUB, filedoc.path, row,
+                    self.GITHUB, filedoc.PATH, row,
                 )
-                self.classes["{:s}.{:s}".format(filedoc.me, key)] = location
+                self.classes["{:s}.{:s}".format(filedoc.ME, key)] = location
 
     def notes(self: DirectoryDocument, *args: object, **kargs: object) -> None:
         r"""
@@ -205,7 +228,7 @@ class DirectoryDocument(FileSysDocument):
         self.notes_markdown = toc(markdown) + markdown
 
         # Save markdown note as README.
-        file = open(os.path.join(self.path, "README.md"), "w")
+        file = open(os.path.join(self.PATH, "README.md"), "w")
         file.write("\n".join(self.notes_markdown))
         file.close()
 
@@ -230,24 +253,28 @@ class DirectoryDocument(FileSysDocument):
         """
         # Generate notes.
         self.notes()
+        print("Done")
 
 
-class FileDocument(FileSysDocument):
+class FileDocument(doc.base.FileSysDocument):
     r"""
     Document for a file.
     """
-    def parse(
-        self: FileDocument, path: str, *args: object, **kargs: object,
+    def __init__(
+        self: FileDocument, path: str, *args: object,
+        rootdoc: Union[DirectoryDocument, None], **kargs: object,
     ) -> None:
         r"""
-        Parse content.
+        Initialize.
 
         Args
         ----
         - self
         - path
-            Path of documentizing file.
+            Path of this document.
         - *args
+        - rootdoc
+            Document for root directory.
         - **kargs
 
         Returns
@@ -255,21 +282,45 @@ class FileDocument(FileSysDocument):
 
         """
         # Super.
-        FileSysDocument.parse(self, path, *args, **kargs)
+        doc.base.FileSysDocument.__init__(self, path, *args, **kargs)
+
+        # Save necessary attributes.
+        self.ROOTDOC = self if rootdoc is None else rootdoc
+
+        # Get module path from file path.
+        _, self.PATH = self.PATH.split(os.path.join(" ", self.ROOT, " ")[1:-1])
+        self.ME = self.PATH.replace(os.path.join(" ", " ")[1:-1], ".")
+        self.ME, _ = os.path.splitext(self.ME)
+
+        # Set code to parse on.
+        self.code = Code()
 
         # File document has a module-import document and a global document.
-        self.modules = ModuleDocument(
-            path=self.path, level=0, hierarchy=GLOBAL,
+        self.modules = doc.globe.ModuleDocument(
+            path=self.PATH, level=0, hierarchy=doc.base.GLOBAL,
             superior=None, filedoc=self,
         )
-        self.sections = GlobalDocument(
-            path=self.path, level=0, hierarchy=GLOBAL,
+        self.sections = doc.globe.GlobalDocument(
+            path=self.PATH, level=0, hierarchy=doc.base.GLOBAL,
             superior=None, filedoc=self,
         )
 
+    def parse(self: FileDocument, *args: object, **kargs: object) -> None:
+        r"""
+        Parse content.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
         # Load tokenized code and parse it.
-        self.code = Code()
-        self.code.load_file(self.path)
+        self.code.load_file(self.PATH)
         self.code.reset()
         self.modules.parse(self.code)
         self.sections.parse(self.code)
@@ -297,7 +348,7 @@ class FileDocument(FileSysDocument):
         self.classes = {}
         for _, section in self.sections.sections:
             for component in section.components:
-                if (isinstance(component, ClassDocument)):
+                if (isinstance(component, doc.series.ClassDocument)):
                     self.classes[component.name] = "#L{:d}".format(
                         component.row,
                     )
@@ -323,8 +374,8 @@ class FileDocument(FileSysDocument):
 
         """
         # Create title by file path.
-        console = ["## {:s}".format(self.path)]
-        markdown = ["## {:s}".format(self.path)]
+        console = ["## {:s}".format(self.PATH)]
+        markdown = ["## {:s}".format(self.PATH)]
 
         # Extend notes by imported modules.
         self.modules.notes()

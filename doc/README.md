@@ -4,10 +4,10 @@
       * [Class: ModuleDocument](#class-moduledocument)
       * [Class: GlobalDocument](#class-globaldocument)
   * [doc/base.py](#doc-basepy)
-    * [Document Prototype Objects](#document-prototype-objects)
+    * [Document Objects](#document-objects)
       * [Class: Document](#class-document)
-      * [Block: Hierarchy constants.](#block-hierarchy-constants)
       * [Class: FileSysDocument](#class-filesysdocument)
+      * [Block: Hierarchy constants.](#block-hierarchy-constants)
       * [Class: CodeDocument](#class-codedocument)
   * [doc/main.py](#doc-mainpy)
     * [Main](#main)
@@ -31,6 +31,9 @@
       * [Function: line_rule_length](#function-line_rule_length)
       * [Function: recover](#function-recover)
       * [Function: paragraphize](#function-paragraphize)
+      * [Function: mathize](#function-mathize)
+      * [Function: codize](#function-codize)
+      * [Function: textize](#function-textize)
   * [doc/series.py](#doc-seriespy)
     * [Series Code Document Objects](#series-code-document-objects)
       * [Class: SeriesDocument](#class-seriesdocument)
@@ -44,8 +47,9 @@
     * [Statement Code Document Objects](#statement-code-document-objects)
       * [Class: CommentDocument](#class-commentdocument)
       * [Class: ImportDocument](#class-importdocument)
-      * [Class: ConstDocument](#class-constdocument)
       * [Class: IntroDocument](#class-introdocument)
+      * [Class: DescriptionDocument](#class-descriptiondocument)
+      * [Class: FuncDescDocument](#class-funcdescdocument)
   * [doc/filesys.py](#doc-filesyspy)
     * [File System Document Objects](#file-system-document-objects)
       * [Class: DirectoryDocument](#class-directorydocument)
@@ -65,7 +69,7 @@
   > # Import typing.
   > from typing import Any
   > from typing import Tuple as MultiReturn
-  > from typing import List, Dict
+  > from typing import List, Dict, Tuple
   >
   > # Import dependencies.
   > import sys
@@ -83,10 +87,10 @@
   >
   > # Import dependencies.
   > from doc.code import Code
-  > from doc.base import CodeDocument
-  > from doc.block import ImportBlockDocument, ConstBlockDocument
-  > from doc.statement import IntroDocument
-  > from doc.series import SeriesDocument
+  > import doc.base
+  > import doc.block
+  > import doc.statement
+  > import doc.series
   > ```
 
 ### Global Code Document Objects
@@ -97,19 +101,19 @@ Code document on global level. It contains module import document which traces a
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/globe.py#L43)
 
-- Super: [CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-codedocument)
+- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
 
 #### Class: GlobalDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/globe.py#L268)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/globe.py#L267)
 
-- Super: [CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-codedocument)
+- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
 
 ---
 
 ## doc/base.py
 
-- Dependent on: `__future__`, `typing`, `sys`, `os`, `pytorch.logging`, `doc.code`
+- Dependent on: `__future__`, `typing`, `sys`, `os`, `pytorch.logging`, `doc.code`, `doc.filesys`
 
   > ```python
   > # Import future.
@@ -118,7 +122,7 @@ Code document on global level. It contains module import document which traces a
   > # Import typing.
   > from typing import Any
   > from typing import Tuple as MultiReturn
-  > from typing import List, Union, Dict
+  > from typing import List, Union
   >
   > # Import dependencies.
   > import sys
@@ -136,33 +140,32 @@ Code document on global level. It contains module import document which traces a
   >
   > # Import dependencies.
   > from doc.code import Code
+  > import doc.filesys
   > ```
 
-### Document Prototype Objects
+### Document Objects
 
-Document prototypes are defined.
-
-Document is overall prototype, and is used for file system related things. CodeDocument is an inheritance of Document, but it works on tokenized code of an arbitrary file rather than file system.
+Prototype of document. It also includes prototype for file system document and real code document.
 
 #### Class: Document
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L41)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L39)
 
 - Super: object
 
-#### Block: Hierarchy constants.
-
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L86)
-
 #### Class: FileSysDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L94)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L84)
 
 - Super: [Document](#class-document)
 
+#### Block: Hierarchy constants.
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L117)
+
 #### Class: CodeDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L160)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L125)
 
 - Super: [Document](#class-document)
 
@@ -237,9 +240,9 @@ Main branch starts from here.
   > from pytorch.logging import debug, info1, info2, focus, warning, error
   >
   > # Import dependencies.
-  > from doc.code import Code
-  > from doc.base import CodeDocument, Document, BRANCH, FileSysDocument
-  > from doc.statement import CommentDocument, ImportDocument, ConstDocument
+  > from doc.code import Code, Line, UNIT
+  > import doc.base
+  > import doc.statement
   > ```
 
 ### Block Code Document Objects
@@ -252,19 +255,19 @@ A block often start with several comments lines, except that in a branch with on
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L45)
 
-- Super: [CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-codedocument)
+- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
 
 #### Class: ImportBlockDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L99)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L136)
 
 - Super: [BlockDocument](#class-blockdocument)
 
 #### Class: ConstBlockDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L234)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L289)
 
-- Super: [BlockDocument](#class-blockdocument)
+- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
 
 ---
 
@@ -361,6 +364,18 @@ Style related constants and utility functions are also defined.
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L1080)
 
+#### Function: mathize
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L1132)
+
+#### Function: codize
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L1168)
+
+#### Function: textize
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L1204)
+
 ---
 
 ## doc/series.py
@@ -394,8 +409,8 @@ Style related constants and utility functions are also defined.
   >
   > # Import dependencies.
   > from doc.code import Code, MAX
-  > from doc.base import CodeDocument, GLOBAL, CLASS, FUNCTION
-  > from doc.statement import CommentDocument
+  > import doc.base
+  > import doc.statement
   > ```
 
 ### Series Code Document Objects
@@ -408,7 +423,7 @@ It will mutually import with ClassDocument, FunctionDocument, OPBlockDocument. T
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L48)
 
-- Super: [CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-codedocument)
+- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
 
 ### Class Code Document Objects
 
@@ -416,9 +431,9 @@ Code document for a definition of class. It can mutually import with SeriesDocum
 
 #### Class: ClassDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L196)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L214)
 
-- Super: [CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-codedocument)
+- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
 
 ### Function Code Document Objects
 
@@ -426,9 +441,9 @@ Code document for a definition of function. It can mutually import with SeriesDo
 
 #### Class: FunctionDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L345)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L402)
 
-- Super: [CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-codedocument)
+- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
 
 ### Operation Block Code Document Objects
 
@@ -436,15 +451,15 @@ Code document for a block of operation code. It can mutually import with SeriesD
 
 #### Class: OPBlockDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L473)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L554)
 
-- Super: [CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-codedocument)
+- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
 
 ---
 
 ## doc/statement.py
 
-- Dependent on: `__future__`, `typing`, `sys`, `os`, `token`, `re`, `pytorch.logging`, `doc.code`, `doc.base`
+- Dependent on: `__future__`, `typing`, `sys`, `os`, `token`, `re`, `pytorch.logging`, `doc.code`, `doc.base`, `doc.filesys`
 
   > ```python
   > # Import future.
@@ -473,7 +488,9 @@ Code document for a block of operation code. It can mutually import with SeriesD
   >
   > # Import dependencies.
   > from doc.code import Code, Line, paragraphize, UNIT, MAX, FIRST
-  > from doc.base import CodeDocument, Document, BRANCH, FileSysDocument
+  > from doc.code import paragraphize
+  > import doc.base
+  > import doc.filesys
   > ```
 
 ### Statement Code Document Objects
@@ -482,27 +499,33 @@ Code document for a line of statement. Different statement types have their own 
 
 #### Class: CommentDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L42)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L44)
 
-- Super: [CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-codedocument)
+- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
 
 #### Class: ImportDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L171)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L173)
 
-- Super: [CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-codedocument)
-
-#### Class: ConstDocument
-
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L474)
-
-- Super: [CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-codedocument)
+- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
 
 #### Class: IntroDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L594)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L487)
 
 - Super: [CommentDocument](#class-commentdocument)
+
+#### Class: DescriptionDocument
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L584)
+
+- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
+
+#### Class: FuncDescDocument
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L707)
+
+- Super: [DescriptionDocument](#class-descriptiondocument)
 
 ---
 
@@ -517,7 +540,7 @@ Code document for a line of statement. Different statement types have their own 
   > # Import typing.
   > from typing import Any
   > from typing import Tuple as MultiReturn
-  > from typing import List
+  > from typing import List, Tuple, Union, Dict
   >
   > # Import dependencies.
   > import sys
@@ -536,9 +559,9 @@ Code document for a line of statement. Different statement types have their own 
   >
   > # Import dependencies.
   > from doc.code import Code
-  > from doc.base import FileSysDocument, GLOBAL
-  > from doc.globe import ModuleDocument, GlobalDocument
-  > from doc.series import ClassDocument
+  > import doc.base
+  > import doc.globe
+  > import doc.series
   > ```
 
 ### File System Document Objects
@@ -557,14 +580,14 @@ After the generation, a strict description matching is applied on classes with i
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L62)
 
-- Super: [FileSysDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-filesysdocument)
+- Super: [doc.base.FileSysDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-filesysdocument)
 
 #### Class: FileDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L235)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L259)
 
-- Super: [FileSysDocument](https://github.com/gao462/MLRepo/tree/main/doc#class-filesysdocument)
+- Super: [doc.base.FileSysDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-filesysdocument)
 
 #### Function: toc
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L350)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L401)

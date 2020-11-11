@@ -1096,57 +1096,141 @@ def paragraphize(
         Paragraphs.
 
     """
-    # Traverse texts.
+    # Empty is a special case.
+    if (len(texts) == 0):
+        return []
+    else:
+        pass
+
+    # Attach an additional blank line as replace of EOP.
+    buf = texts + [""]
+
+    # Break texts by single blank line.
     ptr = 0
     paragraphs = []
-    while (True):
-        # Initialize buffers if it is the first time.
-        if (ptr == 0):
-            buf: List[str] = []
-            paragraph: List[str] = []
+    while (ptr < len(buf)):
+        # Take lines for decoding until a blank line.
+        start = ptr
+        decoding = []
+        while (len(buf[ptr]) > 0):
+            decoding.append(buf[ptr])
+            ptr += 1
+
+        # Decode according to different flags.
+        if (decoding[0] == "$$"):
+            paragraphs.extend(mathize(decoding, start=start + 1))
+        elif (decoding[0][0:3] == "```"):
+            paragraphs.extend(codize(decoding, start=start + 1))
         else:
-            pass
+            paragraphs.extend(textize(decoding, start=start + 1))
 
-        # A blank line or EOF is an end of a paragraph.
-        if (ptr == len(texts) or len(texts[ptr]) == 0):
-            # Empty paragraph is not allowed.
-            if (len(paragraph) == 0):
-                error(
-                    "At comment line {:d}, empty paragraph is not allowed.",
-                    ptr + 1,
-                )
-                raise RuntimeError
-            else:
-                pass
-
-            # Paragraph sentence must end properly.
-            if (len(buf) > 0):
-                error(
-                    "At comment line {:d}, sentence does not end.",
-                    ptr + 1,
-                )
-                raise RuntimeError
-
-            # Append current paragraph and prepare for next paragraph.
-            paragraphs.append(paragraph)
-            paragraph = []
-
-            # EOF means ending.
-            if (ptr == len(texts)):
-                break
-            else:
-                ptr += 1
-        else:
-            pass
-
-        # Add focusing text to buffer.
-        obj = texts[ptr]
+        # Go over the blank line to move to next.
         ptr += 1
-        buf.append(obj)
+    return paragraphs
 
-        # Text ending with "." means ending of a sentence.
-        if (obj[-1] == "."):
-            # Get sentence and clear buffer.
+
+def mathize(
+    texts: List[str], *args: object, start: int, **kargs: object,
+) -> List[List[str]]:
+    r"""
+    Transfer a list of texts into math block.
+
+    Args
+    ----
+    - texts
+        Texts.
+    - *args
+    - start
+        Starting line in original text.
+    - **kargs
+
+    Returns
+    -------
+    - block
+        Math block.
+
+    """
+    # Block must end properly.
+    if (texts[-1] != "$$"):
+        error(
+            "At comment line {:d}, multiple-line math starts from" \
+            " line {:d} but ends nowhere.",
+            start + len(texts) - 1, start,
+        )
+        raise RuntimeError
+    else:
+        pass
+
+    # Math block requires no decoding.
+    return [[itr] for itr in texts]
+
+
+def codize(
+    texts: List[str], *args: object, start: int, **kargs: object,
+) -> List[List[str]]:
+    r"""
+    Transfer a list of texts into code block.
+
+    Args
+    ----
+    - texts
+        Texts.
+    - *args
+    - start
+        Starting line in original text.
+    - **kargs
+
+    Returns
+    -------
+    - block
+        Math block.
+
+    """
+    # Block must end properly.
+    if (texts[-1] != "```"):
+        error(
+            "At comment line {:d}, multiple-line code starts from" \
+            " line {:d} but ends nowhere.",
+            start + len(texts) - 1, start,
+        )
+        raise RuntimeError
+    else:
+        pass
+
+    # Math block requires no decoding.
+    return [[itr] for itr in texts]
+
+
+def textize(
+    texts: List[str], *args: object, start: int, **kargs: object,
+) -> List[List[str]]:
+    r"""
+    Transfer a list of texts into text block.
+
+    Args
+    ----
+    - texts
+        Texts.
+    - *args
+    - start
+        Starting line in original text.
+    - **kargs
+
+    Returns
+    -------
+    - block
+        Math block.
+
+    """
+    # Allocate buffer.
+    block = []
+    buf = []
+
+    # Decode all text in order.
+    for i, itr in enumerate(texts):
+        buf.append(itr)
+        if (itr[-1] == "." or i == len(texts) - 1):
+            # A sentence is ending, decode it and clear buffer.
             sentence = " ".join(buf)
             buf.clear()
 
@@ -1155,11 +1239,15 @@ def paragraphize(
                 error(
                     "At comment line {:d}, wrong senetence regex.\n" \
                     "\"\"\"\n{:s}\n\"\"\".",
-                    ptr + 1, sentence,
+                    start + i, sentence,
                 )
                 raise RuntimeError
             else:
-                paragraph.append(sentence)
+                pass
+
+            # Append sentence to the block.
+            block.append(sentence)
         else:
+            # A sentence is not ending, continue.
             pass
-    return paragraphs
+    return [block]

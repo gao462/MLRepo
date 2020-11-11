@@ -22,9 +22,9 @@ else:
 from pytorch.logging import debug, info1, info2, focus, warning, error
 
 # Import dependencies.
-from doc.code import Code
-from doc.base import CodeDocument, Document, BRANCH, FileSysDocument
-from doc.statement import CommentDocument, ImportDocument, ConstDocument
+from doc.code import Code, Line, UNIT
+import doc.base
+import doc.statement
 
 
 # =============================================================================
@@ -42,10 +42,53 @@ from doc.statement import CommentDocument, ImportDocument, ConstDocument
 # =============================================================================
 
 
-class BlockDocument(CodeDocument):
+class BlockDocument(doc.base.CodeDocument):
     r"""
     Document for a block of code prototype.
     """
+    def allocate(
+        self: BlockDocument, *args: object, **kargs: object,
+    ) -> None:
+        r"""
+        Allocate children memory.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Block ususally start with a comment, then statements.
+        self.comment = doc.statement.CommentDocument(
+            level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+            filedoc=self.FILEDOC,
+        )
+        self.allocate_statements()
+
+    def allocate_statements(
+        self: BlockDocument, *args: object, **kargs: object,
+    ) -> None:
+        r"""
+        Allocate statement children memory.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Prototype may not implement everything.
+        error("Function is not implemented.")
+        raise NotImplementedError
+
     def parse(
         self: BlockDocument, code: Code, *args: object, **kargs: object,
     ) -> None:
@@ -65,16 +108,10 @@ class BlockDocument(CodeDocument):
 
         """
         # Super.
-        CodeDocument.parse(self, code, *args, **kargs)
+        doc.base.CodeDocument.parse(self, code, *args, **kargs)
 
-        # Parse comment first according first word without scanning.
-        self.comment = CommentDocument(
-            path=self.PATH, level=self.LEVEL, hierarchy=self.HIERARCHY,
-            superior=self, filedoc=self.FILEDOC,
-        )
+        # Parse code.
         self.comment.parse(self.code)
-
-        # Parse statements of the block.
         self.parse_statements()
 
     def parse_statements(self, *args: object, **kargs: object) -> None:
@@ -100,6 +137,31 @@ class ImportBlockDocument(BlockDocument):
     r"""
     Document for a block of import code.
     """
+
+    def allocate_statements(
+        self: ImportBlockDocument, *args: object, **kargs: object,
+    ) -> None:
+        r"""
+        Allocate statement children memory.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Import block only has import statements.
+        self.statements: List[doc.statement.ImportDocument] = []
+
+        # Save imported modules.
+        self.modules: Dict[str, List[str]] = {}
+        self.identifiers: Dict[str, str] = {}
+        self.mapping: Dict[str, str] = {}
+
     def parse_statements(
         self: ImportBlockDocument, *args: object, **kargs: object,
     ) -> None:
@@ -117,20 +179,16 @@ class ImportBlockDocument(BlockDocument):
 
         """
         # Parsea a new document from current line.
-        self.statements: List[ImportDocument] = []
         while (not self.eob()):
-            child = ImportDocument(
-                path=self.PATH, level=self.LEVEL, hierarchy=self.HIERARCHY,
-                superior=self, filedoc=self.FILEDOC,
+            child = doc.statement.ImportDocument(
+                level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+                filedoc=self.FILEDOC,
             )
             child.parse(self.code)
             self.statements.append(child)
             self.code.next()
 
         # Merge all imports.
-        self.modules: Dict[str, List[str]] = {}
-        self.identifiers = {}
-        self.mapping = {}
         for child in self.statements:
             for name, members in child.modules.items():
                 if (name in self.modules):
@@ -184,12 +242,9 @@ class ImportBlockDocument(BlockDocument):
         """
         # Block notes is just a list of its statments notes.
         console, markdown = [], []
-        if (self.comment.null):
-            pass
-        else:
-            self.comment.notes()
-            console.extend(self.comment.notes_console)
-            markdown.extend(self.comment.notes_markdown)
+        self.comment.notes()
+        console.extend(self.comment.notes_console)
+        markdown.extend(self.comment.notes_markdown)
         for itr in self.statements:
             itr.notes()
             console.extend(itr.notes_console)
@@ -231,16 +286,15 @@ class ImportBlockDocument(BlockDocument):
         return self.statements[i].memory.text == text
 
 
-class ConstBlockDocument(BlockDocument):
+class ConstBlockDocument(doc.base.CodeDocument):
     r"""
     Document for a block of constant code.
     """
     def __init__(
         self: ConstBlockDocument, *args: object,
-        path: str, level: int, hierarchy: int,
-        superior: Union[CodeDocument, None], filedoc: FileSysDocument,
-        constant: str,
-        **kargs: object,
+        level: int, hierarchy: int,
+        superior: Union[doc.base.CodeDocument, None],
+        filedoc: doc.filesys.FileDocument, constant: str, **kargs: object,
     ) -> None:
         r"""
         Initialize.
@@ -249,8 +303,6 @@ class ConstBlockDocument(BlockDocument):
         ----
         - self
         - *args
-        - path
-            Path of its file document.
         - level
             Indent level.
         - hierarchy
@@ -268,15 +320,36 @@ class ConstBlockDocument(BlockDocument):
 
         """
         # Super.
-        BlockDocument.__init__(
-            self, *args, path=path, level=level, hierarchy=hierarchy,
-            superior=superior, filedoc=filedoc, **kargs,
+        doc.base.CodeDocument.__init__(
+            self, *args, level=level, hierarchy=hierarchy, superior=superior,
+            filedoc=filedoc, **kargs,
         )
 
         # Save necessary attributes.
         self.CONSTANT = constant.split("\n")
 
-    def parse(self, code: Code, *args: object, **kargs: object) -> None:
+    def allocate(
+        self: ConstBlockDocument, *args: object, **kargs: object,
+    ) -> None:
+        r"""
+        Allocate children memory.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Allocate document memory for constant lines.
+        self.memory: List[Line] = []
+
+    def parse(
+        self: ConstBlockDocument, code: Code, *args: object, **kargs: object,
+    ) -> None:
         r"""
         Parse information into document.
 
@@ -293,23 +366,33 @@ class ConstBlockDocument(BlockDocument):
 
         """
         # Super.
-        CodeDocument.parse(self, code, *args, **kargs)
+        doc.base.CodeDocument.parse(self, code, *args, **kargs)
 
-        # Parse statements of the block without comments.
-        self.statements = []
-        for itr in self.CONSTANT:
-            child = ConstDocument(
-                path=self.PATH, level=self.LEVEL, hierarchy=self.HIERARCHY,
-                superior=self, filedoc=self.FILEDOC, constant=itr,
-            )
-            child.parse(self.code)
-            self.statements.append(child)
+        # Get current line.
+        for i, itr in enumerate(self.CONSTANT):
+            # Get current line.
+            obj = self.code.get()
+
+            # Directly match the constant text with current line.
+            if (obj.text == itr):
+                pass
+            else:
+                error(
+                    "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+                    " expect\n\"\"\"\n{:s}\n\"\"\", but" \
+                    " get\n\"\"\"\n{:s}\"\"\".",
+                    self.FILEDOC.PATH, "line {:d}".format(obj.row),
+                    itr, obj.text,
+                )
+                raise RuntimeError
+
+            # Save verified line in document memory.
+            self.memory.append(obj)
             self.code.next()
 
-        # Generate notes.
-        self.notes()
-
-    def notes(self, *args: object, **kargs: object) -> None:
+    def notes(
+        self: ConstBlockDocument, *args: object, **kargs: object,
+    ) -> None:
         r"""
         Generate notes.
 
@@ -321,22 +404,22 @@ class ConstBlockDocument(BlockDocument):
 
         Returns
         -------
+        - console
+            Console notes.
+        - markdown
+            Markdown notes.
 
         This will generate notes for console and markdown in the same time.
         For most part of the notes, they will share the same Markdown syntex
         except that console notes will use ASCII color codes for some keywords.
 
         """
-        # Block notes is just a list of its statments notes.
+        # Block notes is just a list of code lines without indents.
+        start = self.LEVEL * UNIT
         console, markdown = [], []
-        for itr in self.statements:
-            itr.notes()
-            console.extend(itr.notes_console)
-            markdown.extend(itr.notes_markdown)
+        for itr in self.memory:
+            msg = itr.text[start:]
+            console.append(msg)
+            markdown.append(msg)
         self.notes_console = console
         self.notes_markdown = markdown
-
-        # Clear children notes for memory efficency.
-        for itr in self.statements:
-            itr.notes_console.clear()
-            itr.notes_markdown.clear()

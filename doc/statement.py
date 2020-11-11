@@ -24,7 +24,9 @@ from pytorch.logging import debug, info1, info2, focus, warning, error
 
 # Import dependencies.
 from doc.code import Code, Line, paragraphize, UNIT, MAX, FIRST
-from doc.base import CodeDocument, Document, BRANCH, FileSysDocument
+from doc.code import paragraphize
+import doc.base
+import doc.filesys
 
 
 # =============================================================================
@@ -39,10 +41,29 @@ from doc.base import CodeDocument, Document, BRANCH, FileSysDocument
 # =============================================================================
 
 
-class CommentDocument(CodeDocument):
+class CommentDocument(doc.base.CodeDocument):
     r"""
     Document for a line of comment statement.
     """
+    def allocate(
+        self: CommentDocument, *args: object, **kargs: object,
+    ) -> None:
+        r"""
+        Allocate children memory.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Allocate document memory for comment lines.
+        self.memory: List[Line] = []
+
     def parse(
         self: CommentDocument, code: Code, *args: object, **kargs: object,
     ) -> None:
@@ -62,10 +83,7 @@ class CommentDocument(CodeDocument):
 
         """
         # Super.
-        CodeDocument.parse(self, code, *args, **kargs)
-
-        # Allocate document memory for comment lines.
-        self.memory = []
+        doc.base.CodeDocument.parse(self, code, *args, **kargs)
 
         # Read in all consecutive comments.
         texts = []
@@ -93,9 +111,6 @@ class CommentDocument(CodeDocument):
         # Translate parsed text into paragraphs.
         self.translate(texts)
 
-        # Generate notes.
-        self.notes()
-
     def translate(
         self: CommentDocument, texts: List[str], *args: object,
         **kargs: object,
@@ -113,19 +128,6 @@ class CommentDocument(CodeDocument):
         -------
 
         """
-        # Branch block may have no comments.
-        if (len(texts) > 0):
-            self.null = False
-        elif (self.LEVEL == BRANCH):
-            self.null = True
-        else:
-            error(
-                "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
-                " Non-branch block requires comments.",
-                self.PATH, "line {:d}".format(self.row),
-            )
-            raise RuntimeError
-
         # Translate parsed text into paragraphs.
         try:
             self.paragraphs = paragraphize(texts)
@@ -134,7 +136,7 @@ class CommentDocument(CodeDocument):
             error(
                 "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
                 " fail to translate paragraphs.",
-                self.PATH, "line {:d}".format(self.row),
+                self.FILEDOC.PATH, "line {:d}".format(self.row),
             )
             raise RuntimeError
 
@@ -168,10 +170,29 @@ class CommentDocument(CodeDocument):
         self.notes_markdown = markdown
 
 
-class ImportDocument(CodeDocument):
+class ImportDocument(doc.base.CodeDocument):
     r"""
     Document for a line of import statement.
     """
+    def allocate(self: ImportDocument, *args: object, **kargs: object) -> None:
+        r"""
+        Allocate children memory.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Save imported modules.
+        self.modules: Dict[str, List[str]] = {}
+        self.identifiers: Dict[str, str] = {}
+        self.mapping: Dict[str, str] = {}
+
     def parse(
         self: ImportDocument, code: Code, *args: object, **kargs: object,
     ) -> None:
@@ -191,12 +212,7 @@ class ImportDocument(CodeDocument):
 
         """
         # Super.
-        CodeDocument.parse(self, code, *args, **kargs)
-
-        # Save imported modules
-        self.modules: Dict[str, List[str]] = {}
-        self.identifiers: Dict[str, str] = {}
-        self.mapping: Dict[str, str] = {}
+        doc.base.CodeDocument.parse(self, code, *args, **kargs)
 
         # Get current line and parse according to the first word.
         obj = self.code.get()
@@ -205,9 +221,6 @@ class ImportDocument(CodeDocument):
 
         # Save the only parsed line in document memory.
         self.memory = obj
-
-        # Generate notes.
-        self.notes()
 
     def parse_import(
         self: ImportDocument, line: Line, *args: object, **kargs: object,
@@ -471,126 +484,6 @@ class ImportDocument(CodeDocument):
         self.notes_markdown = markdown
 
 
-class ConstDocument(CodeDocument):
-    r"""
-    Document for a line of constant statement.
-    """
-    def __init__(
-        self: ConstDocument, *args: object,
-        path: str, level: int, hierarchy: int,
-        superior: Union[CodeDocument, None], filedoc: FileSysDocument,
-        constant: str,
-        **kargs: object,
-    ) -> None:
-        r"""
-        Initialize.
-
-        Args
-        ----
-        - self
-        - *args
-        - path
-            Path of its file document.
-        - level
-            Indent level.
-        - hierarchy
-            Hierarchy integer.
-        - superior
-            Superior code document.
-        - filedoc
-            Document of the file of the code.
-        - constant
-            Constant code text.
-        - **kargs
-
-        Returns
-        -------
-
-        """
-        # Super.
-        CodeDocument.__init__(
-            self, *args, path=path, level=level, hierarchy=hierarchy,
-            superior=superior, filedoc=filedoc, **kargs,
-        )
-
-        # Save necessary attributes.
-        self.CONSTANT = constant
-
-    def parse(
-        self: ConstDocument, code: Code, *args: object, **kargs: object,
-    ) -> None:
-        r"""
-        Parse information into document.
-
-        Args
-        ----
-        - self
-        - code
-            Code scanner used for parsing.
-        - *args
-        - **kargs
-
-        Returns
-        -------
-
-        """
-        # Super.
-        CodeDocument.parse(self, code, *args, **kargs)
-
-        # Get current line.
-        obj = self.code.get()
-
-        # Directly match the text.
-        if (obj.text == self.CONSTANT):
-            pass
-        else:
-            error(
-                "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
-                " expect\n\"\"\"\n{:s}\n\"\"\", but get\n\"\"\"\n{:s}\"\"\".",
-                self.PATH, "line {:d}".format(obj.row),
-                self.CONSTANT, obj.text,
-            )
-            raise RuntimeError
-
-        # Save the only parsed line in document memory.
-        self.memory = obj
-
-        # Generate notes.
-        self.notes()
-
-    def notes(self: ConstDocument, *args: object, **kargs: object) -> None:
-        r"""
-        Generate notes.
-
-        Args
-        ----
-        - self
-        - *args
-        - **kargs
-
-        Returns
-        -------
-        - console
-            Console notes.
-        - markdown
-            Markdown notes.
-
-        This will generate notes for console and markdown in the same time.
-        For most part of the notes, they will share the same Markdown syntex
-        except that console notes will use ASCII color codes for some keywords.
-
-        """
-        # Statement note is just its code lines without indents.
-        start = self.LEVEL * UNIT
-        console = []
-        markdown = []
-        msg = self.memory.text[start:]
-        console.append(msg)
-        markdown.append(msg)
-        self.notes_console = console
-        self.notes_markdown = markdown
-
-
 class IntroDocument(CommentDocument):
     r"""
     Document for an introduction statement.
@@ -626,7 +519,7 @@ class IntroDocument(CommentDocument):
             error(
                 "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
                 " introduction requires constant head and tail lines.",
-                self.PATH, "line {:d}".format(self.row),
+                self.FILEDOC.PATH, "line {:d}".format(self.row),
             )
             raise RuntimeError
 
@@ -637,7 +530,7 @@ class IntroDocument(CommentDocument):
                 error(
                     "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
                     " introduction requires title words to be capitalized.",
-                    self.PATH, "line {:d}".format(self.row),
+                    self.FILEDOC.PATH, "line {:d}".format(self.row),
                 )
                 raise RuntimeError
             else:
@@ -652,7 +545,7 @@ class IntroDocument(CommentDocument):
             error(
                 "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
                 " fail to translate paragraphs.",
-                self.PATH, "line {:d}".format(self.row),
+                self.FILEDOC.PATH, "line {:d}".format(self.row),
             )
             raise RuntimeError
 
@@ -686,3 +579,133 @@ class IntroDocument(CommentDocument):
             markdown.append(" ".join(itr))
         self.notes_console = console
         self.notes_markdown = markdown
+
+
+class DescriptionDocument(doc.base.CodeDocument):
+    r"""
+    Document for a description statement prototype.
+    """
+    def allocate(
+        self: DescriptionDocument, *args: object, **kargs: object,
+    ) -> None:
+        r"""
+        Allocate children memory.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Allocate document memory for comment lines.
+        self.memory: List[Line] = []
+
+    def parse(
+        self: DescriptionDocument, code: Code, *args: object, **kargs: object,
+    ) -> None:
+        r"""
+        Parse information into document.
+
+        Args
+        ----
+        - self
+        - code
+            Code scanner used for parsing.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Super.
+        doc.base.CodeDocument.parse(self, code, *args, **kargs)
+
+        # Get description.
+        obj = self.code.get()
+        obj.reset()
+        text = obj.get().text
+        obj.match(token.STRING, level=self.LEVEL)
+
+        # Description always occupy multiple lines.
+        while (True):
+            if (obj.eol()):
+                self.memory.append(obj)
+                self.code.next()
+                obj = self.code.get()
+                obj.reset()
+            elif (obj.check(token.NEWLINE, level=self.LEVEL)):
+                break
+            else:
+                error(
+                    "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+                    " description should occupy multiple lines without" \
+                    " anything else.",
+                    self.FILEDOC.PATH, "line {:d}".format(self.row),
+                )
+                raise RuntimeError
+        obj.match(token.NEWLINE, level=self.LEVEL)
+        self.memory.append(obj)
+        self.code.next()
+
+        # Remove indent from description.
+        decoding = text.split("\n")
+        for i in range(1, len(decoding)):
+            if (len(decoding[i]) > 0):
+                decoding[i] = decoding[i][UNIT * self.LEVEL:]
+            else:
+                pass
+
+        # Description has content head and tail.
+        if (decoding[0] == "r\"\"\"" and decoding[-1] == "\"\"\""):
+            pass
+        else:
+            error(
+                "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+                " description has constant head and tail",
+                self.FILEDOC.PATH, "line {:d}".format(self.row),
+            )
+            raise RuntimeError
+
+        # Decode description.
+        self.decode(decoding[1:-1])
+
+    def decode(
+        self: DescriptionDocument, texts: List[str], *args: object,
+        **kargs: object,
+    ) -> None:
+        r"""
+        Decode list of texts into document.
+
+        Args
+        ----
+        - self
+        - text
+            A list of decoding texts.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Prototype may not implement everything.
+        error("Function is not implemented.")
+        raise NotImplementedError
+
+class ClassDescDocument(DescriptionDocument):
+    r"""
+    Document for a description of class statement.
+    """
+    pass
+
+
+class FuncDescDocument(DescriptionDocument):
+    r"""
+    Document for a description of function statement.
+    """
+    pass

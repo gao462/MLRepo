@@ -4,7 +4,7 @@ from __future__ import annotations
 # Import typing.
 from typing import Any
 from typing import Tuple as MultiReturn
-from typing import List, Union, Dict
+from typing import List, Union
 
 # Import dependencies.
 import sys
@@ -22,17 +22,15 @@ from pytorch.logging import debug, info1, info2, focus, warning, error
 
 # Import dependencies.
 from doc.code import Code
+import doc.filesys
 
 
 # =============================================================================
 # *****************************************************************************
 # -----------------------------------------------------------------------------
-# << Document Prototype Objects >>
-# Document prototypes are defined.
-#
-# Document is overall prototype, and is used for file system related things.
-# CodeDocument is an inheritance of Document, but it works on tokenized code
-# of an arbitrary file rather than file system.
+# << Document Objects >>
+# Prototype of document.
+# It also includes prototype for file system document and real code document.
 # -----------------------------------------------------------------------------
 # *****************************************************************************
 # =============================================================================
@@ -83,14 +81,6 @@ class Document(object):
         raise NotImplementedError
 
 
-# Hierarchy constants.
-GLOBAL = 0
-CLASS = 1
-FUNCTION = 2
-BLOCK = 3
-BRANCH = 4
-
-
 class FileSysDocument(Document):
     r"""
     Document for file system prototype.
@@ -100,8 +90,7 @@ class FileSysDocument(Document):
     GITHUB = "https://github.com/gao462/{:s}".format(ROOT)
 
     def __init__(
-        self: FileSysDocument, *args: object,
-        rootdoc: Union[FileSysDocument, None], **kargs: object,
+        self: Document, path: str, *args: object, **kargs: object,
     ) -> None:
         r"""
         Initialize.
@@ -109,9 +98,9 @@ class FileSysDocument(Document):
         Args
         ----
         - self
+        - path
+            Path of this document.
         - *args
-        - rootdoc
-            Document for root directory.
         - **kargs
 
         Returns
@@ -121,40 +110,16 @@ class FileSysDocument(Document):
         # Super.
         Document.__init__(self, *args, **kargs)
 
-        # Save necessary attributes.
-        self.ROOTDOC = self if rootdoc is None else rootdoc
+        # Save necessary attributes
+        self.PATH = path
 
-        # File system should trace definitions.
-        self.classes: Dict[str, str] = {}
 
-    def parse(
-        self: FileSysDocument, path: str, *args: object, **kargs: object,
-    ) -> None:
-        r"""
-        Parse information into document.
-
-        Args
-        ----
-        - self
-        - path
-            Path to the document.
-        - *args
-        - **kargs
-
-        Returns
-        -------
-
-        """
-        # Ensure path is relative to defined root.
-        if (os.path.basename(path) == "MLRepo"):
-            pass
-        else:
-            _, path = path.split(os.path.join(" ", self.ROOT, " ")[1:-1])
-        self.path = path
-
-        # Get module name for the file.
-        self.me = self.path.replace(os.path.join(" ", " ")[1:-1], ".")
-        self.me, _ = os.path.splitext(self.me)
+# Hierarchy constants.
+GLOBAL = 0
+CLASS = 1
+FUNCTION = 2
+BLOCK = 3
+BRANCH = 4
 
 
 class CodeDocument(Document):
@@ -163,8 +128,8 @@ class CodeDocument(Document):
     """
     def __init__(
         self: CodeDocument, *args: object,
-        path: str, level: int, hierarchy: int,
-        superior: Union[CodeDocument, None], filedoc: FileSysDocument,
+        level: int, hierarchy: int,
+        superior: Union[CodeDocument, None], filedoc: doc.filesys.FileDocument,
         **kargs: object,
     ) -> None:
         r"""
@@ -194,11 +159,31 @@ class CodeDocument(Document):
         Document.__init__(self, *args, **kargs)
 
         # Save necessary attributes.
-        self.PATH = path
         self.LEVEL = level
         self.HIERARCHY = hierarchy
         self.SUPERIOR = self if superior is None else superior
         self.FILEDOC = filedoc
+
+        # Allocate children memory.
+        self.allocate()
+
+    def allocate(self: CodeDocument, *args: object, **kargs: object) -> None:
+        r"""
+        Allocate children memory.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Prototype may not implement everything.
+        error("Function is not implemented.")
+        raise NotImplementedError
 
     def parse(self, code: Code, *args: object, **kargs: object) -> None:
         r"""

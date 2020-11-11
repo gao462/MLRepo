@@ -24,8 +24,8 @@ from pytorch.logging import debug, info1, info2, focus, warning, error
 
 # Import dependencies.
 from doc.code import Code, MAX
-from doc.base import CodeDocument, GLOBAL, CLASS, FUNCTION
-from doc.statement import CommentDocument
+import doc.base
+import doc.statement
 
 
 # =============================================================================
@@ -45,10 +45,32 @@ from doc.statement import CommentDocument
 # =============================================================================
 
 
-class SeriesDocument(CodeDocument):
+class SeriesDocument(doc.base.CodeDocument):
     r"""
     Document for a series of code.
     """
+    def allocate(self: SeriesDocument, *args: object, **kargs: object) -> None:
+        r"""
+        Allocate children memory.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Children are a list of classes, functions or operation blocks.
+        self.components: List[Union[
+            ClassDocument, FunctionDocument, OPBlockDocument,
+        ]] = []
+
+        # Number of blank breaks is based on hierarchy.
+        self.NUM_BLANKS = 1 + int(self.HIERARCHY == doc.base.GLOBAL)
+
     def parse(
         self: SeriesDocument, code: Code, *args: object, **kargs: object,
     ) -> None:
@@ -68,43 +90,39 @@ class SeriesDocument(CodeDocument):
 
         """
         # Super.
-        CodeDocument.parse(self, code, *args, **kargs)
+        doc.base.CodeDocument.parse(self, code, *args, **kargs)
 
         # Parse components until dedent.
         first = True
-        num_blanks = 1 + int(self.HIERARCHY == GLOBAL)
-        self.components: List[
-            Union[ClassDocument, FunctionDocument, OPBlockDocument],
-        ] = []
         while (not self.dedent()):
-            # The first item has no breaks.
+            # Move blank lines first except for the first time.
             if (first):
                 first = False
             else:
-                self.code.blank_next(num_blanks)
+                self.code.blank_next(self.NUM_BLANKS)
 
-            # Get component class.
+            # Allocate according to keyword and append.
             keyword = self.code.get().memory[0]
-            doc: Union[ClassDocument, FunctionDocument, OPBlockDocument]
+            itr: Union[ClassDocument, FunctionDocument, OPBlockDocument]
             if (keyword.text == "class"):
-                doc = ClassDocument(
-                    path=self.PATH, level=self.LEVEL, hierarchy=self.HIERARCHY,
-                    superior=self, filedoc=self.FILEDOC,
+                itr = ClassDocument(
+                    level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+                    filedoc=self.FILEDOC,
                 )
             elif (keyword.text == "def"):
-                doc = FunctionDocument(
-                    path=self.PATH, level=self.LEVEL, hierarchy=self.HIERARCHY,
-                    superior=self, filedoc=self.FILEDOC,
+                itr = FunctionDocument(
+                    level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+                    filedoc=self.FILEDOC,
                 )
             else:
-                doc = OPBlockDocument(
-                    path=self.PATH, level=self.LEVEL, hierarchy=self.HIERARCHY,
-                    superior=self, filedoc=self.FILEDOC,
+                itr = OPBlockDocument(
+                    level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+                    filedoc=self.FILEDOC,
                 )
+            self.components.append(itr)
 
-            # Create component document and parse it.
-            doc.parse(code)
-            self.components.append(doc)
+            # Parse code.
+            itr.parse(self.code)
 
     def dedent(self, *args: object, **kargs: object) -> bool:
         r"""
@@ -193,10 +211,48 @@ class SeriesDocument(CodeDocument):
 # =============================================================================
 
 
-class ClassDocument(CodeDocument):
+class ClassDocument(doc.base.CodeDocument):
     r"""
     Document for a definition of class.
     """
+    def allocate(self: ClassDocument, *args: object, **kargs: object) -> None:
+        r"""
+        Allocate children memory.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Hierarchy of class body is limited and may change.
+        if (self.HIERARCHY == doc.base.GLOBAL):
+            hierarchy = doc.base.CLASS
+        else:
+            error(
+                "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+                " class is limited to be global level.",
+                self.FILEDOC.PATH, "line {:d}".format(self.row),
+            )
+            raise RuntimeError
+
+        # Children are a description and a series of codes.
+        self.description = doc.statement.ClassDescDocument(
+            level=self.LEVEL + 1, hierarchy=hierarchy, superior=self,
+            filedoc=self.FILEDOC,
+        )
+        self.body = SeriesDocument(
+            level=self.LEVEL + 1, hierarchy=hierarchy, superior=self,
+            filedoc=self.FILEDOC,
+        )
+
+        # Number of blank breaks is based on hierarchy.
+        self.NUM_BLANKS = 1 + int(self.HIERARCHY == doc.base.GLOBAL)
+
     def parse(
         self: ClassDocument, code: Code, *args: object, **kargs: object,
     ) -> None:
@@ -216,18 +272,7 @@ class ClassDocument(CodeDocument):
 
         """
         # Super.
-        CodeDocument.parse(self, code, *args, **kargs)
-
-        # Hierarchy of class body may change.
-        if (self.HIERARCHY == GLOBAL, CLASS):
-            hierarchy = CLASS
-        else:
-            error(
-                "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
-                " class is limited to be global level.",
-                self.PATH, "line {:d}".format(self.row),
-            )
-            raise RuntimeError
+        doc.base.CodeDocument.parse(self, code, *args, **kargs)
 
         # Get the class name.
         obj = self.code.get()
@@ -251,13 +296,8 @@ class ClassDocument(CodeDocument):
         self.code.next()
 
         # Parse components.
-        self.body = SeriesDocument(
-            path=self.PATH, level=self.LEVEL + 1, hierarchy=hierarchy,
-            superior=self, filedoc=self.FILEDOC,
-        )
-        num_blanks = 1 + int(self.HIERARCHY == GLOBAL)
         while (True):
-            if (self.code.eof() or self.code.blank_top(num_blanks)):
+            if (self.code.eof() or self.code.blank_top(self.NUM_BLANKS)):
                 break
             else:
                 self.code.next()
@@ -280,27 +320,44 @@ class ClassDocument(CodeDocument):
         except that console notes will use ASCII color codes for some keywords.
 
         """
-        # Search for the super location.
-        if (self.super in self.FILEDOC.modules.identifiers):
-            # Get Github page.
-            layers = self.FILEDOC.modules.identifiers[self.super].split(".")
-            page = os.path.join(
-                self.FILEDOC.GITHUB, "tree", "main", *layers[:-1],
-            )
+        # Get imported global variables sorted by inverse length.
+        knowns = sorted(
+            self.FILEDOC.modules.mapping.keys(), key=lambda x: -len(x),
+        )
 
-            # Get in-page reference.
-            refer = "Class: {:s}".format(self.super)
-            refer = re.sub(r"\.", "", refer)
-            refer = re.sub(r"[^\w]+", "-", refer.lower().strip())
-            link = "[{:s}]({:s}#{:s})".format(self.super, page, refer)
-        elif (self.super in self.FILEDOC.classes):
+        # Find the first variable matching the super name.
+        for itr in knowns:
+            if (itr in self.super):
+                source = itr
+                prefix = self.FILEDOC.modules.mapping[source]
+                break
+            else:
+                source = ""
+                prefix = ""
+        suffix = self.super[len(source):]
+
+        # Locate the super.
+        if (len(source) == 0 and suffix in self.FILEDOC.classes):
             # Get in-page reference directly.
-            refer = "Class: {:s}".format(self.super)
+            refer = "Class: {:s}".format(suffix)
             refer = re.sub(r"\.", "", refer)
             refer = re.sub(r"[^\w]+", "-", refer.lower().strip())
             link = "[{:s}](#{:s})".format(self.super, refer)
-        else:
+        elif (len(source) == 0):
+            # Python class has no reference.
             link = self.super
+        else:
+            # Get Github page.
+            layers = (prefix + suffix).split(".")
+            page = os.path.join(
+                self.FILEDOC.ROOTDOC.GITHUB, "tree", "main", *layers[:-1],
+            )
+
+            # Get in-page reference.
+            refer = "Class: {:s}".format(layers[-1])
+            refer = re.sub(r"\.", "", refer)
+            refer = re.sub(r"[^\w]+", "-", refer.lower().strip())
+            link = "[{:s}]({:s}#{:s})".format(self.super, page, refer)
 
         # Title is class name.
         console, markdown = [], []
@@ -309,7 +366,7 @@ class ClassDocument(CodeDocument):
 
         # Super link to source code is required.
         source = os.path.join(
-            self.FILEDOC.GITHUB, "blob", "master", self.FILEDOC.path,
+            self.FILEDOC.GITHUB, "blob", "master", self.FILEDOC.PATH,
         )
         source = "{:s}#L{:d}".format(source, self.row)
         console.append("")
@@ -342,10 +399,45 @@ class ClassDocument(CodeDocument):
 # =============================================================================
 
 
-class FunctionDocument(CodeDocument):
+class FunctionDocument(doc.base.CodeDocument):
     r"""
     Document for a definition of function.
     """
+    def allocate(
+        self: FunctionDocument, *args: object, **kargs: object,
+    ) -> None:
+        r"""
+        Allocate children memory.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Hierarchy of function body may change.
+        if (self.HIERARCHY in (doc.base.GLOBAL, doc.base.CLASS)):
+            hierarchy = doc.base.FUNCTION
+        else:
+            hierarchy = self.HIERARCHY
+
+        # Children are a description and a series of codes.
+        self.description = doc.statement.FuncDescDocument(
+            level=self.LEVEL + 1, hierarchy=hierarchy, superior=self,
+            filedoc=self.FILEDOC,
+        )
+        self.body = SeriesDocument(
+            level=self.LEVEL + 1, hierarchy=hierarchy, superior=self,
+            filedoc=self.FILEDOC,
+        )
+
+        # Number of blank breaks is based on hierarchy.
+        self.NUM_BLANKS = 1 + int(self.HIERARCHY == doc.base.GLOBAL)
+
     def parse(
         self: FunctionDocument, code: Code, *args: object, **kargs: object,
     ) -> None:
@@ -365,13 +457,7 @@ class FunctionDocument(CodeDocument):
 
         """
         # Super.
-        CodeDocument.parse(self, code, *args, **kargs)
-
-        # Hierarchy of class body may change.
-        if (self.HIERARCHY in (GLOBAL, CLASS)):
-            hierarchy = FUNCTION
-        else:
-            hierarchy = self.HIERARCHY
+        doc.base.CodeDocument.parse(self, code, *args, **kargs)
 
         # Get the function name.
         obj = self.code.get()
@@ -405,13 +491,8 @@ class FunctionDocument(CodeDocument):
         self.code.next()
 
         # Parse components.
-        self.body = SeriesDocument(
-            path=self.PATH, level=self.LEVEL + 1, hierarchy=hierarchy,
-            superior=self, filedoc=self.FILEDOC,
-        )
-        num_blanks = 1 + int(self.HIERARCHY == GLOBAL)
         while (True):
-            if (self.code.eof() or self.code.blank_top(num_blanks)):
+            if (self.code.eof() or self.code.blank_top(self.NUM_BLANKS)):
                 break
             else:
                 self.code.next()
@@ -443,7 +524,7 @@ class FunctionDocument(CodeDocument):
 
         # Super link to source code is required.
         source = os.path.join(
-            self.FILEDOC.GITHUB, "blob", "master", self.FILEDOC.path,
+            self.FILEDOC.GITHUB, "blob", "master", self.FILEDOC.PATH,
         )
         source = "{:s}#L{:d}".format(source, self.row)
         console.append("")
@@ -470,12 +551,37 @@ class FunctionDocument(CodeDocument):
 # =============================================================================
 
 
-class OPBlockDocument(CodeDocument):
+class OPBlockDocument(doc.base.CodeDocument):
     r"""
     Document for a block of operation code.
     """
     # Define constants.
     MAX = 20
+
+    def allocate(
+        self: OPBlockDocument, *args: object, **kargs: object,
+    ) -> None:
+        r"""
+        Allocate children memory.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Children are a description and a block of operations.
+        self.comment = doc.statement.CommentDocument(
+            level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+            filedoc=self.FILEDOC,
+        )
+
+        # Number of blank breaks is based on hierarchy.
+        self.NUM_BLANKS = 1 + int(self.HIERARCHY == doc.base.GLOBAL)
 
     def parse(
         self: OPBlockDocument, code: Code, *args: object, **kargs: object,
@@ -496,23 +602,12 @@ class OPBlockDocument(CodeDocument):
 
         """
         # Super.
-        CodeDocument.parse(self, code, *args, **kargs)
+        doc.base.CodeDocument.parse(self, code, *args, **kargs)
 
-        # Parse comment first according first word without scanning.
-        self.comment = CommentDocument(
-            path=self.PATH, level=self.LEVEL, hierarchy=self.HIERARCHY,
-            superior=self, filedoc=self.FILEDOC,
-        )
+        # Parse comment code.
         self.comment.parse(self.code)
-
-        # Parse components.
-        self.body = SeriesDocument(
-            path=self.PATH, level=self.LEVEL + 1, hierarchy=self.HIERARCHY,
-            superior=self, filedoc=self.FILEDOC,
-        )
-        num_blanks = 1 + int(self.HIERARCHY == GLOBAL)
         while (True):
-            if (self.code.eof() or self.code.blank_top(num_blanks)):
+            if (self.code.eof() or self.code.blank_top(self.NUM_BLANKS)):
                 break
             else:
                 self.code.next()
@@ -549,7 +644,7 @@ class OPBlockDocument(CodeDocument):
 
         # Super link to source code is required.
         source = os.path.join(
-            self.FILEDOC.GITHUB, "blob", "master", self.FILEDOC.path,
+            self.FILEDOC.GITHUB, "blob", "master", self.FILEDOC.PATH,
         )
         source = "{:s}#L{:d}".format(source, self.row)
         console.append("")

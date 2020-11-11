@@ -4,7 +4,7 @@ from __future__ import annotations
 # Import typing.
 from typing import Any
 from typing import Tuple as MultiReturn
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 # Import dependencies.
 import sys
@@ -22,10 +22,10 @@ from pytorch.logging import debug, info1, info2, focus, warning, error
 
 # Import dependencies.
 from doc.code import Code
-from doc.base import CodeDocument
-from doc.block import ImportBlockDocument, ConstBlockDocument
-from doc.statement import IntroDocument
-from doc.series import SeriesDocument
+import doc.base
+import doc.block
+import doc.statement
+import doc.series
 
 
 # =============================================================================
@@ -40,10 +40,65 @@ from doc.series import SeriesDocument
 # =============================================================================
 
 
-class ModuleDocument(CodeDocument):
+class ModuleDocument(doc.base.CodeDocument):
     r"""
     Document for module imports.
     """
+    def allocate(self: ModuleDocument, *args: object, **kargs: object) -> None:
+        r"""
+        Allocate children memory.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Define constant code text.
+        text = (
+            "# Add development library to path.\n" \
+            "if (os.path.basename(os.getcwd()) == \"MLRepo\"):\n" \
+            "    sys.path.append(os.path.join(\".\"))\n" \
+            "else:\n" \
+            "    print(\"Code must strictly work in \\\"MLRepo\\\".\")\n" \
+            "    exit()"
+        )
+
+        # Modules are constant.
+        self.future = doc.block.ImportBlockDocument(
+            level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+            filedoc=self.FILEDOC,
+        )
+        self.typing = doc.block.ImportBlockDocument(
+            level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+            filedoc=self.FILEDOC,
+        )
+        self.python = doc.block.ImportBlockDocument(
+            level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+            filedoc=self.FILEDOC,
+        )
+        self.adding = doc.block.ConstBlockDocument(
+            level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+            filedoc=self.FILEDOC, constant=text,
+        )
+        self.logging = doc.block.ImportBlockDocument(
+            level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+            filedoc=self.FILEDOC,
+        )
+        self.develop = doc.block.ImportBlockDocument(
+            level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+            filedoc=self.FILEDOC,
+        )
+
+        # Allocate buffer to trace imports.
+        self.modules: Dict[str, List[str]] = {}
+        self.identifiers: Dict[str, str] = {}
+        self.mapping: Dict[str, str] = {}
+
     def parse(
         self: ModuleDocument, code: Code, *args: object, **kargs: object,
     ) -> None:
@@ -63,72 +118,19 @@ class ModuleDocument(CodeDocument):
 
         """
         # Super.
-        CodeDocument.parse(self, code, *args, **kargs)
+        doc.base.CodeDocument.parse(self, code, *args, **kargs)
 
-        # Future module import block.
-        self.future = ImportBlockDocument(
-            path=self.PATH, level=self.LEVEL, hierarchy=self.HIERARCHY,
-            superior=self, filedoc=self.FILEDOC,
-        )
+        # Parse code.
         self.future.parse(self.code)
-
-        # A single blank line as break.
         self.code.blank_next(1)
-
-        # Typing module import block.
-        self.typing = ImportBlockDocument(
-            path=self.PATH, level=self.LEVEL, hierarchy=self.HIERARCHY,
-            superior=self, filedoc=self.FILEDOC,
-        )
         self.typing.parse(self.code)
-
-        # A single blank line as break.
         self.code.blank_next(1)
-
-        # Dependent (python) module import block.
-        self.python = ImportBlockDocument(
-            path=self.PATH, level=self.LEVEL, hierarchy=self.HIERARCHY,
-            superior=self, filedoc=self.FILEDOC,
-        )
         self.python.parse(self.code)
-
-        # A single blank line as break.
         self.code.blank_next(1)
-
-        # Adding development library is a constant operation included by two
-        # levels.
-        text = (
-            "# Add development library to path.\n" \
-            "if (os.path.basename(os.getcwd()) == \"MLRepo\"):\n" \
-            "    sys.path.append(os.path.join(\".\"))\n" \
-            "else:\n" \
-            "    print(\"Code must strictly work in \\\"MLRepo\\\".\")\n" \
-            "    exit()"
-        )
-        self.adding = ConstBlockDocument(
-            path=self.PATH, level=self.LEVEL, hierarchy=self.HIERARCHY,
-            superior=self, filedoc=self.FILEDOC, constant=text,
-        )
         self.adding.parse(self.code)
-
-        # A single blank line as break.
         self.code.blank_next(1)
-
-        # Logging module import block.
-        self.logging = ImportBlockDocument(
-            path=self.PATH, level=self.LEVEL, hierarchy=self.HIERARCHY,
-            superior=self, filedoc=self.FILEDOC,
-        )
         self.logging.parse(self.code)
-
-        # A single blank line as break.
         self.code.blank_next(1)
-
-        # Dependent (development) module import block.
-        self.develop = ImportBlockDocument(
-            path=self.PATH, level=self.LEVEL, hierarchy=self.HIERARCHY,
-            superior=self, filedoc=self.FILEDOC,
-        )
         self.develop.parse(self.code)
 
         # Some import blocks are strictly required.
@@ -170,7 +172,7 @@ class ModuleDocument(CodeDocument):
         )
 
         # Some import commands are required except for some files.
-        if (self.FILEDOC.me == "pytorch.logging"):
+        if (self.FILEDOC.ME == "pytorch.logging"):
             pass
         else:
             assert (
@@ -183,9 +185,6 @@ class ModuleDocument(CodeDocument):
             )
 
         # Merge all imports.
-        self.modules: Dict[str, List[str]] = {}
-        self.identifiers = {}
-        self.mapping = {}
         for child in (
             self.future, self.typing, self.python, self.logging, self.develop,
         ):
@@ -265,10 +264,29 @@ class ModuleDocument(CodeDocument):
             child.notes_markdown.clear()
 
 
-class GlobalDocument(CodeDocument):
+class GlobalDocument(doc.base.CodeDocument):
     r"""
     Document for global level codes.
     """
+    def allocate(self: GlobalDocument, *args: object, **kargs: object) -> None:
+        r"""
+        Allocate children memory.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Children are a list of introductions and sections.
+        self.sections: List[Tuple[
+            doc.statement.IntroDocument, doc.series.SeriesDocument,
+        ]] = []
+
     def parse(
         self: GlobalDocument, code: Code, *args: object, **kargs: object,
     ) -> None:
@@ -288,31 +306,26 @@ class GlobalDocument(CodeDocument):
 
         """
         # Super.
-        CodeDocument.parse(self, code, *args, **kargs)
+        doc.base.CodeDocument.parse(self, code, *args, **kargs)
 
         # Parse introduction and code series until EOF.
-        self.sections = []
         while (not self.code.eof()):
-            # Two blank lines as header.
-            self.code.blank_next(2)
-
-            # Parse introduction.
-            intro = IntroDocument(
-                path=self.PATH, level=self.LEVEL, hierarchy=self.HIERARCHY,
-                superior=self, filedoc=self.FILEDOC,
+            # Allocate and append first.
+            intro = doc.statement.IntroDocument(
+                level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+                filedoc=self.FILEDOC,
             )
-            intro.parse(self.code)
-
-            # Two blank lines as break.
-            self.code.blank_next(2)
-
-            # Parse code series.
-            series = SeriesDocument(
-                path=self.PATH, level=self.LEVEL, hierarchy=self.HIERARCHY,
-                superior=self, filedoc=self.FILEDOC,
+            series = doc.series.SeriesDocument(
+                level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+                filedoc=self.FILEDOC,
             )
-            series.parse(self.code)
             self.sections.append((intro, series))
+
+            # Parse code.
+            self.code.blank_next(2)
+            intro.parse(self.code)
+            self.code.blank_next(2)
+            series.parse(self.code)
 
     def notes(self, *args: object, **kargs: object) -> None:
         r"""
