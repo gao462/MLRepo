@@ -436,7 +436,7 @@ def toc(notes: List[str], *args: object, **kargs: object) -> List[str]:
         headers.append((level, text, github_header(refer)))
 
     # Generate TOC.
-    toc = ["* Table of Content"]
+    toc = ["## Table Of Content", "", "* Table of Content"]
     for level, text, refer in headers:
         indent = "  " * (level - 1)
         link = "{:s}* [{:s}](#{:s})".format(indent, text, refer)

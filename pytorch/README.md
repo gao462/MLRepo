@@ -1,3 +1,5 @@
+## Table Of Content
+
 * Table of Content
   * [pytorch/logging.py](#pytorchloggingpy)
     * [Define Logging Utilities](#define-logging-utilities)
@@ -57,37 +59,55 @@
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L39)
 
+[[TOC]](#table-of-content)
+
 #### Function: default_logger
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L48)
+
+[[TOC]](#table-of-content)
 
 #### Block: Univeral logger a...
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L80)
 
+[[TOC]](#table-of-content)
+
 #### Function: update_universal_logger
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L85)
+
+[[TOC]](#table-of-content)
 
 #### Function: update_max
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L107)
 
+[[TOC]](#table-of-content)
+
 #### Block: Colorful ASCII co...
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L127)
+
+[[TOC]](#table-of-content)
 
 #### Block: Colorful fix-leng...
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L146)
 
+[[TOC]](#table-of-content)
+
 #### Function: check_format
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L156)
 
+[[TOC]](#table-of-content)
+
 #### Function: log
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L190)
+
+[[TOC]](#table-of-content)
 
 ### Define Logging Operations
 
@@ -97,22 +117,34 @@ Operations are just `log` function with fixed logging level integer. The corresp
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L261)
 
+[[TOC]](#table-of-content)
+
 #### Function: info1
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L280)
+
+[[TOC]](#table-of-content)
 
 #### Function: info2
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L299)
 
+[[TOC]](#table-of-content)
+
 #### Function: focus
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L318)
+
+[[TOC]](#table-of-content)
 
 #### Function: warning
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L337)
 
+[[TOC]](#table-of-content)
+
 #### Function: error
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L356)
+
+[[TOC]](#table-of-content)

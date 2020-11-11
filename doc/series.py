@@ -379,6 +379,12 @@ class ClassDocument(doc.base.CodeDocument):
         console.append("- Super: \033[32m{:s}\033[0m".format(self.super))
         markdown.append("- Super: {:s}".format(link))
 
+        # Return to TOC.
+        console.append("")
+        markdown.append("")
+        console.append("[[TOC]](#table-of-content)")
+        markdown.append("[[TOC]](#table-of-content)")
+
         # Block notes is just a list of its statments notes.
         self.notes_console = console
         self.notes_markdown = markdown
@@ -531,6 +537,12 @@ class FunctionDocument(doc.base.CodeDocument):
         console.append("- Source: [Github]({:s})".format(source))
         markdown.append("- Source: [Github]({:s})".format(source))
 
+        # Return to TOC.
+        console.append("")
+        markdown.append("")
+        console.append("[[TOC]](#table-of-content)")
+        markdown.append("[[TOC]](#table-of-content)")
+
         # Block notes is just a list of its statments notes.
         self.notes_console = console
         self.notes_markdown = markdown
@@ -650,6 +662,12 @@ class OPBlockDocument(doc.base.CodeDocument):
         markdown.append("")
         console.append("- Source: [Github]({:s})".format(source))
         markdown.append("- Source: [Github]({:s})".format(source))
+
+        # Return to TOC.
+        console.append("")
+        markdown.append("")
+        console.append("[[TOC]](#table-of-content)")
+        markdown.append("[[TOC]](#table-of-content)")
 
         # Block notes is just a list of its statments notes.
         self.notes_console = console
