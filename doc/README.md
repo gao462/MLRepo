@@ -198,7 +198,7 @@ Code document on global level. It contains module import document which traces a
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/globe.py#L43)
 
-- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
+- Super: [doc.base.CodeDocument](#class-docbasecodedocument)
 
 Document for module imports.
 
@@ -437,7 +437,7 @@ This will generate notes for console and markdown in the same time. For most par
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/globe.py#L250)
 
-- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
+- Super: [doc.base.CodeDocument](#class-docbasecodedocument)
 
 Document for global level codes.
 
@@ -676,8 +676,9 @@ Document for file system prototype.
 
 > ```python
 > # Define Github constants.
-> ROOT = "MLRepo"
-> GITHUB = "https://github.com/gao462/{:s}".format(ROOT)
+> PROJECT = "MLRepo"
+> FOLDER = "/u/antor/u12/gao462/{:s}".format(PROJECT)
+> GITHUB = "https://github.com/gao462/{:s}".format(PROJECT)
 > ```
 
 [[TOC]](#table-of-content) [[File]](#file-docbasepy) [[Class]](#class-docbasefilesysdocument)
@@ -686,7 +687,7 @@ Document for file system prototype.
 
 ### Function: doc.base.FileSysDocument.\_\_init\_\_
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L90)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L91)
 
 Initialize.
 
@@ -717,7 +718,7 @@ Initialize.
 
 ## Block: doc.base: Hierarchy constants.
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L115)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L116)
 
 > ```python
 > # Hierarchy constants.
@@ -734,7 +735,7 @@ Initialize.
 
 ## Class: doc.base.CodeDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L123)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L124)
 
 - Super: [Document](#class-docbasedocument)
 
@@ -751,7 +752,7 @@ Document for code prototype.
 
 ### Function: doc.base.CodeDocument.\_\_init\_\_
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L127)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L128)
 
 Initialize.
 
@@ -800,7 +801,7 @@ Initialize.
 
 ### Function: doc.base.CodeDocument.allocate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L166)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L167)
 
 Allocate children memory.
 
@@ -825,7 +826,7 @@ Allocate children memory.
 
 ### Function: doc.base.CodeDocument.parse
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L184)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L185)
 
 Parse information into document.
 
@@ -912,7 +913,7 @@ A block often start with several comments lines, except that in a branch with on
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L45)
 
-- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
+- Super: [doc.base.CodeDocument](#class-docbasecodedocument)
 
 Document for a block of code prototype.
 
@@ -1231,7 +1232,7 @@ This is specially defined because some imports are constantly required.
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L283)
 
-- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
+- Super: [doc.base.CodeDocument](#class-docbasecodedocument)
 
 Document for a block of constant code.
 
@@ -3101,7 +3102,7 @@ It will mutually import with ClassDocument, FunctionDocument, OPBlockDocument. T
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L50)
 
-- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
+- Super: [doc.base.CodeDocument](#class-docbasecodedocument)
 
 Document for a series of code.
 
@@ -3301,7 +3302,7 @@ Code document for a definition of class. It can mutually import with SeriesDocum
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L215)
 
-- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
+- Super: [doc.base.CodeDocument](#class-docbasecodedocument)
 
 Document for a definition of class.
 
@@ -3438,34 +3439,34 @@ This will generate notes for console and markdown in the same time. For most par
 > # Find the first variable matching the super name.
 > for itr in knowns:
 >     if (itr in self.super):
->         source = itr
->         prefix = self.FILEDOC.modules.mapping[source]
+>         modname = self.FILEDOC.modules.mapping[itr]
+>         dirpath = os.path.join(
+>             self.FILEDOC.FOLDER, *modname.split(".")[:-1],
+>         )
+>         classname = self.super[len(modname) + 1:]
 >         break
 >     else:
->         source = ""
->         prefix = ""
-> suffix = self.super[len(source):]
+>         modname = ""
+>         dirpath = ""
+>         classname = self.super
+> if (len(modname) == 0 and classname in self.FILEDOC.classes):
+>     modname = self.FILEDOC.ME
+>     dirpath = self.FILEDOC.ROOTDOC.PATH
+> else:
+>     pass
 >
 > # Locate the super.
-> if (len(source) == 0 and suffix in self.FILEDOC.classes):
->     # Get in-page reference directly.
->     refer = "Class: {:s}.{:s}".format(self.FILEDOC.ME, suffix)
->     refer = doc.filesys.github_header(refer)
->     link = "[{:s}](#{:s})".format(self.super, refer)
-> elif (len(source) == 0):
+> if (len(modname) == 0):
 >     # Python class has no reference.
 >     link = self.super
+> elif (dirpath == self.FILEDOC.ROOTDOC.PATH):
+>     # Get in-page reference directly.
+>     refer = "Class: {:s}.{:s}".format(modname, classname)
+>     refer = doc.filesys.github_header(refer)
+>     link = "[{:s}](#{:s})".format(self.super, refer)
 > else:
 >     # Get Github page.
->     layers = (prefix + suffix).split(".")
->     page = os.path.join(
->         self.FILEDOC.ROOTDOC.GITHUB, "tree", "main", *layers[:-1],
->     )
->
->     # Get in-page reference.
->     refer = "Class: {:s}".format(layers[-1])
->     refer = doc.filesys.github_header(refer)
->     link = "[{:s}]({:s}#{:s})".format(self.super, page, refer)
+>     raise NotImplementedError
 >
 > # Title is class name.
 > self.markdown.extend(["---", ""])
@@ -3539,7 +3540,7 @@ Code document for a definition of function. It can mutually import with SeriesDo
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L426)
 
-- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
+- Super: [doc.base.CodeDocument](#class-docbasecodedocument)
 
 Document for a definition of function.
 
@@ -3811,7 +3812,7 @@ Code document for a block of operation code. It can mutually import with SeriesD
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L673)
 
-- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
+- Super: [doc.base.CodeDocument](#class-docbasecodedocument)
 
 Document for a block of operation code.
 
@@ -4031,7 +4032,7 @@ Code document for function related codes. This only contains elements of a funct
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/func.py#L44)
 
-- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
+- Super: [doc.base.CodeDocument](#class-docbasecodedocument)
 
 Document for type hint definition.
 
@@ -4226,7 +4227,7 @@ Get text message of type hint.
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/func.py#L198)
 
-- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
+- Super: [doc.base.CodeDocument](#class-docbasecodedocument)
 
 Document for argument definition.
 
@@ -4449,7 +4450,7 @@ Code document for a line of statement. Different statement types have their own 
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L45)
 
-- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
+- Super: [doc.base.CodeDocument](#class-docbasecodedocument)
 
 Document for a line of comment statement.
 
@@ -4610,7 +4611,7 @@ This will generate notes for console and markdown in the same time. For most par
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L169)
 
-- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
+- Super: [doc.base.CodeDocument](#class-docbasecodedocument)
 
 Document for a line of import statement.
 
@@ -5128,7 +5129,7 @@ This will generate notes for console and markdown in the same time. For most par
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L570)
 
-- Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
+- Super: [doc.base.CodeDocument](#class-docbasecodedocument)
 
 Document for a description statement prototype.
 
@@ -5699,7 +5700,7 @@ After the generation, a strict description matching is applied on classes with i
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L62)
 
-- Super: [doc.base.FileSysDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-filesysdocument)
+- Super: [doc.base.FileSysDocument](#class-docbasefilesysdocument)
 
 Document for a directory.
 
@@ -5792,7 +5793,7 @@ Parse content.
 >             if (base == "__init__"):
 >                 warning("Skip \"{:s}\" for now.".format(itr))
 >             else:
->                 filedoc = FileDocument(itr, rootdoc=self.ROOTDOC)
+>                 filedoc = FileDocument(itr, rootdoc=self)
 >                 filedoc.parse()
 >                 self.files.append(filedoc)
 >         elif (ext in (".md", ".sh")):
@@ -5818,7 +5819,7 @@ Parse content.
 > self.register()
 >
 > # Root specific operations.
-> if (os.path.basename(self.PATH) == self.ROOT):
+> if (self.PATH == self.FOLDER):
 >     self.root()
 > else:
 >     pass
@@ -5935,7 +5936,7 @@ Root specific operations.
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L251)
 
-- Super: [doc.base.FileSysDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-filesysdocument)
+- Super: [doc.base.FileSysDocument](#class-docbasefilesysdocument)
 
 Document for a file.
 
@@ -5980,7 +5981,8 @@ Initialize.
 > self.ROOTDOC = self if rootdoc is None else rootdoc
 >
 > # Get module path from file path.
-> _, self.PATH = self.PATH.split(os.path.join(" ", self.ROOT, " ")[1:-1])
+> _, self.PATH = self.PATH.split(self.FOLDER)
+> self.PATH = self.PATH[1:]
 > self.ME = self.PATH.replace(os.path.join(" ", " ")[1:-1], ".")
 > self.ME, _ = os.path.splitext(self.ME)
 >
@@ -6004,7 +6006,7 @@ Initialize.
 
 ### Function: doc.filesys.FileDocument.parse
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L300)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L301)
 
 Parse content.
 
@@ -6034,7 +6036,7 @@ Parse content.
 
 ### Function: doc.filesys.FileDocument.register\_classes
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L323)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L324)
 
 Register defined classes for later consistency check.
 
@@ -6066,7 +6068,7 @@ Register defined classes for later consistency check.
 
 ### Function: doc.filesys.FileDocument.notes
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L350)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L351)
 
 Generate notes.
 
@@ -6105,7 +6107,7 @@ This will generate notes for console and markdown in the same time. For most par
 
 ## Function: doc.filesys.toc
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L384)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L385)
 
 Generate table of content from given notes.
 
@@ -6175,7 +6177,7 @@ Generate table of content from given notes.
 
 ## Function: doc.filesys.github\_header
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L446)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L447)
 
 Get a Github header reference.
 

@@ -325,34 +325,34 @@ class ClassDocument(doc.base.CodeDocument):
         # Find the first variable matching the super name.
         for itr in knowns:
             if (itr in self.super):
-                source = itr
-                prefix = self.FILEDOC.modules.mapping[source]
+                modname = self.FILEDOC.modules.mapping[itr]
+                dirpath = os.path.join(
+                    self.FILEDOC.FOLDER, *modname.split(".")[:-1],
+                )
+                classname = self.super[len(modname) + 1:]
                 break
             else:
-                source = ""
-                prefix = ""
-        suffix = self.super[len(source):]
+                modname = ""
+                dirpath = ""
+                classname = self.super
+        if (len(modname) == 0 and classname in self.FILEDOC.classes):
+            modname = self.FILEDOC.ME
+            dirpath = self.FILEDOC.ROOTDOC.PATH
+        else:
+            pass
 
         # Locate the super.
-        if (len(source) == 0 and suffix in self.FILEDOC.classes):
-            # Get in-page reference directly.
-            refer = "Class: {:s}.{:s}".format(self.FILEDOC.ME, suffix)
-            refer = doc.filesys.github_header(refer)
-            link = "[{:s}](#{:s})".format(self.super, refer)
-        elif (len(source) == 0):
+        if (len(modname) == 0):
             # Python class has no reference.
             link = self.super
+        elif (dirpath == self.FILEDOC.ROOTDOC.PATH):
+            # Get in-page reference directly.
+            refer = "Class: {:s}.{:s}".format(modname, classname)
+            refer = doc.filesys.github_header(refer)
+            link = "[{:s}](#{:s})".format(self.super, refer)
         else:
             # Get Github page.
-            layers = (prefix + suffix).split(".")
-            page = os.path.join(
-                self.FILEDOC.ROOTDOC.GITHUB, "tree", "main", *layers[:-1],
-            )
-
-            # Get in-page reference.
-            refer = "Class: {:s}".format(layers[-1])
-            refer = doc.filesys.github_header(refer)
-            link = "[{:s}]({:s}#{:s})".format(self.super, page, refer)
+            raise NotImplementedError
 
         # Title is class name.
         self.markdown.extend(["---", ""])

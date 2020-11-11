@@ -84,8 +84,9 @@ class FileSysDocument(Document):
     Document for file system prototype.
     """
     # Define Github constants.
-    ROOT = "MLRepo"
-    GITHUB = "https://github.com/gao462/{:s}".format(ROOT)
+    PROJECT = "MLRepo"
+    FOLDER = "/u/antor/u12/gao462/{:s}".format(PROJECT)
+    GITHUB = "https://github.com/gao462/{:s}".format(PROJECT)
 
     def __init__(
         self: Document, path: str, *args: object, **kargs: object,

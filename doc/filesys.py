@@ -131,7 +131,7 @@ class DirectoryDocument(doc.base.FileSysDocument):
                     if (base == "__init__"):
                         warning("Skip \"{:s}\" for now.".format(itr))
                     else:
-                        filedoc = FileDocument(itr, rootdoc=self.ROOTDOC)
+                        filedoc = FileDocument(itr, rootdoc=self)
                         filedoc.parse()
                         self.files.append(filedoc)
                 elif (ext in (".md", ".sh")):
@@ -157,7 +157,7 @@ class DirectoryDocument(doc.base.FileSysDocument):
         self.register()
 
         # Root specific operations.
-        if (os.path.basename(self.PATH) == self.ROOT):
+        if (self.PATH == self.FOLDER):
             self.root()
         else:
             pass
@@ -280,7 +280,8 @@ class FileDocument(doc.base.FileSysDocument):
         self.ROOTDOC = self if rootdoc is None else rootdoc
 
         # Get module path from file path.
-        _, self.PATH = self.PATH.split(os.path.join(" ", self.ROOT, " ")[1:-1])
+        _, self.PATH = self.PATH.split(self.FOLDER)
+        self.PATH = self.PATH[1:]
         self.ME = self.PATH.replace(os.path.join(" ", " ")[1:-1], ".")
         self.ME, _ = os.path.splitext(self.ME)
 
