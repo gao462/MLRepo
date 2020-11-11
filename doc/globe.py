@@ -217,50 +217,34 @@ class ModuleDocument(doc.base.CodeDocument):
         except that console notes will use ASCII color codes for some keywords.
         """
         # Generate the dependencies.
-        dependencies = list(self.modules.keys())
-        mods_console = [
-            "`\033[35m{:s}\033[0m`".format(itr) for itr in dependencies
-        ]
-        mods_markdown = [
-            "`{:s}`".format(itr) for itr in dependencies
-        ]
-        console = ["- Dependent on: {:s}".format(", ".join(mods_console))]
-        markdown = ["- Dependent on: {:s}".format(", ".join(mods_markdown))]
+        self.markdown.append(
+            "- Dependent on: {:s}".format(", ".join([
+                "`{:s}`".format(itr) for itr in self.modules.keys()
+            ])),
+        )
 
         # Import block just integrates its children notes with blank breaks.
-        console.append("")
-        markdown.append("")
-        console.append("  > ```python")
-        markdown.append("  > ```python")
+        self.markdown.append("")
+        self.markdown.append("  > ```python")
         for child in (
             self.future, self.typing, self.python, self.adding, self.logging,
             self.develop,
         ):
             child.notes()
-            for itr in child.notes_console:
+            for itr in child.markdown:
                 if (len(itr) == 0):
-                    console.append("  >")
+                    self.markdown.append("  >")
                 else:
-                    console.append("  > {:s}".format(itr))
-            for itr in child.notes_markdown:
-                if (len(itr) == 0):
-                    markdown.append("  >")
-                else:
-                    markdown.append("  > {:s}".format(itr))
-            console.append("  >")
-            markdown.append("  >")
-        console[-1] = "  > ```"
-        markdown[-1] = "  > ```"
-        self.notes_console = console
-        self.notes_markdown = markdown
+                    self.markdown.append("  > {:s}".format(itr))
+            self.markdown.append("  >")
+        self.markdown[-1] = "  > ```"
 
         # Clear children notes for memory efficency.
         for child in (
             self.future, self.typing, self.python, self.adding, self.logging,
             self.develop,
         ):
-            child.notes_console.clear()
-            child.notes_markdown.clear()
+            child.markdown.clear()
 
 
 class GlobalDocument(doc.base.CodeDocument):
@@ -344,28 +328,19 @@ class GlobalDocument(doc.base.CodeDocument):
         except that console notes will use ASCII color codes for some keywords.
         """
         # Block notes is just a list of its statments notes.
-        console, markdown = [], []
         first = True
         for intro, series in self.sections:
+            intro.notes()
+            series.notes()
             if (first):
                 first = False
             else:
-                console.append("")
-                markdown.append("")
-            intro.notes()
-            console.extend(intro.notes_console)
-            markdown.extend(intro.notes_markdown)
-            console.append("")
-            markdown.append("")
-            series.notes()
-            console.extend(series.notes_console)
-            markdown.extend(series.notes_markdown)
-        self.notes_console = console
-        self.notes_markdown = markdown
+                self.markdown.append("")
+            self.markdown.extend(intro.markdown)
+            self.markdown.append("")
+            self.markdown.extend(series.markdown)
 
         # Clear children notes for memory efficency.
         for intro, series in self.sections:
-            intro.notes_console.clear()
-            intro.notes_markdown.clear()
-            series.notes_console.clear()
-            series.notes_markdown.clear()
+            intro.markdown.clear()
+            series.markdown.clear()

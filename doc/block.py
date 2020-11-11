@@ -241,23 +241,16 @@ class ImportBlockDocument(BlockDocument):
         except that console notes will use ASCII color codes for some keywords.
         """
         # Block notes is just a list of its statments notes.
-        console, markdown = [], []
         self.comment.notes()
-        console.extend(self.comment.notes_console)
-        markdown.extend(self.comment.notes_markdown)
+        self.markdown.extend(self.comment.markdown)
         for itr in self.statements:
             itr.notes()
-            console.extend(itr.notes_console)
-            markdown.extend(itr.notes_markdown)
-        self.notes_console = console
-        self.notes_markdown = markdown
+            self.markdown.extend(itr.markdown)
 
         # Clear children notes for memory efficency.
-        self.comment.notes_console.clear()
-        self.comment.notes_markdown.clear()
+        self.comment.markdown.clear()
         for itr in self.statements:
-            itr.notes_console.clear()
-            itr.notes_markdown.clear()
+            itr.markdown.clear()
 
     def check(
         self: ImportBlockDocument, i: int, text: str, *args: object,
@@ -414,10 +407,5 @@ class ConstBlockDocument(doc.base.CodeDocument):
         """
         # Block notes is just a list of code lines without indents.
         start = self.LEVEL * UNIT
-        console, markdown = [], []
         for itr in self.memory:
-            msg = itr.text[start:]
-            console.append(msg)
-            markdown.append(msg)
-        self.notes_console = console
-        self.notes_markdown = markdown
+            self.markdown.append(itr.text[start:])

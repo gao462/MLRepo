@@ -213,28 +213,22 @@ class DirectoryDocument(doc.base.FileSysDocument):
             dirdoc.notes()
 
         # Generate file notes
-        console = []
-        markdown = []
         for filedoc in self.files:
             filedoc.notes()
-            console.extend(["", "---", ""])
-            markdown.extend(["", "---", ""])
-            console.extend(filedoc.notes_console)
-            markdown.extend(filedoc.notes_markdown)
+            self.markdown.extend(["", "---", ""])
+            self.markdown.extend(filedoc.markdown)
 
         # Generate table of content.
-        self.notes_console = toc(console) + console
-        self.notes_markdown = toc(markdown) + markdown
+        self.markdown = toc(self.markdown) + self.markdown
 
         # Save markdown note as README.
         file = open(os.path.join(self.PATH, "README.md"), "w")
-        file.write("\n".join(self.notes_markdown))
+        file.write("\n".join(self.markdown))
         file.close()
 
         # Clear children notes for memory efficency.
         for filedoc in self.files:
-            filedoc.notes_console.clear()
-            filedoc.notes_markdown.clear()
+            filedoc.markdown.clear()
 
     def root(self: DirectoryDocument, *args: object, **kargs: object) -> None:
         r"""
@@ -252,7 +246,6 @@ class DirectoryDocument(doc.base.FileSysDocument):
         """
         # Generate notes.
         self.notes()
-        print("Done")
 
 
 class FileDocument(doc.base.FileSysDocument):
@@ -372,28 +365,20 @@ class FileDocument(doc.base.FileSysDocument):
         except that console notes will use ASCII color codes for some keywords.
         """
         # Create title by file path.
-        console = ["## {:s}".format(self.PATH)]
-        markdown = ["## {:s}".format(self.PATH)]
+        self.markdown.append("## {:s}".format(self.PATH))
 
         # Extend notes by imported modules.
         self.modules.notes()
-        console.append("")
-        markdown.append("")
-        console.extend(self.modules.notes_console)
-        markdown.extend(self.modules.notes_markdown)
+        self.markdown.append("")
+        self.markdown.extend(self.modules.markdown)
 
         # Extend notes by global sections.
         self.sections.notes()
-        console.append("")
-        markdown.append("")
-        console.extend(self.sections.notes_console)
-        markdown.extend(self.sections.notes_markdown)
-        self.notes_console = console
-        self.notes_markdown = markdown
+        self.markdown.append("")
+        self.markdown.extend(self.sections.markdown)
 
         # Clear children notes for memory efficency.
-        self.modules.notes_console.clear()
-        self.modules.notes_markdown.clear()
+        self.modules.markdown.clear()
 
 
 def toc(notes: List[str], *args: object, **kargs: object) -> List[str]:

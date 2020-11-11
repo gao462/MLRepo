@@ -159,15 +159,9 @@ class CommentDocument(doc.base.CodeDocument):
         except that console notes will use ASCII color codes for some keywords.
         """
         # Statement note is just its code lines without indents.
-        console = []
-        markdown = []
         start = self.LEVEL * UNIT
         for itr in self.memory:
-            msg = itr.text[start:]
-            console.append("\033[30;1m{:s}\033[0m".format(msg))
-            markdown.append(msg)
-        self.notes_console = console
-        self.notes_markdown = markdown
+            self.markdown.append(itr.text[start:])
 
 
 class ImportDocument(doc.base.CodeDocument):
@@ -471,16 +465,7 @@ class ImportDocument(doc.base.CodeDocument):
         """
         # Statement note is just its code lines without indents.
         start = self.LEVEL * UNIT
-        console = []
-        markdown = []
-        msg = self.memory.text[start:]
-        if (self.type == "import"):
-            console.append("\033[35mimport\033[0m{:s}".format(msg[6:]))
-        else:
-            console.append("\033[35mfrom\033[0m{:s}".format(msg[4:]))
-        markdown.append(msg)
-        self.notes_console = console
-        self.notes_markdown = markdown
+        self.markdown.append(self.memory.text[start:])
 
 
 class IntroDocument(CommentDocument):
@@ -566,17 +551,10 @@ class IntroDocument(CommentDocument):
         except that console notes will use ASCII color codes for some keywords.
         """
         # Statement note is just its code lines without indents.
-        console = []
-        markdown = []
-        console.append("### {:s}".format(self.title))
-        markdown.append("### {:s}".format(self.title))
+        self.markdown.append("### {:s}".format(self.title))
         for itr in self.paragraphs:
-            console.append("")
-            markdown.append("")
-            console.append(" ".join(itr))
-            markdown.append(" ".join(itr))
-        self.notes_console = console
-        self.notes_markdown = markdown
+            self.markdown.append("")
+            self.markdown.append(" ".join(itr))
 
 
 class DescriptionDocument(doc.base.CodeDocument):

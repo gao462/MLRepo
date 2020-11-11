@@ -2,68 +2,174 @@
 
 * [doc/globe.py](#docglobepy)
   * [Global Code Document Objects](#global-code-document-objects)
-    * [Class: ModuleDocument](#class-moduledocument)
-    * [Class: GlobalDocument](#class-globaldocument)
+    * [Class: doc.globe.ModuleDocument](#class-docglobemoduledocument)
+      * [Function: doc.globe.ModuleDocument.allocate](#function-docglobemoduledocumentallocate)
+      * [Function: doc.globe.ModuleDocument.parse](#function-docglobemoduledocumentparse)
+      * [Function: doc.globe.ModuleDocument.notes](#function-docglobemoduledocumentnotes)
+    * [Class: doc.globe.GlobalDocument](#class-docglobeglobaldocument)
+      * [Function: doc.globe.GlobalDocument.allocate](#function-docglobeglobaldocumentallocate)
+      * [Function: doc.globe.GlobalDocument.parse](#function-docglobeglobaldocumentparse)
+      * [Function: doc.globe.GlobalDocument.notes](#function-docglobeglobaldocumentnotes)
 * [doc/base.py](#docbasepy)
   * [Document Objects](#document-objects)
-    * [Class: Document](#class-document)
-    * [Class: FileSysDocument](#class-filesysdocument)
-    * [Block: Hierarchy constants.](#block-hierarchy-constants)
-    * [Class: CodeDocument](#class-codedocument)
+    * [Class: doc.base.Document](#class-docbasedocument)
+      * [Function: doc.base.Document.__init__](#function-docbasedocument__init__)
+      * [Function: doc.base.Document.notes](#function-docbasedocumentnotes)
+    * [Class: doc.base.FileSysDocument](#class-docbasefilesysdocument)
+      * [Block: doc.base.FileSysDocument: Define Github con...](#block-docbasefilesysdocument-define-github-con)
+      * [Function: doc.base.FileSysDocument.__init__](#function-docbasefilesysdocument__init__)
+    * [Block: doc.base: Hierarchy constants.](#block-docbase-hierarchy-constants)
+    * [Class: doc.base.CodeDocument](#class-docbasecodedocument)
+      * [Function: doc.base.CodeDocument.__init__](#function-docbasecodedocument__init__)
+      * [Function: doc.base.CodeDocument.allocate](#function-docbasecodedocumentallocate)
+      * [Function: doc.base.CodeDocument.parse](#function-docbasecodedocumentparse)
 * [doc/main.py](#docmainpy)
   * [Main](#main)
-    * [Block: Generate all notes.](#block-generate-all-notes)
+    * [Block: doc.main: Generate all notes.](#block-docmain-generate-all-notes)
 * [doc/block.py](#docblockpy)
   * [Block Code Document Objects](#block-code-document-objects)
-    * [Class: BlockDocument](#class-blockdocument)
-    * [Class: ImportBlockDocument](#class-importblockdocument)
-    * [Class: ConstBlockDocument](#class-constblockdocument)
+    * [Class: doc.block.BlockDocument](#class-docblockblockdocument)
+      * [Function: doc.block.BlockDocument.allocate](#function-docblockblockdocumentallocate)
+      * [Function: doc.block.BlockDocument.allocate_statements](#function-docblockblockdocumentallocate_statements)
+      * [Function: doc.block.BlockDocument.parse](#function-docblockblockdocumentparse)
+      * [Function: doc.block.BlockDocument.parse_statements](#function-docblockblockdocumentparse_statements)
+    * [Class: doc.block.ImportBlockDocument](#class-docblockimportblockdocument)
+      * [Function: doc.block.ImportBlockDocument.allocate_statements](#function-docblockimportblockdocumentallocate_statements)
+      * [Function: doc.block.ImportBlockDocument.parse_statements](#function-docblockimportblockdocumentparse_statements)
+      * [Function: doc.block.ImportBlockDocument.eob](#function-docblockimportblockdocumenteob)
+      * [Function: doc.block.ImportBlockDocument.notes](#function-docblockimportblockdocumentnotes)
+      * [Function: doc.block.ImportBlockDocument.check](#function-docblockimportblockdocumentcheck)
+    * [Class: doc.block.ConstBlockDocument](#class-docblockconstblockdocument)
+      * [Function: doc.block.ConstBlockDocument.__init__](#function-docblockconstblockdocument__init__)
+      * [Function: doc.block.ConstBlockDocument.allocate](#function-docblockconstblockdocumentallocate)
+      * [Function: doc.block.ConstBlockDocument.parse](#function-docblockconstblockdocumentparse)
+      * [Function: doc.block.ConstBlockDocument.notes](#function-docblockconstblockdocumentnotes)
 * [doc/code.py](#doccodepy)
   * [Code Objects](#code-objects)
-    * [Class: Word](#class-word)
-    * [Class: Line](#class-line)
-    * [Block: Define essential...](#block-define-essential)
-    * [Block: Define single wor...](#block-define-single-wor)
-    * [Block: Overwrite compose...](#block-overwrite-compose)
-    * [Block: Define not-word w...](#block-define-not-word-w)
-    * [Block: Define sentence w...](#block-define-sentence-w)
-    * [Block: Define sentence r...](#block-define-sentence-r)
-    * [Class: Code](#class-code)
-    * [Function: line_rule_length](#function-line_rule_length)
-    * [Function: line_rule_char](#function-line_rule_char)
-    * [Function: line_rule_break](#function-line_rule_break)
-    * [Function: recover](#function-recover)
-    * [Function: paragraphize](#function-paragraphize)
-    * [Function: mathize](#function-mathize)
-    * [Function: codize](#function-codize)
-    * [Function: textize](#function-textize)
+    * [Class: doc.code.Word](#class-doccodeword)
+      * [Function: doc.code.Word.set](#function-doccodewordset)
+      * [Function: doc.code.Word.position](#function-doccodewordposition)
+      * [Function: doc.code.Word.check](#function-doccodewordcheck)
+    * [Class: doc.code.Line](#class-doccodeline)
+      * [Function: doc.code.Line.set](#function-doccodelineset)
+      * [Function: doc.code.Line.append](#function-doccodelineappend)
+      * [Function: doc.code.Line.reset](#function-doccodelinereset)
+      * [Function: doc.code.Line.check](#function-doccodelinecheck)
+      * [Function: doc.code.Line.match](#function-doccodelinematch)
+      * [Function: doc.code.Line.get](#function-doccodelineget)
+      * [Function: doc.code.Line.next](#function-doccodelinenext)
+      * [Function: doc.code.Line.eol](#function-doccodelineeol)
+    * [Block: doc.code: Define essential...](#block-doccode-define-essential)
+    * [Block: doc.code: Define single wor...](#block-doccode-define-single-wor)
+    * [Block: doc.code: Overwrite compose...](#block-doccode-overwrite-compose)
+    * [Block: doc.code: Define not-word w...](#block-doccode-define-not-word-w)
+    * [Block: doc.code: Define sentence w...](#block-doccode-define-sentence-w)
+    * [Block: doc.code: Define sentence r...](#block-doccode-define-sentence-r)
+    * [Class: doc.code.Code](#class-doccodecode)
+      * [Function: doc.code.Code.__init__](#function-doccodecode__init__)
+      * [Function: doc.code.Code.load_file](#function-doccodecodeload_file)
+      * [Function: doc.code.Code.load_texts](#function-doccodecodeload_texts)
+      * [Function: doc.code.Code.load_tokens](#function-doccodecodeload_tokens)
+      * [Function: doc.code.Code.rule_texts](#function-doccodecoderule_texts)
+      * [Function: doc.code.Code.review](#function-doccodecodereview)
+      * [Function: doc.code.Code.clear_space_until](#function-doccodecodeclear_space_until)
+      * [Function: doc.code.Code.clear_string](#function-doccodecodeclear_string)
+      * [Function: doc.code.Code.clear_common](#function-doccodecodeclear_common)
+      * [Function: doc.code.Code.recoverable](#function-doccodecoderecoverable)
+      * [Function: doc.code.Code.reset](#function-doccodecodereset)
+      * [Function: doc.code.Code.get](#function-doccodecodeget)
+      * [Function: doc.code.Code.next](#function-doccodecodenext)
+      * [Function: doc.code.Code.eof](#function-doccodecodeeof)
+      * [Function: doc.code.Code.blank_top](#function-doccodecodeblank_top)
+      * [Function: doc.code.Code.blank_next](#function-doccodecodeblank_next)
+    * [Function: doc.code.line_rule_length](#function-doccodeline_rule_length)
+    * [Function: doc.code.line_rule_char](#function-doccodeline_rule_char)
+    * [Function: doc.code.line_rule_break](#function-doccodeline_rule_break)
+    * [Function: doc.code.recover](#function-doccoderecover)
+    * [Function: doc.code.paragraphize](#function-doccodeparagraphize)
+    * [Function: doc.code.mathize](#function-doccodemathize)
+    * [Function: doc.code.codize](#function-doccodecodize)
+    * [Function: doc.code.textize](#function-doccodetextize)
 * [doc/series.py](#docseriespy)
   * [Series Code Document Objects](#series-code-document-objects)
-    * [Class: SeriesDocument](#class-seriesdocument)
+    * [Class: doc.series.SeriesDocument](#class-docseriesseriesdocument)
+      * [Function: doc.series.SeriesDocument.allocate](#function-docseriesseriesdocumentallocate)
+      * [Function: doc.series.SeriesDocument.parse](#function-docseriesseriesdocumentparse)
+      * [Function: doc.series.SeriesDocument.dedent](#function-docseriesseriesdocumentdedent)
+      * [Function: doc.series.SeriesDocument.notes](#function-docseriesseriesdocumentnotes)
   * [Class Code Document Objects](#class-code-document-objects)
-    * [Class: ClassDocument](#class-classdocument)
+    * [Class: doc.series.ClassDocument](#class-docseriesclassdocument)
+      * [Function: doc.series.ClassDocument.allocate](#function-docseriesclassdocumentallocate)
+      * [Function: doc.series.ClassDocument.parse](#function-docseriesclassdocumentparse)
+      * [Function: doc.series.ClassDocument.notes](#function-docseriesclassdocumentnotes)
   * [Function Code Document Objects](#function-code-document-objects)
-    * [Class: FunctionDocument](#class-functiondocument)
+    * [Class: doc.series.FunctionDocument](#class-docseriesfunctiondocument)
+      * [Function: doc.series.FunctionDocument.allocate](#function-docseriesfunctiondocumentallocate)
+      * [Function: doc.series.FunctionDocument.parse](#function-docseriesfunctiondocumentparse)
+      * [Function: doc.series.FunctionDocument.notes](#function-docseriesfunctiondocumentnotes)
   * [Operation Block Code Document Objects](#operation-block-code-document-objects)
-    * [Class: OPBlockDocument](#class-opblockdocument)
+    * [Class: doc.series.OPBlockDocument](#class-docseriesopblockdocument)
+      * [Block: doc.series.OPBlockDocument: Define constants.](#block-docseriesopblockdocument-define-constants)
+      * [Function: doc.series.OPBlockDocument.allocate](#function-docseriesopblockdocumentallocate)
+      * [Function: doc.series.OPBlockDocument.parse](#function-docseriesopblockdocumentparse)
+      * [Function: doc.series.OPBlockDocument.notes](#function-docseriesopblockdocumentnotes)
 * [doc/func.py](#docfuncpy)
   * [Function Code Document Objects](#function-code-document-objects)
-    * [Class: TypeHintDocument](#class-typehintdocument)
-    * [Class: ArgumentDocument](#class-argumentdocument)
+    * [Class: doc.func.TypeHintDocument](#class-docfunctypehintdocument)
+      * [Function: doc.func.TypeHintDocument.allocate](#function-docfunctypehintdocumentallocate)
+      * [Function: doc.func.TypeHintDocument.parse](#function-docfunctypehintdocumentparse)
+      * [Function: doc.func.TypeHintDocument.parse_type](#function-docfunctypehintdocumentparse_type)
+    * [Class: doc.func.ArgumentDocument](#class-docfuncargumentdocument)
+      * [Function: doc.func.ArgumentDocument.__init__](#function-docfuncargumentdocument__init__)
+      * [Function: doc.func.ArgumentDocument.allocate](#function-docfuncargumentdocumentallocate)
+      * [Function: doc.func.ArgumentDocument.parse](#function-docfuncargumentdocumentparse)
 * [doc/statement.py](#docstatementpy)
   * [Statement Code Document Objects](#statement-code-document-objects)
-    * [Class: CommentDocument](#class-commentdocument)
-    * [Class: ImportDocument](#class-importdocument)
-    * [Class: IntroDocument](#class-introdocument)
-    * [Class: DescriptionDocument](#class-descriptiondocument)
-    * [Class: ClassDescDocument](#class-classdescdocument)
-    * [Class: FuncDescDocument](#class-funcdescdocument)
+    * [Class: doc.statement.CommentDocument](#class-docstatementcommentdocument)
+      * [Function: doc.statement.CommentDocument.allocate](#function-docstatementcommentdocumentallocate)
+      * [Function: doc.statement.CommentDocument.parse](#function-docstatementcommentdocumentparse)
+      * [Function: doc.statement.CommentDocument.translate](#function-docstatementcommentdocumenttranslate)
+      * [Function: doc.statement.CommentDocument.notes](#function-docstatementcommentdocumentnotes)
+    * [Class: doc.statement.ImportDocument](#class-docstatementimportdocument)
+      * [Function: doc.statement.ImportDocument.allocate](#function-docstatementimportdocumentallocate)
+      * [Function: doc.statement.ImportDocument.parse](#function-docstatementimportdocumentparse)
+      * [Function: doc.statement.ImportDocument.parse_import](#function-docstatementimportdocumentparse_import)
+      * [Function: doc.statement.ImportDocument.parse_from](#function-docstatementimportdocumentparse_from)
+      * [Function: doc.statement.ImportDocument.parse_module](#function-docstatementimportdocumentparse_module)
+      * [Function: doc.statement.ImportDocument.parse_identifier](#function-docstatementimportdocumentparse_identifier)
+      * [Function: doc.statement.ImportDocument.parse_rename](#function-docstatementimportdocumentparse_rename)
+      * [Function: doc.statement.ImportDocument.append_module](#function-docstatementimportdocumentappend_module)
+      * [Function: doc.statement.ImportDocument.append_identifier](#function-docstatementimportdocumentappend_identifier)
+      * [Function: doc.statement.ImportDocument.notes](#function-docstatementimportdocumentnotes)
+    * [Class: doc.statement.IntroDocument](#class-docstatementintrodocument)
+      * [Function: doc.statement.IntroDocument.translate](#function-docstatementintrodocumenttranslate)
+      * [Function: doc.statement.IntroDocument.notes](#function-docstatementintrodocumentnotes)
+    * [Class: doc.statement.DescriptionDocument](#class-docstatementdescriptiondocument)
+      * [Function: doc.statement.DescriptionDocument.allocate](#function-docstatementdescriptiondocumentallocate)
+      * [Function: doc.statement.DescriptionDocument.parse](#function-docstatementdescriptiondocumentparse)
+      * [Function: doc.statement.DescriptionDocument.decode](#function-docstatementdescriptiondocumentdecode)
+    * [Class: doc.statement.ClassDescDocument](#class-docstatementclassdescdocument)
+      * [Function: doc.statement.ClassDescDocument.decode](#function-docstatementclassdescdocumentdecode)
+    * [Class: doc.statement.FuncDescDocument](#class-docstatementfuncdescdocument)
+      * [Function: doc.statement.FuncDescDocument.decode](#function-docstatementfuncdescdocumentdecode)
+      * [Function: doc.statement.FuncDescDocument.review](#function-docstatementfuncdescdocumentreview)
+      * [Function: doc.statement.FuncDescDocument.review_args](#function-docstatementfuncdescdocumentreview_args)
+      * [Function: doc.statement.FuncDescDocument.review_returns](#function-docstatementfuncdescdocumentreview_returns)
 * [doc/filesys.py](#docfilesyspy)
   * [File System Document Objects](#file-system-document-objects)
-    * [Class: DirectoryDocument](#class-directorydocument)
-    * [Class: FileDocument](#class-filedocument)
-    * [Function: toc](#function-toc)
-    * [Function: github_header](#function-github_header)
+    * [Class: doc.filesys.DirectoryDocument](#class-docfilesysdirectorydocument)
+      * [Function: doc.filesys.DirectoryDocument.__init__](#function-docfilesysdirectorydocument__init__)
+      * [Function: doc.filesys.DirectoryDocument.parse](#function-docfilesysdirectorydocumentparse)
+      * [Function: doc.filesys.DirectoryDocument.register](#function-docfilesysdirectorydocumentregister)
+      * [Function: doc.filesys.DirectoryDocument.notes](#function-docfilesysdirectorydocumentnotes)
+      * [Function: doc.filesys.DirectoryDocument.root](#function-docfilesysdirectorydocumentroot)
+    * [Class: doc.filesys.FileDocument](#class-docfilesysfiledocument)
+      * [Function: doc.filesys.FileDocument.__init__](#function-docfilesysfiledocument__init__)
+      * [Function: doc.filesys.FileDocument.parse](#function-docfilesysfiledocumentparse)
+      * [Function: doc.filesys.FileDocument.register_classes](#function-docfilesysfiledocumentregister_classes)
+      * [Function: doc.filesys.FileDocument.notes](#function-docfilesysfiledocumentnotes)
+    * [Function: doc.filesys.toc](#function-docfilesystoc)
+    * [Function: doc.filesys.github_header](#function-docfilesysgithub_header)
 
 ---
 
@@ -106,7 +212,7 @@
 
 Code document on global level. It contains module import document which traces all imported modules and identifiers and broadcasts them to deeper code documents.
 
-#### Class: ModuleDocument
+#### Class: doc.globe.ModuleDocument
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/globe.py#L43)
 
@@ -114,13 +220,299 @@ Code document on global level. It contains module import document which traces a
 
 Document for module imports.
 
-#### Class: GlobalDocument
+##### Function: doc.globe.ModuleDocument.allocate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/globe.py#L266)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/globe.py#L47)
+
+Allocate children memory.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Define constant code text.
+> text = (
+>     "# Add development library to path.\n" \
+>     "if (os.path.basename(os.getcwd()) == \"MLRepo\"):\n" \
+>     "    sys.path.append(os.path.join(\".\"))\n" \
+>     "else:\n" \
+>     "    print(\"Code must strictly work in \\\"MLRepo\\\".\")\n" \
+>     "    exit()"
+> )
+>
+> # Modules are constant.
+> self.future = doc.block.ImportBlockDocument(
+>     level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+>     filedoc=self.FILEDOC,
+> )
+> self.typing = doc.block.ImportBlockDocument(
+>     level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+>     filedoc=self.FILEDOC,
+> )
+> self.python = doc.block.ImportBlockDocument(
+>     level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+>     filedoc=self.FILEDOC,
+> )
+> self.adding = doc.block.ConstBlockDocument(
+>     level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+>     filedoc=self.FILEDOC, constant=text,
+> )
+> self.logging = doc.block.ImportBlockDocument(
+>     level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+>     filedoc=self.FILEDOC,
+> )
+> self.develop = doc.block.ImportBlockDocument(
+>     level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+>     filedoc=self.FILEDOC,
+> )
+>
+> # Allocate buffer to trace imports.
+> self.modules: Dict[str, List[str]] = {}
+> self.identifiers: Dict[str, str] = {}
+> self.mapping: Dict[str, str] = {}
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.globe.ModuleDocument.parse
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/globe.py#L102)
+
+Parse information into document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Super.
+> doc.base.CodeDocument.parse(self, code, *args, **kargs)
+>
+> # Parse code.
+> self.future.parse(self.code)
+> self.code.blank_next(1)
+> self.typing.parse(self.code)
+> self.code.blank_next(1)
+> self.python.parse(self.code)
+> self.code.blank_next(1)
+> self.adding.parse(self.code)
+> self.code.blank_next(1)
+> self.logging.parse(self.code)
+> self.code.blank_next(1)
+> self.develop.parse(self.code)
+>
+> # Some import blocks are strictly required.
+> assert (
+>     len(self.future.comment.paragraphs) == 1 and
+>     len(self.future.comment.paragraphs[0]) == 1 and
+>     self.future.comment.paragraphs[0][0] == "Import future."
+> )
+> assert (
+>     len(self.typing.comment.paragraphs) == 1 and
+>     len(self.typing.comment.paragraphs[0]) == 1 and
+>     self.typing.comment.paragraphs[0][0] == "Import typing."
+> )
+> assert (
+>     len(self.python.comment.paragraphs) == 1 and
+>     len(self.python.comment.paragraphs[0]) == 1 and
+>     self.python.comment.paragraphs[0][0] == "Import dependencies."
+> )
+> assert (
+>     len(self.logging.comment.paragraphs) == 1 and
+>     len(self.logging.comment.paragraphs[0]) == 1 and
+>     self.logging.comment.paragraphs[0][0] == "Import logging."
+> )
+> assert (
+>     len(self.develop.comment.paragraphs) == 1 and
+>     len(self.develop.comment.paragraphs[0]) == 1 and
+>     self.develop.comment.paragraphs[0][0] == "Import dependencies."
+> )
+>
+> # Some import commands are strictly required.
+> assert (
+>     len(self.future.statements) == 1 and
+>     self.future.check(0, "from __future__ import annotations")
+> )
+> assert (
+>     len(self.typing.statements) > 1 and
+>     self.typing.check(0, "from typing import Any") and
+>     self.typing.check(1, "from typing import Tuple as MultiReturn")
+> )
+>
+> # Some import commands are required except for some files.
+> if (self.FILEDOC.ME == "pytorch.logging"):
+>     pass
+> else:
+>     assert (
+>         len(self.logging.statements) > 0 and
+>         self.logging.check(
+>             0,
+>             "from pytorch.logging import debug, info1, info2, focus" \
+>             ", warning, error",
+>         )
+>     )
+>
+> # Merge all imports.
+> for child in (
+>     self.future, self.typing, self.python, self.logging, self.develop,
+> ):
+>     for name, members in child.modules.items():
+>         if (name in self.modules):
+>             pass
+>         else:
+>             self.modules[name] = []
+>         self.modules[name].extend(members)
+>     for name, source in child.identifiers.items():
+>         self.identifiers[name] = source
+>     for rename, name in child.mapping.items():
+>         self.mapping[rename] = name
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.globe.ModuleDocument.notes
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/globe.py#L202)
+
+Generate notes.
+
+> **Arguments**
+
+> **Returns**
+
+This will generate notes for console and markdown in the same time. For most part of the notes, they will share the same Markdown syntex except that console notes will use ASCII color codes for some keywords.
+
+> ```python
+> # Generate the dependencies.
+> self.markdown.append(
+>     "- Dependent on: {:s}".format(", ".join([
+>         "`{:s}`".format(itr) for itr in self.modules.keys()
+>     ])),
+> )
+>
+> # Import block just integrates its children notes with blank breaks.
+> self.markdown.append("")
+> self.markdown.append("  > ```python")
+> for child in (
+>     self.future, self.typing, self.python, self.adding, self.logging,
+>     self.develop,
+> ):
+>     child.notes()
+>     for itr in child.markdown:
+>         if (len(itr) == 0):
+>             self.markdown.append("  >")
+>         else:
+>             self.markdown.append("  > {:s}".format(itr))
+>     self.markdown.append("  >")
+> self.markdown[-1] = "  > ```"
+>
+> # Clear children notes for memory efficency.
+> for child in (
+>     self.future, self.typing, self.python, self.adding, self.logging,
+>     self.develop,
+> ):
+>     child.markdown.clear()
+> ```
+
+[[TOC]](#table-of-content)
+
+#### Class: doc.globe.GlobalDocument
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/globe.py#L250)
 
 - Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
 
 Document for global level codes.
+
+##### Function: doc.globe.GlobalDocument.allocate
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/globe.py#L254)
+
+Allocate children memory.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Children are a list of introductions and sections.
+> self.sections: List[Tuple[
+>     doc.statement.IntroDocument, doc.series.SeriesDocument,
+> ]] = []
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.globe.GlobalDocument.parse
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/globe.py#L273)
+
+Parse information into document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Super.
+> doc.base.CodeDocument.parse(self, code, *args, **kargs)
+>
+> # Parse introduction and code series until EOF.
+> while (not self.code.eof()):
+>     # Allocate and append first.
+>     intro = doc.statement.IntroDocument(
+>         level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+>         filedoc=self.FILEDOC,
+>     )
+>     series = doc.series.SeriesDocument(
+>         level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+>         filedoc=self.FILEDOC,
+>     )
+>     self.sections.append((intro, series))
+>
+>     # Parse code.
+>     self.code.blank_next(2)
+>     intro.parse(self.code)
+>     self.code.blank_next(2)
+>     series.parse(self.code)
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.globe.GlobalDocument.notes
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/globe.py#L313)
+
+Generate notes.
+
+> **Arguments**
+
+> **Returns**
+
+This will generate notes for console and markdown in the same time. For most part of the notes, they will share the same Markdown syntex except that console notes will use ASCII color codes for some keywords.
+
+> ```python
+> # Block notes is just a list of its statments notes.
+> first = True
+> for intro, series in self.sections:
+>     intro.notes()
+>     series.notes()
+>     if (first):
+>         first = False
+>     else:
+>         self.markdown.append("")
+>     self.markdown.extend(intro.markdown)
+>     self.markdown.append("")
+>     self.markdown.extend(series.markdown)
+>
+> # Clear children notes for memory efficency.
+> for intro, series in self.sections:
+>     intro.markdown.clear()
+>     series.markdown.clear()
+> ```
+
+[[TOC]](#table-of-content)
 
 ---
 
@@ -160,7 +552,7 @@ Document for global level codes.
 
 Prototype of document. It also includes prototype for file system document and real code document.
 
-#### Class: Document
+#### Class: doc.base.Document
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L39)
 
@@ -168,17 +560,87 @@ Prototype of document. It also includes prototype for file system document and r
 
 Document prototype.
 
-#### Class: FileSysDocument
+##### Function: doc.base.Document.__init__
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L83)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L43)
+
+Initialize.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Allocate notes buffer.
+> self.markdown: List[str] = []
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.base.Document.notes
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L60)
+
+Generate notes.
+
+> **Arguments**
+
+> **Returns**
+
+This will generate notes for console and markdown in the same time. For most part of the notes, they will share the same Markdown syntex except that console notes will use ASCII color codes for some keywords.
+
+> ```python
+> # Prototype may not implement everything.
+> error("Function is not implemented.")
+> raise NotImplementedError
+> ```
+
+[[TOC]](#table-of-content)
+
+#### Class: doc.base.FileSysDocument
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L82)
 
 - Super: [Document](#class-document)
 
 Document for file system prototype.
 
-#### Block: Hierarchy constants.
+##### Block: doc.base.FileSysDocument: Define Github con...
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L116)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L86)
+
+> ```python
+> # Define Github constants.
+> ROOT = "MLRepo"
+> GITHUB = "https://github.com/gao462/{:s}".format(ROOT)
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.base.FileSysDocument.__init__
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L90)
+
+Initialize.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Super.
+> Document.__init__(self, *args, **kargs)
+>
+> # Save necessary attributes
+> self.PATH = path
+> ```
+
+[[TOC]](#table-of-content)
+
+#### Block: doc.base: Hierarchy constants.
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L115)
+
 > ```python
 > # Hierarchy constants.
 > GLOBAL = 0
@@ -190,13 +652,75 @@ Document for file system prototype.
 
 [[TOC]](#table-of-content)
 
-#### Class: CodeDocument
+#### Class: doc.base.CodeDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L124)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L123)
 
 - Super: [Document](#class-document)
 
 Document for code prototype.
+
+##### Function: doc.base.CodeDocument.__init__
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L127)
+
+Initialize.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Super.
+> Document.__init__(self, *args, **kargs)
+>
+> # Save necessary attributes.
+> self.LEVEL = level
+> self.HIERARCHY = hierarchy
+> self.SUPERIOR = self if superior is None else superior
+> self.FILEDOC = filedoc
+>
+> # Allocate children memory.
+> self.allocate()
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.base.CodeDocument.allocate
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L168)
+
+Allocate children memory.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Prototype may not implement everything.
+> error("Function is not implemented.")
+> raise NotImplementedError
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.base.CodeDocument.parse
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L186)
+
+Parse information into document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Save necessary attributes.
+> self.code = code
+> self.row = code.scan + 1
+> ```
+
+[[TOC]](#table-of-content)
 
 ---
 
@@ -234,9 +758,10 @@ Document for code prototype.
 
 Main branch starts from here.
 
-#### Block: Generate all notes.
+#### Block: doc.main: Generate all notes.
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L36)
+
 > ```python
 > # Generate all notes.
 > doc = DirectoryDocument(os.path.abspath("."), rootdoc=None)
@@ -287,7 +812,7 @@ Code document on block level. There are several kinds of block documents, but th
 
 A block often start with several comments lines, except that in a branch with only one block, it may have no comments.
 
-#### Class: BlockDocument
+#### Class: doc.block.BlockDocument
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L45)
 
@@ -295,7 +820,85 @@ A block often start with several comments lines, except that in a branch with on
 
 Document for a block of code prototype.
 
-#### Class: ImportBlockDocument
+##### Function: doc.block.BlockDocument.allocate
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L49)
+
+Allocate children memory.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Block ususally start with a comment, then statements.
+> self.comment = doc.statement.CommentDocument(
+>     level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+>     filedoc=self.FILEDOC,
+> )
+> self.allocate_statements()
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.block.BlockDocument.allocate_statements
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L72)
+
+Allocate statement children memory.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Prototype may not implement everything.
+> error("Function is not implemented.")
+> raise NotImplementedError
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.block.BlockDocument.parse
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L92)
+
+Parse information into document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Super.
+> doc.base.CodeDocument.parse(self, code, *args, **kargs)
+>
+> # Parse code.
+> self.comment.parse(self.code)
+> self.parse_statements()
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.block.BlockDocument.parse_statements
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L117)
+
+Parse all statements of the document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Prototype may not implement everything.
+> error("Function is not implemented.")
+> raise NotImplementedError
+> ```
+
+[[TOC]](#table-of-content)
+
+#### Class: doc.block.ImportBlockDocument
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L138)
 
@@ -303,13 +906,236 @@ Document for a block of code prototype.
 
 Document for a block of import code.
 
-#### Class: ConstBlockDocument
+##### Function: doc.block.ImportBlockDocument.allocate_statements
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L288)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L142)
+
+Allocate statement children memory.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Import block only has import statements.
+> self.statements: List[doc.statement.ImportDocument] = []
+>
+> # Save imported modules.
+> self.modules: Dict[str, List[str]] = {}
+> self.identifiers: Dict[str, str] = {}
+> self.mapping: Dict[str, str] = {}
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.block.ImportBlockDocument.parse_statements
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L166)
+
+Parse all statements of the document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Parsea a new document from current line.
+> while (not self.eob()):
+>     child = doc.statement.ImportDocument(
+>         level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+>         filedoc=self.FILEDOC,
+>     )
+>     child.parse(self.code)
+>     self.statements.append(child)
+>     self.code.next()
+>
+> # Merge all imports.
+> for child in self.statements:
+>     for name, members in child.modules.items():
+>         if (name in self.modules):
+>             pass
+>         else:
+>             self.modules[name] = []
+>         self.modules[name].extend(members)
+>     for name, source in child.identifiers.items():
+>         self.identifiers[name] = source
+>     for rename, name in child.mapping.items():
+>         self.mapping[rename] = name
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.block.ImportBlockDocument.eob
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L205)
+
+Check end of the block.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # A single blank line is the end.
+> return self.code.blank_top(1)
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.block.ImportBlockDocument.notes
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L224)
+
+Generate notes.
+
+> **Arguments**
+
+> **Returns**
+
+This will generate notes for console and markdown in the same time. For most part of the notes, they will share the same Markdown syntex except that console notes will use ASCII color codes for some keywords.
+
+> ```python
+> # Block notes is just a list of its statments notes.
+> self.comment.notes()
+> self.markdown.extend(self.comment.markdown)
+> for itr in self.statements:
+>     itr.notes()
+>     self.markdown.extend(itr.markdown)
+>
+> # Clear children notes for memory efficency.
+> self.comment.markdown.clear()
+> for itr in self.statements:
+>     itr.markdown.clear()
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.block.ImportBlockDocument.check
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L255)
+
+Check if requiring row is exactly the given text.
+
+> **Arguments**
+
+> **Returns**
+
+This is specially defined because some imports are constantly required.
+
+> ```python
+> # Match directly
+> return self.statements[i].memory.text == text
+> ```
+
+[[TOC]](#table-of-content)
+
+#### Class: doc.block.ConstBlockDocument
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L281)
 
 - Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
 
 Document for a block of constant code.
+
+##### Function: doc.block.ConstBlockDocument.__init__
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L285)
+
+Initialize.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Super.
+> doc.base.CodeDocument.__init__(
+>     self, *args, level=level, hierarchy=hierarchy, superior=superior,
+>     filedoc=filedoc, **kargs,
+> )
+>
+> # Save necessary attributes.
+> self.CONSTANT = constant.split("\n")
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.block.ConstBlockDocument.allocate
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L323)
+
+Allocate children memory.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Allocate document memory for constant lines.
+> self.memory: List[Line] = []
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.block.ConstBlockDocument.parse
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L342)
+
+Parse information into document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Super.
+> doc.base.CodeDocument.parse(self, code, *args, **kargs)
+>
+> # Get current line.
+> for i, itr in enumerate(self.CONSTANT):
+>     # Get current line.
+>     obj = self.code.get()
+>
+>     # Directly match the constant text with current line.
+>     if (obj.text == itr):
+>         pass
+>     else:
+>         error(
+>             "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>             " expect\n\"\"\"\n{:s}\n\"\"\", but" \
+>             " get\n\"\"\"\n{:s}\"\"\".",
+>             self.FILEDOC.PATH, "line {:d}".format(obj.row),
+>             itr, obj.text,
+>         )
+>         raise RuntimeError
+>
+>     # Save verified line in document memory.
+>     self.memory.append(obj)
+>     self.code.next()
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.block.ConstBlockDocument.notes
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L385)
+
+Generate notes.
+
+> **Arguments**
+
+> **Returns**
+
+This will generate notes for console and markdown in the same time. For most part of the notes, they will share the same Markdown syntex except that console notes will use ASCII color codes for some keywords.
+
+> ```python
+> # Block notes is just a list of code lines without indents.
+> start = self.LEVEL * UNIT
+> for itr in self.memory:
+>     self.markdown.append(itr.text[start:])
+> ```
+
+[[TOC]](#table-of-content)
 
 ---
 
@@ -352,7 +1178,7 @@ Tokenized code for any arbitrary file is defined based on Python token library. 
 
 Style related constants and utility functions are also defined.
 
-#### Class: Word
+#### Class: doc.code.Word
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L44)
 
@@ -360,7 +1186,65 @@ Style related constants and utility functions are also defined.
 
 Token word.
 
-#### Class: Line
+##### Function: doc.code.Word.set
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L48)
+
+Set word attributes.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Save necessary attributes.
+> self.token = val
+> self.token_string = token.tok_name[self.token]
+> self.text = text
+> self.row = row
+> self.column = column
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Word.position
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L80)
+
+Get position string.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Get indent level, line (row) and column.
+> return "line {:d}, column: {:d}".format(self.row, self.column)
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Word.check
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L99)
+
+Check given arguments with memory.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Check attribute according to target type.
+> if (isinstance(target, int)):
+>     return self.token == target
+> else:
+>     return self.text == target
+> ```
+
+[[TOC]](#table-of-content)
+
+#### Class: doc.code.Line
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L126)
 
@@ -368,9 +1252,193 @@ Token word.
 
 Line of tokens.
 
-#### Block: Define essential...
+##### Function: doc.code.Line.set
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L130)
+
+Set line attributes.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Save necessary attributes.
+> self.level = level
+> self.implicit = False
+> self.text = text
+> self.path = path
+> self.row = row
+> self.memory: List[Word] = []
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Line.append
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L163)
+
+Append a word starting from the line.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Append directly
+> self.memory.append(word)
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Line.reset
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L182)
+
+Reset scanning status.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Reset scanning pointer.
+> self.scan = 0
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Line.check
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L199)
+
+Check given arguments with memory.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Check indent level.
+> if (self.level != level):
+>     return False
+> else:
+>     pass
+>
+> # Check scanning word.
+> return self.get().check(target)
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Line.match
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L231)
+
+Match given arguments with memory.
+
+> **Arguments**
+
+> **Returns**
+
+It is a more strict version of check function that target must be satisfied. Otherwise, runtime error will be reported.
+
+> ```python
+> # Check indent level.
+> if (self.level != level):
+>     error(
+>         "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>         " wrong indent level.",
+>         self.path, "line {:d}".format(self.row),
+>     )
+>     raise RuntimeError
+> else:
+>     pass
+>
+> # Match scanning.
+> obj = self.get()
+> if (obj.check(target)):
+>     pass
+> elif (isinstance(target, int)):
+>     error(
+>         "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>         " expect {:s}, but get {:s}.",
+>         self.path, obj.position(),
+>         token.tok_name[target], obj.token_string,
+>     )
+>     raise RuntimeError
+> else:
+>     error(
+>         "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>         " expect \"{:s}\", but get \"{:s}\".",
+>         self.path, obj.position(),
+>         repr(target)[1:-1], repr(obj.text)[1:-1],
+>     )
+>     raise RuntimeError
+>
+> # Move to next if match successfully.
+> self.next()
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Line.get
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L290)
+
+Get scanning word.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Get directly.
+> return self.memory[self.scan]
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Line.next
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L309)
+
+Move pointer to next word.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Move to next non-trivial pointer.
+> self.scan += 1
+> while (not self.eol() and self.get().token == token.INDENT):
+>     self.scan += 1
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Line.eol
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L328)
+
+Get EOL signal.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Get directly.
+> return self.scan == len(self.memory)
+> ```
+
+[[TOC]](#table-of-content)
+
+#### Block: doc.code: Define essential...
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L348)
+
 > ```python
 > # Define essential constants.
 > UNIT = 4
@@ -379,9 +1447,10 @@ Line of tokens.
 
 [[TOC]](#table-of-content)
 
-#### Block: Define single wor...
+#### Block: doc.code: Define single wor...
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L353)
+
 > ```python
 > # Define single word regex.
 > NUMBER = r"[1-9][0-9]*"
@@ -391,9 +1460,10 @@ Line of tokens.
 
 [[TOC]](#table-of-content)
 
-#### Block: Overwrite compose...
+#### Block: doc.code: Overwrite compose...
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L359)
+
 > ```python
 > # Overwrite composed word regex.
 > INITIAL = r"({:s}(-{:s})*)".format(INITIAL, INSIDE)
@@ -402,9 +1472,10 @@ Line of tokens.
 
 [[TOC]](#table-of-content)
 
-#### Block: Define not-word w...
+#### Block: doc.code: Define not-word w...
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L364)
+
 > ```python
 > # Define not-word word regex.
 > MATH = r"\$([^\n\\\$]|\\[^\n])+\$"
@@ -414,9 +1485,10 @@ Line of tokens.
 
 [[TOC]](#table-of-content)
 
-#### Block: Define sentence w...
+#### Block: doc.code: Define sentence w...
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L370)
+
 > ```python
 > # Define sentence word regex.
 > FIRST = r"({:s}|{:s}|{:s}|{:s})".format(INITIAL, MATH, CODE, STRING)
@@ -426,9 +1498,10 @@ Line of tokens.
 
 [[TOC]](#table-of-content)
 
-#### Block: Define sentence r...
+#### Block: doc.code: Define sentence r...
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L376)
+
 > ```python
 > # Define sentence regex.
 > PARANTHESE = r"\({:s}({:s}{:s})*\)".format(LATER, BREAK, LATER)
@@ -439,7 +1512,7 @@ Line of tokens.
 
 [[TOC]](#table-of-content)
 
-#### Class: Code
+#### Class: doc.code.Code
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L383)
 
@@ -447,7 +1520,540 @@ Line of tokens.
 
 Tokenized code with indent of a file.
 
-#### Function: line_rule_length
+##### Function: doc.code.Code.__init__
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L387)
+
+Initialize.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Nothing is requires.
+> pass
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Code.load_file
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L404)
+
+Load code tokens from given file.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Save loaded path.
+> self.path = path
+>
+> # Load file text lines.
+> self.load_texts()
+> self.rule_texts()
+>
+> # Load file tokens.
+> self.load_tokens()
+>
+> # Review text lines and file tokens as lines of tokens.
+> self.review()
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Code.load_texts
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L435)
+
+Load text lines from given file.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Read text lines along with indent level.
+> self.texts = []
+> file = open(self.path, "r")
+> eof = False
+> for i, line in enumerate(file):
+>     # Should not read in anything after EOF.
+>     if (eof):
+>         error(
+>             "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>             " read after EOF (line w.o. tail \"\\n\").",
+>             self.path, "line {:d}".format(i + 1),
+>         )
+>         raise RuntimeError
+>     else:
+>         pass
+>
+>     # Exclude tail spaces except for "\n".
+>     rclean = line.rstrip()
+>     if (len(rclean) == len(line)):
+>         # Only the last line should have no "\n".
+>         eof = True
+>     elif (len(rclean) + 1 == len(line) and line[-1] == "\n"):
+>         pass
+>     else:
+>         error(
+>             "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>             " find tail spaces.",
+>             self.path, "line {:d}".format(i + 1),
+>         )
+>         raise RuntimeError
+>
+>     # Numer of spaces must fit the unit.
+>     lclean = rclean.lstrip()
+>     num_spaces = len(rclean) - len(lclean)
+>     if (num_spaces % UNIT == 0):
+>         level = num_spaces // UNIT
+>     else:
+>         error(
+>             "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>             " weird indent.",
+>             self.path, "line {:d}".format(i + 1),
+>         )
+>         raise RuntimeError
+>
+>     # Blank line is special.
+>     if (len(lclean) == 0):
+>         self.texts.append((-1, rclean))
+>     else:
+>         self.texts.append((level, rclean))
+> file.close()
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Code.load_tokens
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L500)
+
+Load tokens from given file.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Load tokens except indent or dedent.
+> self.tokens = []
+> file = open(self.path, "r")
+> buf = tokenize.generate_tokens(file.readline)
+> for itr in buf:
+>     if (itr[0] in (token.INDENT, token.DEDENT)):
+>         # Indent token is modified for other usage.
+>         pass
+>     else:
+>         self.tokens.append(itr)
+> file.close()
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Code.rule_texts
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L526)
+
+Check rules over text lines.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Check each text lines.
+> for i, (_, text) in enumerate(self.texts):
+>     line_rule_length(text=text, index=i + 1, path=self.path)
+>     line_rule_char(text=text, index=i + 1, path=self.path)
+>     line_rule_break(text=text, index=i + 1, path=self.path)
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Code.review
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L546)
+
+Review text lines and tokens as lines of tokens.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Define real buffer.
+> self.memory = []
+> self.ptrs = []
+> for i, (level, text) in enumerate(self.texts):
+>     line = Line()
+>     line.set(level=level, text=text, path=self.path, row=i + 1)
+>     self.memory.append(line)
+>     self.ptrs.append(0)
+> del self.texts
+>
+> # Traverse tokens and put to corresponding lines.
+> scan = 0
+> while (scan < len(self.tokens) - 1):
+>     # Get the starting token.
+>     val, text, head, tail, _ = self.tokens[scan]
+>     head_row, head_col = head
+>     tail_row, tail_col = tail
+>     scan += 1
+>
+>     # Get the space ahead.
+>     self.clear_space_until(head_row, head_col)
+>
+>     # Create word.
+>     word = Word()
+>     word.set(val=val, text=text, row=head_row, column=head_col)
+>
+>     # Update line pointer in memory.
+>     if (val == token.STRING):
+>         # Update string token (multiple-line or not).
+>         self.clear_string(word)
+>     elif (head_row == tail_row):
+>         # Update single-line token.
+>         self.clear_common(word)
+>     else:
+>         error(
+>             "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>             " only string allows multiple-line code.",
+>             self.path,
+>             "line {:d}, column: {:d}".format(head_row, head_col),
+>         )
+>         raise RuntimeError
+> del self.tokens
+> del self.ptrs
+>
+> # Ensure that multiple-line string only involves in definition.
+> for itr in self.memory:
+>     if (itr.implicit and len(itr.memory) > 0):
+>         if (
+>             len(itr.memory) == 1 and itr.memory[0].check(token.NEWLINE)
+>         ):
+>             pass
+>         else:
+>             error(
+>                 "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>                 " Only end of statement can be multiple-line string.",
+>                 self.path, "line {:d}".format(itr.row),
+>             )
+>             raise RuntimeError
+>     else:
+>         pass
+>
+> # Ensure raw code is recoverable.
+> self.recoverable()
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Code.clear_space_until
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L624)
+
+Clear space at given row from pointer until given column.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Get information of given row.
+> row -= 1
+> obj = self.memory[row]
+> buf = obj.memory
+> line = obj.text
+> ptr = self.ptrs[row]
+> length = column - ptr
+>
+> # Update memory.
+> if (length == 0):
+>     # No-space case should be ignored.
+>     pass
+> elif (len(buf) == 0):
+>     # Spaces of line indent should be ignored.
+>     pass
+> elif (length != 1):
+>     # Space break can at most have 1 space.
+>     error(
+>         "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>         " space break can at most have 1 space.",
+>         self.path,
+>         "line {:d}, column: {:d}".format(row + 1, ptr),
+>     )
+>     raise RuntimeError
+> else:
+>     # Use None to represent single-space break token.
+>     word = Word()
+>     word.set(val=token.INDENT, text=" ", row=row + 1, column=ptr)
+>     buf.append(word)
+>
+> # Update pointer.
+> self.ptrs[row] += length
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Code.clear_string
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L677)
+
+Clear and update a possibly multiple-line string token.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Get information of the word.
+> row = word.row - 1
+> texts = word.text.split("\n")
+> num_lines = len(texts)
+>
+> # Update memory.
+> self.memory[row].append(word)
+> for i in range(1, num_lines):
+>     # Mark as not existing except for the first line.
+>     if (i > 0):
+>         self.memory[row + i].implicit = True
+>     else:
+>         pass
+>
+> # Update pointer.
+> for i, text in enumerate(texts):
+>     self.ptrs[row + i] += len(text)
+>
+> # Tail "\\" after string means a concatenation.
+> focus = row + num_lines - 1
+> ptr = self.ptrs[focus]
+> if (self.memory[focus].text[ptr:] == " \\"):
+>     # Create extra NL word.
+>     word = Word()
+>     word.set(val=token.NL, text=" \\\n", row=focus + 1, column=ptr)
+>     self.memory[focus].append(word)
+> else:
+>     pass
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Code.clear_common
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L724)
+
+Clear and update a single-line token.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Get information of the word.
+> row = word.row - 1
+> length = len(word.text)
+>
+> # Update memory.
+> self.memory[row].append(word)
+>
+> # Update pointer.
+> self.ptrs[row] += length
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Code.recoverable
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L752)
+
+Ensure raw code to be recoverable.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Traverse the memory.
+> ptr = 0
+> while (ptr < len(self.memory)):
+>     # Get tokens and raw codes.
+>     tokens = []
+>     raws = []
+>     position = ptr + 1
+>     obj = self.memory[ptr]
+>     level = obj.level
+>     tokens.extend(obj.memory)
+>     raws.append(obj.text)
+>     ptr += 1
+>     while (ptr < len(self.memory) and self.memory[ptr].implicit):
+>         obj = self.memory[ptr]
+>         tokens.extend(obj.memory)
+>         raws.append(obj.text)
+>         ptr += 1
+>
+>     # Generate by tokens
+>     texts = [" " * level * UNIT]
+>     for word in tokens:
+>         if (word is None):
+>             texts.append(" ")
+>         else:
+>             texts.append(word.text)
+>     generates = "".join(texts).split("\n")
+>
+>     # Remove trivial generation tail.
+>     if (len(generates[-1]) == 0):
+>         del generates[-1]
+>     else:
+>         pass
+>
+>     # Ensure matching.
+>     for i in range(max(len(raws), len(generates))):
+>         if (raws[i] != generates[i]):
+>             error(
+>                 "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>                 " fail to recover code.",
+>                 self.path, "line {:d}".format(position + i),
+>             )
+>             raise RuntimeError
+>         else:
+>             pass
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Code.reset
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L811)
+
+Reset scanning status.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Reset scanning pointer.
+> self.scan = 0
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Code.get
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L828)
+
+Get scanning line.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Get directly.
+> return self.memory[self.scan]
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Code.next
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L847)
+
+Move pointer to next line.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Move directly.
+> self.scan += 1
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Code.eof
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L864)
+
+Get EOF signal.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Get directly.
+> return self.scan == len(self.memory)
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Code.blank_top
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L883)
+
+Get blank line signal.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Fetch lines and check if they are all blank.
+> for i in range(num):
+>     # EOF is equivalent to any number of blank lines.
+>     if (self.scan + i == len(self.memory)):
+>         break
+>     else:
+>         pass
+>
+>     # Fetch line and check.
+>     obj = self.memory[self.scan + i]
+>     if (len(obj.memory) == 1 and obj.memory[0].check(token.NL)):
+>         pass
+>     else:
+>         return False
+> return True
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.code.Code.blank_next
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L919)
+
+Get blank line and skip.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Check and skip.
+> if (self.blank_top(num)):
+>     for i in range(num):
+>         if (self.eof()):
+>             break
+>         else:
+>             self.next()
+> else:
+>     error(
+>         "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>         " expect {:d} blank lines.",
+>         self.path, "line {:d}".format(self.get().row), num,
+>     )
+>     raise RuntimeError
+> ```
+
+[[TOC]](#table-of-content)
+
+#### Function: doc.code.line_rule_length
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L953)
 
@@ -473,7 +2079,7 @@ Check length rule over a text line.
 
 [[TOC]](#table-of-content)
 
-#### Function: line_rule_char
+#### Function: doc.code.line_rule_char
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L987)
 
@@ -499,7 +2105,7 @@ Check character rule over a text line.
 
 [[TOC]](#table-of-content)
 
-#### Function: line_rule_break
+#### Function: doc.code.line_rule_break
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L1021)
 
@@ -524,7 +2130,7 @@ Check line break rule over a text line.
 
 [[TOC]](#table-of-content)
 
-#### Function: recover
+#### Function: doc.code.recover
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L1054)
 
@@ -544,7 +2150,7 @@ Recover code from given memory of tokens.
 
 [[TOC]](#table-of-content)
 
-#### Function: paragraphize
+#### Function: doc.code.paragraphize
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L1082)
 
@@ -600,7 +2206,7 @@ Transfer a list of texts into paragraphs.
 
 [[TOC]](#table-of-content)
 
-#### Function: mathize
+#### Function: doc.code.mathize
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L1144)
 
@@ -628,7 +2234,7 @@ Transfer a list of texts into math block.
 
 [[TOC]](#table-of-content)
 
-#### Function: codize
+#### Function: doc.code.codize
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L1180)
 
@@ -656,7 +2262,7 @@ Transfer a list of texts into code block.
 
 [[TOC]](#table-of-content)
 
-#### Function: textize
+#### Function: doc.code.textize
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L1216)
 
@@ -745,7 +2351,7 @@ Code document for a series of codes. It works as a midterm contatenation for cla
 
 It will mutually import with ClassDocument, FunctionDocument, OPBlockDocument. Thus, they four are aggregated together in this file.
 
-#### Class: SeriesDocument
+#### Class: doc.series.SeriesDocument
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L50)
 
@@ -753,23 +2359,338 @@ It will mutually import with ClassDocument, FunctionDocument, OPBlockDocument. T
 
 Document for a series of code.
 
+##### Function: doc.series.SeriesDocument.allocate
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L54)
+
+Allocate children memory.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Children are a list of classes, functions or operation blocks.
+> self.components: List[Union[
+>     ClassDocument, FunctionDocument, OPBlockDocument,
+> ]] = []
+>
+> # Number of blank breaks is based on hierarchy.
+> self.NUM_BLANKS = 1 + int(self.HIERARCHY == doc.base.GLOBAL)
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.series.SeriesDocument.parse
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L76)
+
+Parse information into document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Super.
+> doc.base.CodeDocument.parse(self, code, *args, **kargs)
+>
+> # Parse components until dedent.
+> first = True
+> while (not self.dedent()):
+>     # Move blank lines first except for the first time.
+>     if (first):
+>         first = False
+>     else:
+>         self.code.blank_next(self.NUM_BLANKS)
+>
+>     # Allocate according to keyword and append.
+>     keyword = self.code.get().memory[0]
+>     itr: Union[ClassDocument, FunctionDocument, OPBlockDocument]
+>     if (keyword.text == "class"):
+>         itr = ClassDocument(
+>             level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+>             filedoc=self.FILEDOC,
+>         )
+>     elif (keyword.text == "def"):
+>         itr = FunctionDocument(
+>             level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+>             filedoc=self.FILEDOC,
+>         )
+>     else:
+>         itr = OPBlockDocument(
+>             level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+>             filedoc=self.FILEDOC,
+>         )
+>     self.components.append(itr)
+>
+>     # Parse code.
+>     itr.parse(self.code)
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.series.SeriesDocument.dedent
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L129)
+
+Check if a dedent is happening.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Move the pointer to next non-trival line.
+> ptr = self.code.scan
+> while (True):
+>     # EOF is equivalent to dedent.
+>     if (ptr == len(self.code.memory)):
+>         return True
+>     else:
+>         pass
+>
+>     # Fetch line and check.
+>     obj = self.code.memory[ptr]
+>     if (len(obj.memory) == 1 and obj.memory[0].check(token.NL)):
+>         pass
+>     elif (obj.text == "# " + "=" * (MAX - 2)):
+>         # Introduction is a  special stop signal for series.
+>         return True
+>     else:
+>         break
+>
+>     # Move to next.
+>     ptr += 1
+> return self.code.memory[ptr].level < self.LEVEL
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.series.SeriesDocument.notes
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L166)
+
+Generate notes.
+
+> **Arguments**
+
+> **Returns**
+
+This will generate notes for console and markdown in the same time. For most part of the notes, they will share the same Markdown syntex except that console notes will use ASCII color codes for some keywords.
+
+> ```python
+> # Block notes is just a list of its statments notes.
+> first = True
+> for child in self.components:
+>     # First item has no breaks.
+>     if (first):
+>         first = False
+>     else:
+>         self.markdown.append("")
+>
+>     # Generate child notes.
+>     child.notes()
+>     self.markdown.extend(child.markdown)
+>
+> # Clear children notes for memory efficency.
+> for child in self.components:
+>     child.markdown.clear()
+> ```
+
+[[TOC]](#table-of-content)
+
 ### Class Code Document Objects
 
 Code document for a definition of class. It can mutually import with SeriesDocument, thus it is put in this file.
 
-#### Class: ClassDocument
+#### Class: doc.series.ClassDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L218)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L212)
 
 - Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
 
 Document for a definition of class.
 
+##### Function: doc.series.ClassDocument.allocate
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L216)
+
+Allocate children memory.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Hierarchy of class body is limited and may change.
+> if (self.HIERARCHY == doc.base.GLOBAL):
+>     hierarchy = doc.base.CLASS
+> else:
+>     error(
+>         "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>         " class is limited to be global level.",
+>         self.FILEDOC.PATH, "line {:d}".format(self.row),
+>     )
+>     raise RuntimeError
+>
+> # Children are a description and a series of codes.
+> self.description = doc.statement.ClassDescDocument(
+>     level=self.LEVEL + 1, hierarchy=hierarchy, superior=self,
+>     filedoc=self.FILEDOC,
+> )
+> self.body = SeriesDocument(
+>     level=self.LEVEL + 1, hierarchy=hierarchy, superior=self,
+>     filedoc=self.FILEDOC,
+> )
+>
+> # Number of blank breaks is based on hierarchy.
+> self.NUM_BLANKS = 1 + int(self.HIERARCHY == doc.base.GLOBAL)
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.series.ClassDocument.parse
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L254)
+
+Parse information into document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Super.
+> doc.base.CodeDocument.parse(self, code, *args, **kargs)
+>
+> # Get the class name.
+> obj = self.code.get()
+> obj.reset()
+> obj.match("class", level=self.LEVEL)
+> self.name = obj.get().text
+> obj.match(token.NAME, level=self.LEVEL)
+>
+> # Get the super name.
+> obj.match("(", level=self.LEVEL)
+> buf = [obj.get().text]
+> obj.match(token.NAME, level=self.LEVEL)
+> while (obj.check(".", level=self.LEVEL)):
+>     obj.match(".", level=self.LEVEL)
+>     buf.append(obj.get().text)
+>     obj.match(token.NAME, level=self.LEVEL)
+> self.super = ".".join(buf)
+> obj.match(")", level=self.LEVEL)
+> obj.match(":", level=self.LEVEL)
+> obj.match(token.NEWLINE, level=self.LEVEL)
+> self.code.next()
+>
+> # Parse code.
+> self.description.parse(self.code)
+> self.body.parse(self.code)
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.series.ClassDocument.notes
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L300)
+
+Generate notes.
+
+> **Arguments**
+
+> **Returns**
+
+This will generate notes for console and markdown in the same time. For most part of the notes, they will share the same Markdown syntex except that console notes will use ASCII color codes for some keywords.
+
+> ```python
+> # Get imported global variables sorted by inverse length.
+> knowns = sorted(
+>     self.FILEDOC.modules.mapping.keys(), key=lambda x: -len(x),
+> )
+>
+> # Find the first variable matching the super name.
+> for itr in knowns:
+>     if (itr in self.super):
+>         source = itr
+>         prefix = self.FILEDOC.modules.mapping[source]
+>         break
+>     else:
+>         source = ""
+>         prefix = ""
+> suffix = self.super[len(source):]
+>
+> # Locate the super.
+> if (len(source) == 0 and suffix in self.FILEDOC.classes):
+>     # Get in-page reference directly.
+>     refer = "Class: {:s}".format(suffix)
+>     refer = doc.filesys.github_header(refer)
+>     link = "[{:s}](#{:s})".format(self.super, refer)
+> elif (len(source) == 0):
+>     # Python class has no reference.
+>     link = self.super
+> else:
+>     # Get Github page.
+>     layers = (prefix + suffix).split(".")
+>     page = os.path.join(
+>         self.FILEDOC.ROOTDOC.GITHUB, "tree", "main", *layers[:-1],
+>     )
+>
+>     # Get in-page reference.
+>     refer = "Class: {:s}".format(layers[-1])
+>     refer = doc.filesys.github_header(refer)
+>     link = "[{:s}]({:s}#{:s})".format(self.super, page, refer)
+>
+> # Title is class name.
+> self.markdown.append("#### Class: {:s}.{:s}".format(
+>     self.FILEDOC.ME, self.name,
+> ))
+>
+> # Super link to source code is required.
+> source = os.path.join(
+>     self.FILEDOC.GITHUB, "blob", "master", self.FILEDOC.PATH,
+> )
+> source = "{:s}#L{:d}".format(source, self.row)
+> self.markdown.append("")
+> self.markdown.append("- Source: [Github]({:s})".format(source))
+>
+> # Super class is required.
+> self.markdown.append("")
+> self.markdown.append("- Super: {:s}".format(link))
+>
+> # Put descriptions here.
+> for itr in self.description.descs["paragraphs"]:
+>     self.markdown.append("")
+>     self.markdown.append(" ".join(itr))
+>
+> # Get body note as a code block
+> self.body.notes()
+> self.markdown.append("")
+> for itr in self.body.markdown:
+>     if (len(itr) == 0 or itr[0] != "#"):
+>         self.markdown.append(itr)
+>     elif (itr[5] in ("F", "B")):
+>         self.markdown.append("#" + itr)
+>     else:
+>         error(
+>             "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>             " class can only documentize functions and blocks.",
+>             self.FILEDOC.PATH, "line {:d}".format(self.row),
+>         )
+>         raise RuntimeError
+>
+> # Clear children notes for memory efficency.
+> self.body.markdown.clear()
+> ```
+
+[[TOC]](#table-of-content)
+
 ### Function Code Document Objects
 
 Code document for a definition of function. It can mutually import with SeriesDocument, thus it is put in this file.
 
-#### Class: FunctionDocument
+#### Class: doc.series.FunctionDocument
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L407)
 
@@ -777,17 +2698,302 @@ Code document for a definition of function. It can mutually import with SeriesDo
 
 Document for a definition of function.
 
+##### Function: doc.series.FunctionDocument.allocate
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L411)
+
+Allocate children memory.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Hierarchy of function body may change.
+> if (self.HIERARCHY in (doc.base.GLOBAL, doc.base.CLASS)):
+>     hierarchy = doc.base.FUNCTION
+> else:
+>     hierarchy = self.HIERARCHY
+>
+> # Children are a description and a series of codes.
+> self.description = doc.statement.FuncDescDocument(
+>     level=self.LEVEL + 1, hierarchy=hierarchy, superior=self,
+>     filedoc=self.FILEDOC,
+> )
+> self.body = SeriesDocument(
+>     level=self.LEVEL + 1, hierarchy=hierarchy, superior=self,
+>     filedoc=self.FILEDOC,
+> )
+>
+> # Number of blank breaks is based on hierarchy.
+> self.NUM_BLANKS = 1 + int(self.HIERARCHY == doc.base.GLOBAL)
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.series.FunctionDocument.parse
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L446)
+
+Parse information into document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Super.
+> doc.base.CodeDocument.parse(self, code, *args, **kargs)
+>
+> # Get the function name.
+> obj = self.code.get()
+> obj.reset()
+> obj.match("def", level=self.LEVEL)
+> self.name = obj.get().text
+> obj.match(token.NAME, level=self.LEVEL)
+>
+> # Get the arguments.
+> args = doc.func.ArgumentDocument(
+>     level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+>     filedoc=self.FILEDOC, multiple=(obj.memory[-2].text != ":"),
+> )
+> args.parse(self.code)
+> obj = self.code.get()
+> obj.match("->", level=self.LEVEL)
+> returns = doc.func.TypeHintDocument(
+>     level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+>     filedoc=self.FILEDOC,
+> )
+> returns.parse(self.code)
+> obj = self.code.get()
+> obj.match(":", level=self.LEVEL)
+> obj.match(token.NEWLINE, level=self.LEVEL)
+> self.code.next()
+>
+> # Parse components.
+> self.description.parse(self.code)
+> self.description.review(args, returns)
+> self.body.parse(self.code)
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.series.FunctionDocument.notes
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L497)
+
+Generate notes.
+
+> **Arguments**
+
+> **Returns**
+
+This will generate notes for console and markdown in the same time. For most part of the notes, they will share the same Markdown syntex except that console notes will use ASCII color codes for some keywords.
+
+> ```python
+> # Title is function name.
+> if (self.HIERARCHY == doc.base.GLOBAL):
+>     self.markdown.append("#### Function: {:s}.{:s}".format(
+>         self.FILEDOC.ME, self.name,
+>     ))
+> else:
+>     self.markdown.append("#### Function: {:s}.{:s}.{:s}".format(
+>         self.FILEDOC.ME, self.SUPERIOR.SUPERIOR.name, self.name,
+>     ))
+>
+> # Super link to source code is required.
+> source = os.path.join(
+>     self.FILEDOC.GITHUB, "blob", "master", self.FILEDOC.PATH,
+> )
+> source = "{:s}#L{:d}".format(source, self.row)
+> self.markdown.append("")
+> self.markdown.append("- Source: [Github]({:s})".format(source))
+>
+> # Add description 1 here.
+> for itr in self.description.descs["paragraphs_1"]:
+>     self.markdown.append("")
+>     self.markdown.append(" ".join(itr))
+>
+> # Add arguments.
+> self.markdown.append("")
+> self.markdown.append("> **Arguments**")
+>
+> # Add returns.
+> self.markdown.append("")
+> self.markdown.append("> **Returns**")
+>
+> # Add description 2 here.
+> for itr in self.description.descs["paragraphs_2"]:
+>     self.markdown.append("")
+>     self.markdown.append(" ".join(itr))
+>
+> # Get body note as a code block
+> self.body.notes()
+> self.markdown.append("")
+> self.markdown.append("> ```python")
+> for itr in self.body.markdown:
+>     if (len(itr) == 0):
+>         self.markdown.append(">")
+>     else:
+>         self.markdown.append("> {:s}".format(itr))
+> self.markdown.append("> ```")
+>
+> # Return to TOC.
+> self.markdown.append("")
+> self.markdown.append("[[TOC]](#table-of-content)")
+>
+> # Clear children notes for memory efficency.
+> self.body.markdown.clear()
+> ```
+
+[[TOC]](#table-of-content)
+
 ### Operation Block Code Document Objects
 
 Code document for a block of operation code. It can mutually import with SeriesDocument, thus it is put in this file.
 
-#### Class: OPBlockDocument
+#### Class: doc.series.OPBlockDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L602)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L580)
 
 - Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
 
 Document for a block of operation code.
+
+##### Block: doc.series.OPBlockDocument: Define constants.
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L584)
+
+> ```python
+> # Define constants.
+> MAX = 20
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.series.OPBlockDocument.allocate
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L587)
+
+Allocate children memory.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Children are a description and a block of operations.
+> self.comment = doc.statement.CommentDocument(
+>     level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+>     filedoc=self.FILEDOC,
+> )
+>
+> # Number of blank breaks is based on hierarchy.
+> self.NUM_BLANKS = 1 + int(self.HIERARCHY == doc.base.GLOBAL)
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.series.OPBlockDocument.parse
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L612)
+
+Parse information into document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Super.
+> doc.base.CodeDocument.parse(self, code, *args, **kargs)
+>
+> # Parse comment code.
+> self.comment.parse(self.code)
+> self.memory = []
+> while (True):
+>     if (self.code.eof() or self.code.blank_top(self.NUM_BLANKS)):
+>         break
+>     else:
+>         self.memory.append(self.code.get())
+>         self.code.next()
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.series.OPBlockDocument.notes
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L643)
+
+Generate notes.
+
+> **Arguments**
+
+> **Returns**
+
+This will generate notes for console and markdown in the same time. For most part of the notes, they will share the same Markdown syntex except that console notes will use ASCII color codes for some keywords.
+
+> ```python
+> # Get code snap with comments.
+> snap = []
+> self.comment.notes()
+> snap.extend(self.comment.markdown)
+> start = self.LEVEL * UNIT
+> for itr in self.memory:
+>     snap.append(itr.text[start:])
+>
+> # Clear children notes for memory efficency.
+> self.comment.markdown.clear()
+>
+> # In deep level there is no need to wrap headers.
+> if (self.HIERARCHY in (doc.base.GLOBAL, doc.base.CLASS)):
+>     pass
+> else:
+>     self.markdown.extend(snap)
+>     return
+>
+> # Get first sentence in the comment with limited length.
+> title = self.comment.paragraphs[0][0]
+> if (len(title) > self.MAX):
+>     title = title[0:self.MAX - 3].strip() + "..."
+> else:
+>     pass
+> if (self.HIERARCHY == doc.base.GLOBAL):
+>     self.markdown.append("#### Block: {:s}: {:s}".format(
+>         self.FILEDOC.ME, title,
+>     ))
+> else:
+>     self.markdown.append("#### Block: {:s}.{:s}: {:s}".format(
+>         self.FILEDOC.ME, self.SUPERIOR.SUPERIOR.name, title,
+>     ))
+>
+> # Super link to source code is required.
+> source = os.path.join(
+>     self.FILEDOC.GITHUB, "blob", "master", self.FILEDOC.PATH,
+> )
+> source = "{:s}#L{:d}".format(source, self.row)
+> self.markdown.append("")
+> self.markdown.append("- Source: [Github]({:s})".format(source))
+>
+> # Add code snap here.
+> self.markdown.append("")
+> self.markdown.append("> ```python")
+> for itr in snap:
+>     if (len(itr) == 0):
+>         self.markdown.append(">")
+>     else:
+>         self.markdown.append("> {:s}".format(itr))
+> self.markdown.append("> ```")
+>
+> # Return to TOC.
+> self.markdown.append("")
+> self.markdown.append("[[TOC]](#table-of-content)")
+>
+> # Clear children notes for memory efficency.
+> pass
+> ```
+
+[[TOC]](#table-of-content)
 
 ---
 
@@ -831,7 +3037,7 @@ Document for a block of operation code.
 
 Code document for function related codes. This only contains elements of a function, for example, arguments, returns. The function document itself is defined in series module.
 
-#### Class: TypeHintDocument
+#### Class: doc.func.TypeHintDocument
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/func.py#L44)
 
@@ -839,13 +3045,245 @@ Code document for function related codes. This only contains elements of a funct
 
 Document for type hint definition.
 
-#### Class: ArgumentDocument
+##### Function: doc.func.TypeHintDocument.allocate
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/func.py#L48)
+
+Allocate children memory.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Allocate children hints.
+> self.children: List[TypeHintDocument] = []
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.func.TypeHintDocument.parse
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/func.py#L67)
+
+Parse information into document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Super.
+> doc.base.CodeDocument.parse(self, code, *args, **kargs)
+>
+> # Get type name.
+> obj = self.code.get()
+> name = self.parse_type(obj)
+>
+> # Get children type hint if it exists.
+> if (obj.check("[", level=self.LEVEL)):
+>     pass
+> else:
+>     return
+>
+> # Match left.
+> obj.match("[", level=self.LEVEL)
+> if (obj.check(token.NL, level=self.LEVEL)):
+>     multiple = True
+>     obj.match(token.NL, level=self.LEVEL)
+>     self.code.next()
+>     obj = self.code.get()
+>     obj.reset()
+> else:
+>     multiple = False
+>
+> # Deal with recursive hints.
+> level2 = self.LEVEL + int(multiple)
+> while (not self.code.eof()):
+>     # Right means ending.
+>     if (obj.check("]", level=self.LEVEL)):
+>         break
+>     else:
+>         pass
+>
+>     # Get type hint.
+>     hint = TypeHintDocument(
+>         level=level2, hierarchy=self.HIERARCHY, superior=self,
+>         filedoc=self.FILEDOC,
+>     )
+>     hint.parse(self.code)
+>     self.children.append(name)
+>
+>     # Get break.
+>     if (obj.check("]", level=self.LEVEL)):
+>         break
+>     else:
+>         obj.match(",", level=level2)
+>
+>     # May reach the end of a line.
+>     if (obj.check(token.NL, level=level2)):
+>         obj.match(token.NL, level=level2)
+>         self.code.next()
+>         obj = self.code.get()
+>         obj.reset()
+>     else:
+>         pass
+>
+> # Match right.
+> obj.match("]", level=self.LEVEL)
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.func.TypeHintDocument.parse_type
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/func.py#L144)
+
+Parse information (type) into document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Module is a list of names concatenated by ".".
+> buf = [line.get().text]
+> line.match(token.NAME, level=self.LEVEL)
+> while (line.check(".", level=self.LEVEL)):
+>     line.match(".", level=self.LEVEL)
+>     buf.append(line.get().text)
+>     line.match(token.NAME, level=self.LEVEL)
+> return ".".join(buf)
+> ```
+
+[[TOC]](#table-of-content)
+
+#### Class: doc.func.ArgumentDocument
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/func.py#L174)
 
 - Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
 
 Document for argument definition.
+
+##### Function: doc.func.ArgumentDocument.__init__
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/func.py#L178)
+
+Initialize.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Super.
+> doc.base.CodeDocument.__init__(
+>     self, *args, level=level, hierarchy=hierarchy, superior=superior,
+>     filedoc=filedoc, **kargs,
+> )
+>
+> # Save necessary attributes.
+> self.MULTIPLE = multiple
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.func.ArgumentDocument.allocate
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/func.py#L216)
+
+Allocate children memory.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Allocate argument buffer.
+> self.items: List[Tuple[str, TypeHintDocument]] = []
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.func.ArgumentDocument.parse
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/func.py#L235)
+
+Parse information into document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Super.
+> doc.base.CodeDocument.parse(self, code, *args, **kargs)
+>
+> # Match left.
+> obj = self.code.get()
+> obj.match("(", level=self.LEVEL)
+> if (self.MULTIPLE):
+>     obj.match(token.NL, level=self.LEVEL)
+>     self.code.next()
+>     obj = self.code.get()
+>     obj.reset()
+> else:
+>     pass
+>
+> # Match argument names and type hints.
+> level2 = self.LEVEL + int(self.MULTIPLE)
+> while (not self.code.eof()):
+>     # Right means ending.
+>     if (obj.check(")", level=self.LEVEL)):
+>         break
+>     else:
+>         pass
+>
+>     # It is possible to have "*args" and "**kargs".
+>     if (obj.check("*", level=level2)):
+>         prefix = "*"
+>         obj.match("*", level=level2)
+>     elif (obj.check("**", level=level2)):
+>         prefix = "**"
+>         obj.match("**", level=level2)
+>     else:
+>         prefix = ""
+>
+>     # Get argument name.
+>     suffix = obj.get().text
+>     obj.match(token.NAME, level=level2)
+>     name = prefix + suffix
+>
+>     # Get type hint.
+>     obj.match(":", level=level2)
+>     hint = TypeHintDocument(
+>         level=level2, hierarchy=self.HIERARCHY, superior=self,
+>         filedoc=self.FILEDOC,
+>     )
+>     hint.parse(self.code)
+>     self.items.append((name, hint))
+>
+>     # Get break.
+>     if (obj.check(")", level=self.LEVEL)):
+>         break
+>     else:
+>         obj.match(",", level=level2)
+>
+>     # May reach the end of a line.
+>     if (obj.check(token.NL, level=level2)):
+>         obj.match(token.NL, level=level2)
+>         self.code.next()
+>         obj = self.code.get()
+>         obj.reset()
+>     else:
+>         pass
+>
+> # Match right.
+> obj.match(")", level=self.LEVEL)
+> ```
+
+[[TOC]](#table-of-content)
 
 ---
 
@@ -890,7 +3328,7 @@ Document for argument definition.
 
 Code document for a line of statement. Different statement types have their own workflow, but they all save line of tokens belong to them for potential styled code recovery.
 
-#### Class: CommentDocument
+#### Class: doc.statement.CommentDocument
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L45)
 
@@ -898,45 +3336,778 @@ Code document for a line of statement. Different statement types have their own 
 
 Document for a line of comment statement.
 
-#### Class: ImportDocument
+##### Function: doc.statement.CommentDocument.allocate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L173)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L49)
+
+Allocate children memory.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Allocate document memory for comment lines.
+> self.memory: List[Line] = []
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.statement.CommentDocument.parse
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L68)
+
+Parse information into document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Super.
+> doc.base.CodeDocument.parse(self, code, *args, **kargs)
+>
+> # Read in all consecutive comments.
+> texts = []
+> while (not self.code.eof()):
+>     # Get current line.
+>     obj = self.code.get()
+>     obj.reset()
+>
+>     # Stop for non-comment token head.
+>     if (obj.check(token.COMMENT, level=self.LEVEL)):
+>         pass
+>     else:
+>         break
+>
+>     # Parse current line.
+>     comment = obj.get().text
+>     obj.match(token.COMMENT, level=self.LEVEL)
+>     obj.match(token.NL, level=self.LEVEL)
+>     texts.append(comment[2:])
+>
+>     # Save and move to next line.
+>     self.memory.append(obj)
+>     self.code.next()
+>
+> # Translate parsed text into paragraphs.
+> self.translate(texts)
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.statement.CommentDocument.translate
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L115)
+
+Translate parsed text into paragraphs.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Translate parsed text into paragraphs.
+> try:
+>     self.paragraphs = paragraphize(texts)
+> except:
+>     # Extend paragraph error report.
+>     error(
+>         "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>         " fail to translate paragraphs.",
+>         self.FILEDOC.PATH, "line {:d}".format(self.row),
+>     )
+>     raise RuntimeError
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.statement.CommentDocument.notes
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L144)
+
+Generate notes.
+
+> **Arguments**
+
+> **Returns**
+
+This will generate notes for console and markdown in the same time. For most part of the notes, they will share the same Markdown syntex except that console notes will use ASCII color codes for some keywords.
+
+> ```python
+> # Statement note is just its code lines without indents.
+> start = self.LEVEL * UNIT
+> for itr in self.memory:
+>     self.markdown.append(itr.text[start:])
+> ```
+
+[[TOC]](#table-of-content)
+
+#### Class: doc.statement.ImportDocument
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L167)
 
 - Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
 
 Document for a line of import statement.
 
-#### Class: IntroDocument
+##### Function: doc.statement.ImportDocument.allocate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L486)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L171)
+
+Allocate children memory.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Save imported modules.
+> self.modules: Dict[str, List[str]] = {}
+> self.identifiers: Dict[str, str] = {}
+> self.mapping: Dict[str, str] = {}
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.statement.ImportDocument.parse
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L190)
+
+Parse information into document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Super.
+> doc.base.CodeDocument.parse(self, code, *args, **kargs)
+>
+> # Get current line and parse according to the first word.
+> obj = self.code.get()
+> obj.reset()
+> getattr(self, "parse_{:s}".format(obj.get().text))(obj)
+>
+> # Save the only parsed line in document memory.
+> self.memory = obj
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.statement.ImportDocument.parse_import
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L219)
+
+Parse information (import, as) into document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # First word is fixed.
+> self.type = "import"
+> line.match("import", level=self.LEVEL)
+>
+> # Match the module name.
+> module = self.parse_module(line)
+> rename = self.parse_rename(line)
+> self.append_module(module, rename)
+> line.match(token.NEWLINE, level=self.LEVEL)
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.statement.ImportDocument.parse_from
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L247)
+
+Parse information (from, import, as) into document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # First word is fixed.
+> self.type = "from"
+> line.match("from", level=self.LEVEL)
+>
+> # Match the module name.
+> module = self.parse_module(line)
+>
+> # Next word is fixed.
+> line.match("import", level=self.LEVEL)
+>
+> # Match identifiers until the end of the line.
+> first = True
+> while (not line.eol()):
+>     if (first):
+>         first = False
+>     elif (line.check(",", level=self.LEVEL)):
+>         line.match(",", level=self.LEVEL)
+>     else:
+>         break
+>     identifier = self.parse_identifier(line)
+>     rename = self.parse_rename(line)
+>     self.append_identifier(identifier, rename, module=module)
+> line.match(token.NEWLINE, level=self.LEVEL)
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.statement.ImportDocument.parse_module
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L289)
+
+Parse information (module) into document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Module is a list of names concatenated by ".".
+> buf = [line.get().text]
+> line.match(token.NAME, level=self.LEVEL)
+> while (line.check(".", level=self.LEVEL)):
+>     line.match(".", level=self.LEVEL)
+>     buf.append(line.get().text)
+>     line.match(token.NAME, level=self.LEVEL)
+> return ".".join(buf)
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.statement.ImportDocument.parse_identifier
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L318)
+
+Parse information (identifier) into document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Identifier is just a name.
+> name = line.get().text
+> line.match(token.NAME, level=self.LEVEL)
+> return name
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.statement.ImportDocument.parse_rename
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L343)
+
+Parse information (as) into document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # First word is fixed or rename is not defined.
+> if (line.check("as", level=self.LEVEL)):
+>     line.match("as", level=self.LEVEL)
+> else:
+>     return None
+>
+> # Rename is just a name.
+> name = line.get().text
+> line.match(token.NAME, level=self.LEVEL)
+> return name
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.statement.ImportDocument.append_module
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L374)
+
+Append an identifier import to document.
+
+> **Arguments**
+
+> **Returns**
+
+Trace module and identifier name mappings. There final name should be unique in the file since both are globally claimed. If collision happens, overwrite as python does.
+
+> ```python
+> # Trace rename of the module.
+> self.modules[module] = []
+> if (module2 is None):
+>     self.mapping[module] = module
+> else:
+>     self.mapping[module2] = module
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.statement.ImportDocument.append_identifier
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L410)
+
+Append an identifier import to document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Import module first if it has not been imported.
+> if (module in self.modules):
+>     pass
+> else:
+>     self.modules[module] = []
+>
+> # Trace module and rename of the identifier.
+> if (identifier2 is None):
+>     self.identifiers[identifier] = module
+> else:
+>     self.identifiers[identifier2] = module
+> if (identifier2 is None):
+>     self.mapping[identifier] = identifier
+> else:
+>     self.mapping[identifier2] = identifier
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.statement.ImportDocument.notes
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L449)
+
+Generate notes.
+
+> **Arguments**
+
+> **Returns**
+
+This will generate notes for console and markdown in the same time. For most part of the notes, they will share the same Markdown syntex except that console notes will use ASCII color codes for some keywords.
+
+> ```python
+> # Statement note is just its code lines without indents.
+> start = self.LEVEL * UNIT
+> self.markdown.append(self.memory.text[start:])
+> ```
+
+[[TOC]](#table-of-content)
+
+#### Class: doc.statement.IntroDocument
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L471)
 
 - Super: [CommentDocument](#class-commentdocument)
 
 Document for an introduction statement.
 
-#### Class: DescriptionDocument
+##### Function: doc.statement.IntroDocument.translate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L582)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L475)
+
+Translate parsed text into paragraphs.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Head and tail are constant.
+> if (
+>     texts[0] == "=" * (MAX - 2) and
+>     texts[1] == "*" * (MAX - 2) and
+>     texts[2] == "-" * (MAX - 2) and
+>     texts[-3] == "-" * (MAX - 2) and
+>     texts[-2] == "*" * (MAX - 2) and
+>     texts[-1] == "=" * (MAX - 2) and
+>     texts[3][0:3] == "<< " and texts[3][-3:] == " >>"
+> ):
+>     pass
+> else:
+>     error(
+>         "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>         " introduction requires constant head and tail lines.",
+>         self.FILEDOC.PATH, "line {:d}".format(self.row),
+>     )
+>     raise RuntimeError
+>
+> # The first line must be the only title.
+> words = texts[3][3:-3].split(" ")
+> for itr in words:
+>     if (re.match(FIRST, itr) is None):
+>         error(
+>             "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>             " introduction requires title words to be capitalized.",
+>             self.FILEDOC.PATH, "line {:d}".format(self.row),
+>         )
+>         raise RuntimeError
+>     else:
+>         pass
+> self.title = " ".join(words)
+>
+> # Translate parsed text into paragraphs.
+> try:
+>     self.paragraphs = paragraphize(texts[4:-3])
+> except:
+>     # Extend paragraph error report.
+>     error(
+>         "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>         " fail to translate paragraphs.",
+>         self.FILEDOC.PATH, "line {:d}".format(self.row),
+>     )
+>     raise RuntimeError
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.statement.IntroDocument.notes
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L536)
+
+Generate notes.
+
+> **Arguments**
+
+> **Returns**
+
+This will generate notes for console and markdown in the same time. For most part of the notes, they will share the same Markdown syntex except that console notes will use ASCII color codes for some keywords.
+
+> ```python
+> # Statement note is just its code lines without indents.
+> self.markdown.append("### {:s}".format(self.title))
+> for itr in self.paragraphs:
+>     self.markdown.append("")
+>     self.markdown.append(" ".join(itr))
+> ```
+
+[[TOC]](#table-of-content)
+
+#### Class: doc.statement.DescriptionDocument
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L560)
 
 - Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
 
 Document for a description statement prototype.
 
-#### Class: ClassDescDocument
+##### Function: doc.statement.DescriptionDocument.allocate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L700)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L564)
+
+Allocate children memory.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Allocate document memory for comment lines.
+> self.memory: List[Line] = []
+> self.descs: Dict[str, str] = {}
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.statement.DescriptionDocument.parse
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L584)
+
+Parse information into document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Super.
+> doc.base.CodeDocument.parse(self, code, *args, **kargs)
+>
+> # Get description.
+> obj = self.code.get()
+> obj.reset()
+> text = obj.get().text
+> obj.match(token.STRING, level=self.LEVEL)
+>
+> # Description always occupy multiple lines.
+> while (True):
+>     if (obj.eol()):
+>         self.memory.append(obj)
+>         self.code.next()
+>         obj = self.code.get()
+>         obj.reset()
+>     elif (obj.check(token.NEWLINE, level=self.LEVEL)):
+>         break
+>     else:
+>         error(
+>             "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>             " description should occupy multiple lines without" \
+>             " anything else.",
+>             self.FILEDOC.PATH, "line {:d}".format(self.row),
+>         )
+>         raise RuntimeError
+> obj.match(token.NEWLINE, level=self.LEVEL)
+> self.memory.append(obj)
+> self.code.next()
+>
+> # Remove indent from description.
+> decoding = text.split("\n")
+> for i in range(1, len(decoding)):
+>     if (len(decoding[i]) > 0):
+>         decoding[i] = decoding[i][UNIT * self.LEVEL:]
+>     else:
+>         pass
+>
+> # Description has content head and tail.
+> if (decoding[0] == "r\"\"\"" and decoding[-1] == "\"\"\""):
+>     pass
+> else:
+>     error(
+>         "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>         " description has constant head and tail",
+>         self.FILEDOC.PATH, "line {:d}".format(self.row),
+>     )
+>     raise RuntimeError
+>
+> # Decode description.
+> self.decode(decoding[1:-1])
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.statement.DescriptionDocument.decode
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L654)
+
+Decode list of texts into document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Prototype may not implement everything.
+> error("Function is not implemented.")
+> raise NotImplementedError
+> ```
+
+[[TOC]](#table-of-content)
+
+#### Class: doc.statement.ClassDescDocument
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L678)
 
 - Super: [DescriptionDocument](#class-descriptiondocument)
 
 Document for a description of class statement.
 
-#### Class: FuncDescDocument
+##### Function: doc.statement.ClassDescDocument.decode
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L736)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L682)
+
+Decode list of texts into document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Translate parsed text into paragraphs.
+> try:
+>     self.descs["paragraphs"] = paragraphize(texts)
+> except:
+>     # Extend paragraph error report.
+>     error(
+>         "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>         " fail to translate paragraphs.",
+>         self.FILEDOC.PATH, "line {:d}".format(self.row),
+>     )
+>     raise RuntimeError
+> ```
+
+[[TOC]](#table-of-content)
+
+#### Class: doc.statement.FuncDescDocument
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L714)
 
 - Super: [DescriptionDocument](#class-descriptiondocument)
 
 Document for a description of function statement.
+
+##### Function: doc.statement.FuncDescDocument.decode
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L718)
+
+Decode list of texts into document.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Split into 4 parts by the first 3 blank lines.
+> ptr = 0
+> breaks = [0, 0, 0]
+> for i in range(len(texts)):
+>     if (len(texts[i]) == 0):
+>         breaks[ptr] = i
+>         ptr += 1
+>         if (ptr == len(breaks)):
+>             break
+>         else:
+>             pass
+>     else:
+>         pass
+> texts_1 = texts[0:breaks[0]]
+> texts_args = texts[breaks[0] + 1:breaks[1]]
+> texts_returns = texts[breaks[1] + 1:breaks[2]]
+> texts_2 = texts[breaks[2] + 1:]
+>
+> # Translate parsed text into paragraphs.
+> try:
+>     self.descs["paragraphs_1"] = paragraphize(texts_1)
+> except:
+>     # Extend paragraph error report.
+>     error(
+>         "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>         " fail to translate paragraphs.",
+>         self.FILEDOC.PATH, "line {:d}".format(self.row),
+>     )
+>     raise RuntimeError
+>
+> # Translate parsed text into paragraphs.
+> try:
+>     self.descs["paragraphs_2"] = paragraphize(texts_2)
+> except:
+>     # Extend paragraph error report.
+>     error(
+>         "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>         " fail to translate paragraphs.",
+>         self.FILEDOC.PATH, "line {:d}".format(self.row),
+>     )
+>     raise RuntimeError
+>
+> # Save argument and return description for later review.
+> self.descs["args"] = texts_args
+> self.descs["returns"] = texts_returns
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.statement.FuncDescDocument.review
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L783)
+
+Review argument and return.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Review separately.
+> self.review_args(argdoc)
+> self.review_returns(returndoc)
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.statement.FuncDescDocument.review_args
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L808)
+
+Review argument and return.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Get texts.
+> texts = self.descs["args"]
+>
+> # Argument description has constant head.
+> buf = []
+> if (texts[0] == "Args" and texts[1] == "----"):
+>     buf.extend(texts[0:2])
+> else:
+>     error(
+>         "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>         " argument document has constant head.",
+>         self.FILEDOC.PATH, "line {:d}".format(self.row),
+>     )
+>     raise RuntimeError
+>
+> # Traverse later contents.
+> ptr = 0
+> texts = texts[2:]
+> while (ptr < len(texts)):
+>     # Get argument name.
+>     name = texts[ptr][2:]
+>     ptr += 1
+>     attach = []
+>     buf.append(name)
+>
+>     # Some arguments have no attachment.
+>     if (name in ("self", "cls", "*args", "**kargs")):
+>         continue
+>     else:
+>         pass
+>
+>     # Get attachment.
+>     while (ptr < len(texts)):
+>         if (texts[ptr][0].isspace()):
+>             pass
+>         else:
+>             break
+>         attach.append(texts[ptr][UNIT:])
+>         ptr += 1
+>     try:
+>         attach = paragraphize(attach)
+>     except:
+>         error(
+>             "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>             " fail to translate paragraphs.",
+>             self.FILEDOC.PATH, "line {:d}".format(self.row),
+>         )
+>         raise RuntimeError
+>     buf.append(attach)
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.statement.FuncDescDocument.review_returns
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L877)
+
+Review argument and return.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Get texts.
+> texts = self.descs["returns"]
+>
+> # Argument description has constant head.
+> buf = []
+> if (texts[0] == "Returns" and texts[1] == "-------"):
+>     buf.extend(texts[0:2])
+> else:
+>     error(
+>         "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+>         " return document has constant head.",
+>         self.FILEDOC.PATH, "line {:d}".format(self.row),
+>     )
+>     raise RuntimeError
+> ```
+
+[[TOC]](#table-of-content)
 
 ---
 
@@ -987,7 +4158,7 @@ For function or class inside a function, local-class or branch-of-block, it will
 
 After the generation, a strict description matching is applied on classes with inheritance relationships so that inherited classes only extends function argument names and description details of inheriting classes. This also autofills the exact Github code positions for module imports and classes.
 
-#### Class: DirectoryDocument
+#### Class: doc.filesys.DirectoryDocument
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L62)
 
@@ -995,17 +4166,309 @@ After the generation, a strict description matching is applied on classes with i
 
 Document for a directory.
 
-#### Class: FileDocument
+##### Function: doc.filesys.DirectoryDocument.__init__
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L258)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L66)
+
+Initialize.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Super.
+> doc.base.FileSysDocument.__init__(self, path, *args, **kargs)
+>
+> # Save necessary attributes.
+> self.ROOTDOC = self if rootdoc is None else rootdoc
+>
+> # File system should trace definitions.
+> self.classes: Dict[str, str] = {}
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.filesys.DirectoryDocument.parse
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L96)
+
+Parse content.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Traverse the tree.
+> self.subdirs = []
+> self.files = []
+> for itr in os.listdir(self.PATH):
+>     itr = os.path.join(self.PATH, itr)
+>     if (os.path.isdir(itr)):
+>         base = os.path.basename(itr)
+>         if (base == "__pycache__"):
+>             # Some directory name should be ignored.
+>             pass
+>         elif (base[0] == "."):
+>             # Hidden directory should be ignored.
+>             pass
+>         else:
+>             dirdoc = DirectoryDocument(itr, rootdoc=self.ROOTDOC)
+>             dirdoc.parse()
+>             self.subdirs.append(dirdoc)
+>     elif (os.path.isfile(itr)):
+>         base, ext = os.path.splitext(itr)
+>         base = os.path.basename(base)
+>         if (ext == ".py"):
+>             if (base == "__init__"):
+>                 warning("Skip \"{:s}\" for now.".format(itr))
+>             else:
+>                 filedoc = FileDocument(itr, rootdoc=self.ROOTDOC)
+>                 filedoc.parse()
+>                 self.files.append(filedoc)
+>         elif (ext in (".md", ".sh")):
+>             # Some extension name should be ignored.
+>             pass
+>         elif (base == ".gitignore"):
+>             # Some no-extension file should be ignored.
+>             pass
+>         else:
+>             error(
+>                 "At \"{:s}\", expect a python/Markdown/bash/Git file.",
+>                 itr,
+>             )
+>             raise RuntimeError
+>     else:
+>         error(
+>             "At \"{:s}\", expect a directory/file.",
+>             itr,
+>         )
+>         raise RuntimeError
+>
+> # Register all definitions from documents in the tree.
+> self.register()
+>
+> # Root specific operations.
+> if (os.path.basename(self.PATH) == self.ROOT):
+>     self.root()
+> else:
+>     pass
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.filesys.DirectoryDocument.register
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L165)
+
+Register definitions.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Register definitions from sub directories.
+> for dirdoc in self.subdirs:
+>     for key, location in dirdoc.classes.items():
+>         self.classes[key] = location
+>
+> # Register definitions from files.
+> for filedoc in self.files:
+>     for key, row in filedoc.classes.items():
+>         location = "{:s}/blob/master/{:s}{:s}".format(
+>             self.GITHUB, filedoc.PATH, row,
+>         )
+>         self.classes["{:s}.{:s}".format(filedoc.ME, key)] = location
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.filesys.DirectoryDocument.notes
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L194)
+
+Generate notes.
+
+> **Arguments**
+
+> **Returns**
+
+This will generate notes for console and markdown in the same time. For most part of the notes, they will share the same Markdown syntex except that console notes will use ASCII color codes for some keywords.
+
+> ```python
+> # Generate sub directory notes.
+> for dirdoc in self.subdirs:
+>     dirdoc.notes()
+>
+> # Generate file notes
+> for filedoc in self.files:
+>     filedoc.notes()
+>     self.markdown.extend(["", "---", ""])
+>     self.markdown.extend(filedoc.markdown)
+>
+> # Generate table of content.
+> self.markdown = toc(self.markdown) + self.markdown
+>
+> # Save markdown note as README.
+> file = open(os.path.join(self.PATH, "README.md"), "w")
+> file.write("\n".join(self.markdown))
+> file.close()
+>
+> # Clear children notes for memory efficency.
+> for filedoc in self.files:
+>     filedoc.markdown.clear()
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.filesys.DirectoryDocument.root
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L233)
+
+Root specific operations.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Generate notes.
+> self.notes()
+> ```
+
+[[TOC]](#table-of-content)
+
+#### Class: doc.filesys.FileDocument
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L251)
 
 - Super: [doc.base.FileSysDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-filesysdocument)
 
 Document for a file.
 
-#### Function: toc
+##### Function: doc.filesys.FileDocument.__init__
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L399)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L255)
+
+Initialize.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Super.
+> doc.base.FileSysDocument.__init__(self, path, *args, **kargs)
+>
+> # Save necessary attributes.
+> self.ROOTDOC = self if rootdoc is None else rootdoc
+>
+> # Get module path from file path.
+> _, self.PATH = self.PATH.split(os.path.join(" ", self.ROOT, " ")[1:-1])
+> self.ME = self.PATH.replace(os.path.join(" ", " ")[1:-1], ".")
+> self.ME, _ = os.path.splitext(self.ME)
+>
+> # Set code to parse on.
+> self.code = Code()
+>
+> # File document has a module-import document and a global document.
+> self.modules = doc.globe.ModuleDocument(
+>     path=self.PATH, level=0, hierarchy=doc.base.GLOBAL,
+>     superior=None, filedoc=self,
+> )
+> self.sections = doc.globe.GlobalDocument(
+>     path=self.PATH, level=0, hierarchy=doc.base.GLOBAL,
+>     superior=None, filedoc=self,
+> )
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.filesys.FileDocument.parse
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L300)
+
+Parse content.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Load tokenized code and parse it.
+> self.code.load_file(self.PATH)
+> self.code.reset()
+> self.modules.parse(self.code)
+> self.sections.parse(self.code)
+>
+> # Register classes.
+> self.register_classes()
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.filesys.FileDocument.register_classes
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L323)
+
+Register defined classes for later consistency check.
+
+> **Arguments**
+
+> **Returns**
+
+> ```python
+> # Register defined classes.
+> self.classes = {}
+> for _, section in self.sections.sections:
+>     for component in section.components:
+>         if (isinstance(component, doc.series.ClassDocument)):
+>             self.classes[component.name] = "#L{:d}".format(
+>                 component.row,
+>             )
+>         else:
+>             pass
+> ```
+
+[[TOC]](#table-of-content)
+
+##### Function: doc.filesys.FileDocument.notes
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L350)
+
+Generate notes.
+
+> **Arguments**
+
+> **Returns**
+
+This will generate notes for console and markdown in the same time. For most part of the notes, they will share the same Markdown syntex except that console notes will use ASCII color codes for some keywords.
+
+> ```python
+> # Create title by file path.
+> self.markdown.append("## {:s}".format(self.PATH))
+>
+> # Extend notes by imported modules.
+> self.modules.notes()
+> self.markdown.append("")
+> self.markdown.extend(self.modules.markdown)
+>
+> # Extend notes by global sections.
+> self.sections.notes()
+> self.markdown.append("")
+> self.markdown.extend(self.sections.markdown)
+>
+> # Clear children notes for memory efficency.
+> self.modules.markdown.clear()
+> ```
+
+[[TOC]](#table-of-content)
+
+#### Function: doc.filesys.toc
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L384)
 
 Generate table of content from given notes.
 
@@ -1045,9 +4508,9 @@ Generate table of content from given notes.
 
 [[TOC]](#table-of-content)
 
-#### Function: github_header
+#### Function: doc.filesys.github_header
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L445)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L430)
 
 Get a Github header reference.
 

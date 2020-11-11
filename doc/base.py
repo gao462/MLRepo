@@ -55,8 +55,7 @@ class Document(object):
 
         """
         # Allocate notes buffer.
-        self.notes_console: List[str] = []
-        self.notes_markdown: List[str] = []
+        self.markdown: List[str] = []
 
     def notes(self: Document, *args: object, **kargs: object) -> None:
         r"""

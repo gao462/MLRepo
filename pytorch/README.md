@@ -2,22 +2,22 @@
 
 * [pytorch/logging.py](#pytorchloggingpy)
   * [Define Logging Utilities](#define-logging-utilities)
-    * [Block: Different levels...](#block-different-levels)
-    * [Function: default_logger](#function-default_logger)
-    * [Block: Univeral logger a...](#block-univeral-logger-a)
-    * [Function: update_universal_logger](#function-update_universal_logger)
-    * [Function: update_max](#function-update_max)
-    * [Block: Colorful ASCII co...](#block-colorful-ascii-co)
-    * [Block: Colorful fix-leng...](#block-colorful-fix-leng)
-    * [Function: check_format](#function-check_format)
-    * [Function: log](#function-log)
+    * [Block: pytorch.logging: Different levels...](#block-pytorchlogging-different-levels)
+    * [Function: pytorch.logging.default_logger](#function-pytorchloggingdefault_logger)
+    * [Block: pytorch.logging: Univeral logger a...](#block-pytorchlogging-univeral-logger-a)
+    * [Function: pytorch.logging.update_universal_logger](#function-pytorchloggingupdate_universal_logger)
+    * [Function: pytorch.logging.update_max](#function-pytorchloggingupdate_max)
+    * [Block: pytorch.logging: Colorful ASCII co...](#block-pytorchlogging-colorful-ascii-co)
+    * [Block: pytorch.logging: Colorful fix-leng...](#block-pytorchlogging-colorful-fix-leng)
+    * [Function: pytorch.logging.check_format](#function-pytorchloggingcheck_format)
+    * [Function: pytorch.logging.log](#function-pytorchlogginglog)
   * [Define Logging Operations](#define-logging-operations)
-    * [Function: debug](#function-debug)
-    * [Function: info1](#function-info1)
-    * [Function: info2](#function-info2)
-    * [Function: focus](#function-focus)
-    * [Function: warning](#function-warning)
-    * [Function: error](#function-error)
+    * [Function: pytorch.logging.debug](#function-pytorchloggingdebug)
+    * [Function: pytorch.logging.info1](#function-pytorchlogginginfo1)
+    * [Function: pytorch.logging.info2](#function-pytorchlogginginfo2)
+    * [Function: pytorch.logging.focus](#function-pytorchloggingfocus)
+    * [Function: pytorch.logging.warning](#function-pytorchloggingwarning)
+    * [Function: pytorch.logging.error](#function-pytorchloggingerror)
 
 ---
 
@@ -54,9 +54,10 @@
 
 1, Create default logger. 2, Universal logger. 3, Update universal logger by given logger. 4, Check message format. 5, Output multiple-line message.
 
-#### Block: Different levels...
+#### Block: pytorch.logging: Different levels...
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L39)
+
 > ```python
 > # Different levels as integers.
 > DEBUG = 10
@@ -69,7 +70,7 @@
 
 [[TOC]](#table-of-content)
 
-#### Function: default_logger
+#### Function: pytorch.logging.default_logger
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L48)
 
@@ -99,9 +100,10 @@ Create default logger.
 
 [[TOC]](#table-of-content)
 
-#### Block: Univeral logger a...
+#### Block: pytorch.logging: Univeral logger a...
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L80)
+
 > ```python
 > # Univeral logger and maximum number of characters.
 > UNIVERSAL_LOGGER = default_logger()
@@ -110,7 +112,7 @@ Create default logger.
 
 [[TOC]](#table-of-content)
 
-#### Function: update_universal_logger
+#### Function: pytorch.logging.update_universal_logger
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L85)
 
@@ -128,7 +130,7 @@ Update universal logger by given logger.
 
 [[TOC]](#table-of-content)
 
-#### Function: update_max
+#### Function: pytorch.logging.update_max
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L107)
 
@@ -146,9 +148,10 @@ Update maximum number of characters.
 
 [[TOC]](#table-of-content)
 
-#### Block: Colorful ASCII co...
+#### Block: pytorch.logging: Colorful ASCII co...
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L127)
+
 > ```python
 > # Colorful ASCII code on ConEmu palette.
 > CLR_BLACK = "30"
@@ -171,9 +174,10 @@ Update maximum number of characters.
 
 [[TOC]](#table-of-content)
 
-#### Block: Colorful fix-leng...
+#### Block: pytorch.logging: Colorful fix-leng...
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L146)
+
 > ```python
 > # Colorful fix-length level.
 > CLRFIX = {}
@@ -187,7 +191,7 @@ Update maximum number of characters.
 
 [[TOC]](#table-of-content)
 
-#### Function: check_format
+#### Function: pytorch.logging.check_format
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L156)
 
@@ -217,7 +221,7 @@ Check message format.
 
 [[TOC]](#table-of-content)
 
-#### Function: log
+#### Function: pytorch.logging.log
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L190)
 
@@ -271,7 +275,7 @@ Log debug message.
 
 Operations are just `log` function with fixed logging level integer. The corresponding values are given in the paranthese. 1, `debug` (10). 2, `info1` (20). 3, `info2` (25). 4, `focus` (30). 5, `warning` (40). 6, `error` (50).
 
-#### Function: debug
+#### Function: pytorch.logging.debug
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L261)
 
@@ -288,7 +292,7 @@ Log debug message.
 
 [[TOC]](#table-of-content)
 
-#### Function: info1
+#### Function: pytorch.logging.info1
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L280)
 
@@ -305,7 +309,7 @@ Log info (dark) message.
 
 [[TOC]](#table-of-content)
 
-#### Function: info2
+#### Function: pytorch.logging.info2
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L299)
 
@@ -322,7 +326,7 @@ Log info (bright) message.
 
 [[TOC]](#table-of-content)
 
-#### Function: focus
+#### Function: pytorch.logging.focus
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L318)
 
@@ -339,7 +343,7 @@ Log focusing message.
 
 [[TOC]](#table-of-content)
 
-#### Function: warning
+#### Function: pytorch.logging.warning
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L337)
 
@@ -356,7 +360,7 @@ Log warning message.
 
 [[TOC]](#table-of-content)
 
-#### Function: error
+#### Function: pytorch.logging.error
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L356)
 

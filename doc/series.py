@@ -181,27 +181,21 @@ class SeriesDocument(doc.base.CodeDocument):
         except that console notes will use ASCII color codes for some keywords.
         """
         # Block notes is just a list of its statments notes.
-        console, markdown = [], []
         first = True
         for child in self.components:
             # First item has no breaks.
             if (first):
                 first = False
             else:
-                console.append("")
-                markdown.append("")
+                self.markdown.append("")
 
             # Generate child notes.
             child.notes()
-            console.extend(child.notes_console)
-            markdown.extend(child.notes_markdown)
-        self.notes_console = console
-        self.notes_markdown = markdown
+            self.markdown.extend(child.markdown)
 
         # Clear children notes for memory efficency.
         for child in self.components:
-            child.notes_console.clear()
-            child.notes_markdown.clear()
+            child.markdown.clear()
 
 
 # =============================================================================
@@ -358,39 +352,45 @@ class ClassDocument(doc.base.CodeDocument):
             link = "[{:s}]({:s}#{:s})".format(self.super, page, refer)
 
         # Title is class name.
-        console, markdown = [], []
-        console.append("#### Class: \033[32;1m{:s}\033[0m".format(self.name))
-        markdown.append("#### Class: {:s}".format(self.name))
+        self.markdown.append("#### Class: {:s}.{:s}".format(
+            self.FILEDOC.ME, self.name,
+        ))
 
         # Super link to source code is required.
         source = os.path.join(
             self.FILEDOC.GITHUB, "blob", "master", self.FILEDOC.PATH,
         )
         source = "{:s}#L{:d}".format(source, self.row)
-        console.append("")
-        markdown.append("")
-        console.append("- Source: [Github]({:s})".format(source))
-        markdown.append("- Source: [Github]({:s})".format(source))
+        self.markdown.append("")
+        self.markdown.append("- Source: [Github]({:s})".format(source))
 
         # Super class is required.
-        console.append("")
-        markdown.append("")
-        console.append("- Super: \033[32m{:s}\033[0m".format(self.super))
-        markdown.append("- Super: {:s}".format(link))
+        self.markdown.append("")
+        self.markdown.append("- Super: {:s}".format(link))
 
         # Put descriptions here.
         for itr in self.description.descs["paragraphs"]:
-            console.append("")
-            markdown.append("")
-            console.append(" ".join(itr))
-            markdown.append(" ".join(itr))
+            self.markdown.append("")
+            self.markdown.append(" ".join(itr))
 
-        # Block notes is just a list of its statments notes.
-        self.notes_console = console
-        self.notes_markdown = markdown
+        # Get body note as a code block
+        self.body.notes()
+        self.markdown.append("")
+        for itr in self.body.markdown:
+            if (len(itr) == 0 or itr[0] != "#"):
+                self.markdown.append(itr)
+            elif (itr[5] in ("F", "B")):
+                self.markdown.append("#" + itr)
+            else:
+                error(
+                    "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+                    " class can only documentize functions and blocks.",
+                    self.FILEDOC.PATH, "line {:d}".format(self.row),
+                )
+                raise RuntimeError
 
         # Clear children notes for memory efficency.
-        pass
+        self.body.markdown.clear()
 
 
 # =============================================================================
@@ -512,80 +512,58 @@ class FunctionDocument(doc.base.CodeDocument):
         except that console notes will use ASCII color codes for some keywords.
         """
         # Title is function name.
-        console, markdown = [], []
-        console.append(
-            "#### Function: \033[34;1m{:s}\033[0m".format(self.name),
-        )
-        markdown.append("#### Function: {:s}".format(self.name))
+        if (self.HIERARCHY == doc.base.GLOBAL):
+            self.markdown.append("#### Function: {:s}.{:s}".format(
+                self.FILEDOC.ME, self.name,
+            ))
+        else:
+            self.markdown.append("#### Function: {:s}.{:s}.{:s}".format(
+                self.FILEDOC.ME, self.SUPERIOR.SUPERIOR.name, self.name,
+            ))
 
         # Super link to source code is required.
         source = os.path.join(
             self.FILEDOC.GITHUB, "blob", "master", self.FILEDOC.PATH,
         )
         source = "{:s}#L{:d}".format(source, self.row)
-        console.append("")
-        markdown.append("")
-        console.append("- Source: [Github]({:s})".format(source))
-        markdown.append("- Source: [Github]({:s})".format(source))
+        self.markdown.append("")
+        self.markdown.append("- Source: [Github]({:s})".format(source))
 
         # Add description 1 here.
         for itr in self.description.descs["paragraphs_1"]:
-            console.append("")
-            markdown.append("")
-            console.append(" ".join(itr))
-            markdown.append(" ".join(itr))
+            self.markdown.append("")
+            self.markdown.append(" ".join(itr))
 
         # Add arguments.
-        console.append("")
-        markdown.append("")
-        console.append("> **Arguments**")
-        markdown.append("> **Arguments**")
+        self.markdown.append("")
+        self.markdown.append("> **Arguments**")
 
         # Add returns.
-        console.append("")
-        markdown.append("")
-        console.append("> **Returns**")
-        markdown.append("> **Returns**")
+        self.markdown.append("")
+        self.markdown.append("> **Returns**")
 
         # Add description 2 here.
         for itr in self.description.descs["paragraphs_2"]:
-            console.append("")
-            markdown.append("")
-            console.append(" ".join(itr))
-            markdown.append(" ".join(itr))
+            self.markdown.append("")
+            self.markdown.append(" ".join(itr))
 
         # Get body note as a code block
         self.body.notes()
-        console.append("")
-        markdown.append("")
-        console.append("> ```python")
-        markdown.append("> ```python")
-        for itr in self.body.notes_console:
+        self.markdown.append("")
+        self.markdown.append("> ```python")
+        for itr in self.body.markdown:
             if (len(itr) == 0):
-                console.append(">")
+                self.markdown.append(">")
             else:
-                console.append("> {:s}".format(itr))
-        for itr in self.body.notes_markdown:
-            if (len(itr) == 0):
-                markdown.append(">")
-            else:
-                markdown.append("> {:s}".format(itr))
-        console.append("> ```")
-        markdown.append("> ```")
+                self.markdown.append("> {:s}".format(itr))
+        self.markdown.append("> ```")
 
         # Return to TOC.
-        console.append("")
-        markdown.append("")
-        console.append("[[TOC]](#table-of-content)")
-        markdown.append("[[TOC]](#table-of-content)")
-
-        # Block notes is just a list of its statments notes.
-        self.notes_console = console
-        self.notes_markdown = markdown
+        self.markdown.append("")
+        self.markdown.append("[[TOC]](#table-of-content)")
 
         # Clear children notes for memory efficency.
-        self.body.notes_console.clear()
-        self.body.notes_markdown.clear()
+        self.body.markdown.clear()
 
 
 # =============================================================================
@@ -679,77 +657,60 @@ class OPBlockDocument(doc.base.CodeDocument):
         For most part of the notes, they will share the same Markdown syntex
         except that console notes will use ASCII color codes for some keywords.
         """
-        # Get comment notes.
-        self.comment.notes()
-
-        # Get code snap.
+        # Get code snap with comments.
         snap = []
+        self.comment.notes()
+        snap.extend(self.comment.markdown)
         start = self.LEVEL * UNIT
         for itr in self.memory:
-            msg = itr.text[start:]
-            snap.append(msg)
-        snap_console = self.comment.notes_console + snap
-        snap_markdown = self.comment.notes_markdown + snap
+            snap.append(itr.text[start:])
 
         # Clear children notes for memory efficency.
-        self.comment.notes_console.clear()
-        self.comment.notes_markdown.clear()
+        self.comment.markdown.clear()
 
         # In deep level there is no need to wrap headers.
         if (self.HIERARCHY in (doc.base.GLOBAL, doc.base.CLASS)):
             pass
         else:
-            self.notes_console = snap_console
-            self.notes_markdown = snap_markdown
+            self.markdown.extend(snap)
             return
 
-        # Get first sentence in the comment.
+        # Get first sentence in the comment with limited length.
         title = self.comment.paragraphs[0][0]
         if (len(title) > self.MAX):
             title = title[0:self.MAX - 3].strip() + "..."
         else:
             pass
-
-        # Title is block comment with limited length.
-        console, markdown = [], []
-        console.append("#### Block: \033[30;1m{:s}\033[0m".format(title))
-        markdown.append("#### Block: {:s}".format(title))
+        if (self.HIERARCHY == doc.base.GLOBAL):
+            self.markdown.append("#### Block: {:s}: {:s}".format(
+                self.FILEDOC.ME, title,
+            ))
+        else:
+            self.markdown.append("#### Block: {:s}.{:s}: {:s}".format(
+                self.FILEDOC.ME, self.SUPERIOR.SUPERIOR.name, title,
+            ))
 
         # Super link to source code is required.
         source = os.path.join(
             self.FILEDOC.GITHUB, "blob", "master", self.FILEDOC.PATH,
         )
         source = "{:s}#L{:d}".format(source, self.row)
-        console.append("")
-        markdown.append("")
-        console.append("- Source: [Github]({:s})".format(source))
-        markdown.append("- Source: [Github]({:s})".format(source))
+        self.markdown.append("")
+        self.markdown.append("- Source: [Github]({:s})".format(source))
 
         # Add code snap here.
-        console.append("> ```python")
-        markdown.append("> ```python")
-        for itr in snap_console:
+        self.markdown.append("")
+        self.markdown.append("> ```python")
+        for itr in snap:
             if (len(itr) == 0):
-                console.append(">")
+                self.markdown.append(">")
             else:
-                console.append("> {:s}".format(itr))
-        for itr in snap_markdown:
-            if (len(itr) == 0):
-                markdown.append(">")
-            else:
-                markdown.append("> {:s}".format(itr))
-        console.append("> ```")
-        markdown.append("> ```")
+                self.markdown.append("> {:s}".format(itr))
+        self.markdown.append("> ```")
 
         # Return to TOC.
-        console.append("")
-        markdown.append("")
-        console.append("[[TOC]](#table-of-content)")
-        markdown.append("[[TOC]](#table-of-content)")
-
-        # Block notes is just a list of its statments notes.
-        self.notes_console = console
-        self.notes_markdown = markdown
+        self.markdown.append("")
+        self.markdown.append("[[TOC]](#table-of-content)")
 
         # Clear children notes for memory efficency.
         pass
