@@ -448,6 +448,9 @@ def github_header(text: str, *args: object, **kargs: object) -> str:
     refer = text
     refer = re.sub(r"(\.|/)", "", refer).strip()
 
+    # Github reference replaces escape characters.
+    refer = re.sub(r"\\_", "_", refer)
+
     # Github reference should be lower case concatenated by "-".
     refer = re.sub(r"[^\w]+", "-", refer.lower())
     return refer
