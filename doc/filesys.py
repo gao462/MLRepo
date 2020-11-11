@@ -400,6 +400,8 @@ def toc(notes: List[str], *args: object, **kargs: object) -> List[str]:
     """
     # Registrate all headers by Github header reference behavior.
     headers: List[Tuple[int, str, str]] = []
+    has_file = False
+    has_section = False
     for itr in notes:
         # Header level matters.
         level = 0
@@ -416,12 +418,26 @@ def toc(notes: List[str], *args: object, **kargs: object) -> List[str]:
 
         # Github reference ignores colorful ASCII even in console.
         refer = re.sub(r"\033\[[^m]+m", "", refer)
-        headers.append((level, text, github_header(refer)))
+        refer = github_header(refer)
+        headers.append((level, text, refer))
+        if (len(refer) > 5 and refer[0:5] == "file-"):
+            has_file = True
+        elif (len(refer) > 8 and refer[0:8] == "section-"):
+            has_section = True
+        else:
+            pass
 
     # Generate TOC.
     toc = ["## Table Of Content", ""]
     for level, text, refer in headers:
-        indent = "  " * (level - 2)
+        num = level - 2
+        if (len(refer) > 5 and refer[0:5] == "file-"):
+            pass
+        elif (len(refer) > 8 and refer[0:8] == "section-"):
+            num += int(has_file)
+        else:
+            num += (int(has_file) + int(has_section))
+        indent = "  " * num
         link = "{:s}* [{:s}](#{:s})".format(indent, text, refer)
         toc.append(link)
     return toc
