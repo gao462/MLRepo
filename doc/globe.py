@@ -199,7 +199,7 @@ class ModuleDocument(doc.base.CodeDocument):
             for rename, name in child.mapping.items():
                 self.mapping[rename] = name
 
-    def notes(self, *args: object, **kargs: object) -> None:
+    def notes(self: ModuleDocument, *args: object, **kargs: object) -> None:
         r"""
         Generate notes.
 
@@ -215,7 +215,6 @@ class ModuleDocument(doc.base.CodeDocument):
         This will generate notes for console and markdown in the same time.
         For most part of the notes, they will share the same Markdown syntex
         except that console notes will use ASCII color codes for some keywords.
-
         """
         # Generate the dependencies.
         dependencies = list(self.modules.keys())
@@ -327,7 +326,7 @@ class GlobalDocument(doc.base.CodeDocument):
             self.code.blank_next(2)
             series.parse(self.code)
 
-    def notes(self, *args: object, **kargs: object) -> None:
+    def notes(self: GlobalDocument, *args: object, **kargs: object) -> None:
         r"""
         Generate notes.
 
@@ -343,7 +342,6 @@ class GlobalDocument(doc.base.CodeDocument):
         This will generate notes for console and markdown in the same time.
         For most part of the notes, they will share the same Markdown syntex
         except that console notes will use ASCII color codes for some keywords.
-
         """
         # Block notes is just a list of its statments notes.
         console, markdown = [], []

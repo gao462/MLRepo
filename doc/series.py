@@ -23,10 +23,11 @@ else:
 from pytorch.logging import debug, info1, info2, focus, warning, error
 
 # Import dependencies.
-from doc.code import Code, MAX
+from doc.code import Code, MAX, UNIT
 import doc.base
 import doc.statement
 import doc.filesys
+import doc.func
 
 
 # =============================================================================
@@ -125,7 +126,7 @@ class SeriesDocument(doc.base.CodeDocument):
             # Parse code.
             itr.parse(self.code)
 
-    def dedent(self, *args: object, **kargs: object) -> bool:
+    def dedent(self: SeriesDocument, *args: object, **kargs: object) -> bool:
         r"""
         Check if a dedent is happening.
 
@@ -162,7 +163,7 @@ class SeriesDocument(doc.base.CodeDocument):
             ptr += 1
         return self.code.memory[ptr].level < self.LEVEL
 
-    def notes(self, *args: object, **kargs: object) -> None:
+    def notes(self: SeriesDocument, *args: object, **kargs: object) -> None:
         r"""
         Generate notes.
 
@@ -178,27 +179,29 @@ class SeriesDocument(doc.base.CodeDocument):
         This will generate notes for console and markdown in the same time.
         For most part of the notes, they will share the same Markdown syntex
         except that console notes will use ASCII color codes for some keywords.
-
         """
         # Block notes is just a list of its statments notes.
         console, markdown = [], []
         first = True
-        for itr in self.components:
+        for child in self.components:
+            # First item has no breaks.
             if (first):
                 first = False
             else:
                 console.append("")
                 markdown.append("")
-            itr.notes()
-            console.extend(itr.notes_console)
-            markdown.extend(itr.notes_markdown)
+
+            # Generate child notes.
+            child.notes()
+            console.extend(child.notes_console)
+            markdown.extend(child.notes_markdown)
         self.notes_console = console
         self.notes_markdown = markdown
 
         # Clear children notes for memory efficency.
-        for itr in self.components:
-            itr.notes_console.clear()
-            itr.notes_markdown.clear()
+        for child in self.components:
+            child.notes_console.clear()
+            child.notes_markdown.clear()
 
 
 # =============================================================================
@@ -296,14 +299,11 @@ class ClassDocument(doc.base.CodeDocument):
         obj.match(token.NEWLINE, level=self.LEVEL)
         self.code.next()
 
-        # Parse components.
-        while (True):
-            if (self.code.eof() or self.code.blank_top(self.NUM_BLANKS)):
-                break
-            else:
-                self.code.next()
+        # Parse code.
+        self.description.parse(self.code)
+        self.body.parse(self.code)
 
-    def notes(self, *args: object, **kargs: object) -> None:
+    def notes(self: SeriesDocument, *args: object, **kargs: object) -> None:
         r"""
         Generate notes.
 
@@ -319,7 +319,6 @@ class ClassDocument(doc.base.CodeDocument):
         This will generate notes for console and markdown in the same time.
         For most part of the notes, they will share the same Markdown syntex
         except that console notes will use ASCII color codes for some keywords.
-
         """
         # Get imported global variables sorted by inverse length.
         knowns = sorted(
@@ -379,11 +378,12 @@ class ClassDocument(doc.base.CodeDocument):
         console.append("- Super: \033[32m{:s}\033[0m".format(self.super))
         markdown.append("- Super: {:s}".format(link))
 
-        # Return to TOC.
-        console.append("")
-        markdown.append("")
-        console.append("[[TOC]](#table-of-content)")
-        markdown.append("[[TOC]](#table-of-content)")
+        # Put descriptions here.
+        for itr in self.description.descs["paragraphs"]:
+            console.append("")
+            markdown.append("")
+            console.append(" ".join(itr))
+            markdown.append(" ".join(itr))
 
         # Block notes is just a list of its statments notes.
         self.notes_console = console
@@ -471,38 +471,30 @@ class FunctionDocument(doc.base.CodeDocument):
         self.name = obj.get().text
         obj.match(token.NAME, level=self.LEVEL)
 
-        # Get the super name.
-        obj.match("(", level=self.LEVEL)
-        while (not obj.check(")", level=self.LEVEL)):
-            obj.next()
-            if (obj.eol()):
-                self.code.next()
-                obj = self.code.get()
-                obj.reset()
-            else:
-                pass
-        obj.match(")", level=self.LEVEL)
+        # Get the arguments.
+        args = doc.func.ArgumentDocument(
+            level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+            filedoc=self.FILEDOC, multiple=(obj.memory[-2].text != ":"),
+        )
+        args.parse(self.code)
+        obj = self.code.get()
         obj.match("->", level=self.LEVEL)
-        while (not obj.check(":", level=self.LEVEL)):
-            obj.next()
-            if (obj.eol()):
-                self.code.next()
-                obj = self.code.get()
-                obj.reset()
-            else:
-                pass
+        returns = doc.func.TypeHintDocument(
+            level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
+            filedoc=self.FILEDOC,
+        )
+        returns.parse(self.code)
+        obj = self.code.get()
         obj.match(":", level=self.LEVEL)
         obj.match(token.NEWLINE, level=self.LEVEL)
         self.code.next()
 
         # Parse components.
-        while (True):
-            if (self.code.eof() or self.code.blank_top(self.NUM_BLANKS)):
-                break
-            else:
-                self.code.next()
+        self.description.parse(self.code)
+        self.description.review(args, returns)
+        self.body.parse(self.code)
 
-    def notes(self, *args: object, **kargs: object) -> None:
+    def notes(self: FunctionDocument, *args: object, **kargs: object) -> None:
         r"""
         Generate notes.
 
@@ -518,7 +510,6 @@ class FunctionDocument(doc.base.CodeDocument):
         This will generate notes for console and markdown in the same time.
         For most part of the notes, they will share the same Markdown syntex
         except that console notes will use ASCII color codes for some keywords.
-
         """
         # Title is function name.
         console, markdown = [], []
@@ -537,6 +528,51 @@ class FunctionDocument(doc.base.CodeDocument):
         console.append("- Source: [Github]({:s})".format(source))
         markdown.append("- Source: [Github]({:s})".format(source))
 
+        # Add description 1 here.
+        for itr in self.description.descs["paragraphs_1"]:
+            console.append("")
+            markdown.append("")
+            console.append(" ".join(itr))
+            markdown.append(" ".join(itr))
+
+        # Add arguments.
+        console.append("")
+        markdown.append("")
+        console.append("> **Arguments**")
+        markdown.append("> **Arguments**")
+
+        # Add returns.
+        console.append("")
+        markdown.append("")
+        console.append("> **Returns**")
+        markdown.append("> **Returns**")
+
+        # Add description 2 here.
+        for itr in self.description.descs["paragraphs_2"]:
+            console.append("")
+            markdown.append("")
+            console.append(" ".join(itr))
+            markdown.append(" ".join(itr))
+
+        # Get body note as a code block
+        self.body.notes()
+        console.append("")
+        markdown.append("")
+        console.append("> ```python")
+        markdown.append("> ```python")
+        for itr in self.body.notes_console:
+            if (len(itr) == 0):
+                console.append(">")
+            else:
+                console.append("> {:s}".format(itr))
+        for itr in self.body.notes_markdown:
+            if (len(itr) == 0):
+                markdown.append(">")
+            else:
+                markdown.append("> {:s}".format(itr))
+        console.append("> ```")
+        markdown.append("> ```")
+
         # Return to TOC.
         console.append("")
         markdown.append("")
@@ -548,7 +584,8 @@ class FunctionDocument(doc.base.CodeDocument):
         self.notes_markdown = markdown
 
         # Clear children notes for memory efficency.
-        pass
+        self.body.notes_console.clear()
+        self.body.notes_markdown.clear()
 
 
 # =============================================================================
@@ -617,10 +654,12 @@ class OPBlockDocument(doc.base.CodeDocument):
 
         # Parse comment code.
         self.comment.parse(self.code)
+        self.memory = []
         while (True):
             if (self.code.eof() or self.code.blank_top(self.NUM_BLANKS)):
                 break
             else:
+                self.memory.append(self.code.get())
                 self.code.next()
 
     def notes(self: OPBlockDocument, *args: object, **kargs: object) -> None:
@@ -639,8 +678,31 @@ class OPBlockDocument(doc.base.CodeDocument):
         This will generate notes for console and markdown in the same time.
         For most part of the notes, they will share the same Markdown syntex
         except that console notes will use ASCII color codes for some keywords.
-
         """
+        # Get comment notes.
+        self.comment.notes()
+
+        # Get code snap.
+        snap = []
+        start = self.LEVEL * UNIT
+        for itr in self.memory:
+            msg = itr.text[start:]
+            snap.append(msg)
+        snap_console = self.comment.notes_console + snap
+        snap_markdown = self.comment.notes_markdown + snap
+
+        # Clear children notes for memory efficency.
+        self.comment.notes_console.clear()
+        self.comment.notes_markdown.clear()
+
+        # In deep level there is no need to wrap headers.
+        if (self.HIERARCHY in (doc.base.GLOBAL, doc.base.CLASS)):
+            pass
+        else:
+            self.notes_console = snap_console
+            self.notes_markdown = snap_markdown
+            return
+
         # Get first sentence in the comment.
         title = self.comment.paragraphs[0][0]
         if (len(title) > self.MAX):
@@ -662,6 +724,22 @@ class OPBlockDocument(doc.base.CodeDocument):
         markdown.append("")
         console.append("- Source: [Github]({:s})".format(source))
         markdown.append("- Source: [Github]({:s})".format(source))
+
+        # Add code snap here.
+        console.append("> ```python")
+        markdown.append("> ```python")
+        for itr in snap_console:
+            if (len(itr) == 0):
+                console.append(">")
+            else:
+                console.append("> {:s}".format(itr))
+        for itr in snap_markdown:
+            if (len(itr) == 0):
+                markdown.append(">")
+            else:
+                markdown.append("> {:s}".format(itr))
+        console.append("> ```")
+        markdown.append("> ```")
 
         # Return to TOC.
         console.append("")

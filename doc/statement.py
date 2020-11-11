@@ -27,6 +27,7 @@ from doc.code import Code, Line, paragraphize, UNIT, MAX, FIRST
 from doc.code import paragraphize
 import doc.base
 import doc.filesys
+import doc.func
 
 
 # =============================================================================
@@ -156,7 +157,6 @@ class CommentDocument(doc.base.CodeDocument):
         This will generate notes for console and markdown in the same time.
         For most part of the notes, they will share the same Markdown syntex
         except that console notes will use ASCII color codes for some keywords.
-
         """
         # Statement note is just its code lines without indents.
         console = []
@@ -401,10 +401,10 @@ class ImportDocument(doc.base.CodeDocument):
         Returns
         -------
 
-        Trace module and identifier name mappings. There final name should be
-        unique in the file since both are globally claimed. If collision
-        happens, overwrite as python does.
-
+        Trace module and identifier name mappings.
+        There final name should be unique in the file since both are globally
+        claimed.
+        If collision happens, overwrite as python does.
         """
         # Trace rename of the module.
         self.modules[module] = []
@@ -468,7 +468,6 @@ class ImportDocument(doc.base.CodeDocument):
         This will generate notes for console and markdown in the same time.
         For most part of the notes, they will share the same Markdown syntex
         except that console notes will use ASCII color codes for some keywords.
-
         """
         # Statement note is just its code lines without indents.
         start = self.LEVEL * UNIT
@@ -565,7 +564,6 @@ class IntroDocument(CommentDocument):
         This will generate notes for console and markdown in the same time.
         For most part of the notes, they will share the same Markdown syntex
         except that console notes will use ASCII color codes for some keywords.
-
         """
         # Statement note is just its code lines without indents.
         console = []
@@ -603,6 +601,7 @@ class DescriptionDocument(doc.base.CodeDocument):
         """
         # Allocate document memory for comment lines.
         self.memory: List[Line] = []
+        self.descs: Dict[str, str] = {}
 
     def parse(
         self: DescriptionDocument, code: Code, *args: object, **kargs: object,
@@ -697,15 +696,238 @@ class DescriptionDocument(doc.base.CodeDocument):
         error("Function is not implemented.")
         raise NotImplementedError
 
+
 class ClassDescDocument(DescriptionDocument):
     r"""
     Document for a description of class statement.
     """
-    pass
+    def decode(
+        self: ClassDescDocument, texts: List[str], *args: object,
+        **kargs: object,
+    ) -> None:
+        r"""
+        Decode list of texts into document.
+
+        Args
+        ----
+        - self
+        - text
+            A list of decoding texts.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Translate parsed text into paragraphs.
+        try:
+            self.descs["paragraphs"] = paragraphize(texts)
+        except:
+            # Extend paragraph error report.
+            error(
+                "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+                " fail to translate paragraphs.",
+                self.FILEDOC.PATH, "line {:d}".format(self.row),
+            )
+            raise RuntimeError
 
 
 class FuncDescDocument(DescriptionDocument):
     r"""
     Document for a description of function statement.
     """
-    pass
+    def decode(
+        self: FuncDescDocument, texts: List[str], *args: object,
+        **kargs: object,
+    ) -> None:
+        r"""
+        Decode list of texts into document.
+
+        Args
+        ----
+        - self
+        - text
+            A list of decoding texts.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Split into 4 parts by the first 3 blank lines.
+        ptr = 0
+        breaks = [0, 0, 0]
+        for i in range(len(texts)):
+            if (len(texts[i]) == 0):
+                breaks[ptr] = i
+                ptr += 1
+                if (ptr == len(breaks)):
+                    break
+                else:
+                    pass
+            else:
+                pass
+        texts_1 = texts[0:breaks[0]]
+        texts_args = texts[breaks[0] + 1:breaks[1]]
+        texts_returns = texts[breaks[1] + 1:breaks[2]]
+        texts_2 = texts[breaks[2] + 1:]
+
+        # Translate parsed text into paragraphs.
+        try:
+            self.descs["paragraphs_1"] = paragraphize(texts_1)
+        except:
+            # Extend paragraph error report.
+            error(
+                "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+                " fail to translate paragraphs.",
+                self.FILEDOC.PATH, "line {:d}".format(self.row),
+            )
+            raise RuntimeError
+
+        # Translate parsed text into paragraphs.
+        try:
+            self.descs["paragraphs_2"] = paragraphize(texts_2)
+        except:
+            # Extend paragraph error report.
+            error(
+                "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+                " fail to translate paragraphs.",
+                self.FILEDOC.PATH, "line {:d}".format(self.row),
+            )
+            raise RuntimeError
+
+        # Save argument and return description for later review.
+        self.descs["args"] = texts_args
+        self.descs["returns"] = texts_returns
+
+    def review(
+        self: FuncDescDocument, argdoc: doc.func.ArgumentDocument,
+        returndoc: doc.func.TypeHintDocument, *args: object, **kargs: object,
+    ) -> None:
+        r"""
+        Review argument and return.
+
+        Args
+        ----
+        - self
+        - argdoc
+            Argument document.
+        - returndoc
+            Return document.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Review separately.
+        self.review_args(argdoc)
+        self.review_returns(returndoc)
+
+    def review_args(
+        self: FuncDescDocument, argdoc: doc.func.ArgumentDocument,
+        *args: object, **kargs: object,
+    ) -> None:
+        r"""
+        Review argument and return.
+
+        Args
+        ----
+        - self
+        - argdoc
+            Argument document.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Get texts.
+        texts = self.descs["args"]
+
+        # Argument description has constant head.
+        buf = []
+        if (texts[0] == "Args" and texts[1] == "----"):
+            buf.extend(texts[0:2])
+        else:
+            error(
+                "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+                " argument document has constant head.",
+                self.FILEDOC.PATH, "line {:d}".format(self.row),
+            )
+            raise RuntimeError
+
+        # Traverse later contents.
+        ptr = 0
+        texts = texts[2:]
+        while (ptr < len(texts)):
+            # Get argument name.
+            name = texts[ptr][2:]
+            ptr += 1
+            attach = []
+            buf.append(name)
+
+            # Some arguments have no attachment.
+            if (name in ("self", "cls", "*args", "**kargs")):
+                continue
+            else:
+                pass
+
+            # Get attachment.
+            while (ptr < len(texts)):
+                if (texts[ptr][0].isspace()):
+                    pass
+                else:
+                    break
+                attach.append(texts[ptr][UNIT:])
+                ptr += 1
+            try:
+                attach = paragraphize(attach)
+            except:
+                error(
+                    "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+                    " fail to translate paragraphs.",
+                    self.FILEDOC.PATH, "line {:d}".format(self.row),
+                )
+                raise RuntimeError
+            buf.append(attach)
+
+    def review_returns(
+        self: FuncDescDocument, returndoc: doc.func.TypeHintDocument,
+        *args: object, **kargs: object,
+    ) -> None:
+        r"""
+        Review argument and return.
+
+        Args
+        ----
+        - self
+        - argdoc
+            Argument document.
+        - returndoc
+            Return document.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Get texts.
+        texts = self.descs["returns"]
+
+        # Argument description has constant head.
+        buf = []
+        if (texts[0] == "Returns" and texts[1] == "-------"):
+            buf.extend(texts[0:2])
+        else:
+            error(
+                "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
+                " return document has constant head.",
+                self.FILEDOC.PATH, "line {:d}".format(self.row),
+            )
+            raise RuntimeError

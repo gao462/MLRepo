@@ -114,7 +114,9 @@ class BlockDocument(doc.base.CodeDocument):
         self.comment.parse(self.code)
         self.parse_statements()
 
-    def parse_statements(self, *args: object, **kargs: object) -> None:
+    def parse_statements(
+        self: BlockDocument, *args: object, **kargs: object,
+    ) -> None:
         r"""
         Parse all statements of the document.
 
@@ -137,7 +139,6 @@ class ImportBlockDocument(BlockDocument):
     r"""
     Document for a block of import code.
     """
-
     def allocate_statements(
         self: ImportBlockDocument, *args: object, **kargs: object,
     ) -> None:
@@ -238,7 +239,6 @@ class ImportBlockDocument(BlockDocument):
         This will generate notes for console and markdown in the same time.
         For most part of the notes, they will share the same Markdown syntex
         except that console notes will use ASCII color codes for some keywords.
-
         """
         # Block notes is just a list of its statments notes.
         console, markdown = [], []
@@ -280,7 +280,6 @@ class ImportBlockDocument(BlockDocument):
             If the text is satisfied.
 
         This is specially defined because some imports are constantly required.
-
         """
         # Match directly
         return self.statements[i].memory.text == text
@@ -412,7 +411,6 @@ class ConstBlockDocument(doc.base.CodeDocument):
         This will generate notes for console and markdown in the same time.
         For most part of the notes, they will share the same Markdown syntex
         except that console notes will use ASCII color codes for some keywords.
-
         """
         # Block notes is just a list of code lines without indents.
         start = self.LEVEL * UNIT

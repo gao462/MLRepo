@@ -74,7 +74,6 @@ class Document(object):
         This will generate notes for console and markdown in the same time.
         For most part of the notes, they will share the same Markdown syntex
         except that console notes will use ASCII color codes for some keywords.
-
         """
         # Prototype may not implement everything.
         error("Function is not implemented.")
@@ -185,7 +184,9 @@ class CodeDocument(Document):
         error("Function is not implemented.")
         raise NotImplementedError
 
-    def parse(self, code: Code, *args: object, **kargs: object) -> None:
+    def parse(
+        self: CodeDocument, code: Code, *args: object, **kargs: object,
+    ) -> None:
         r"""
         Parse information into document.
 

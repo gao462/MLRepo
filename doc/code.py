@@ -249,8 +249,8 @@ class Line(object):
         -------
 
         It is a more strict version of check function that target must be
-        satisfied. Otherwise, runtime error will be reported.
-
+        satisfied.
+        Otherwise, runtime error will be reported.
         """
         # Check indent level.
         if (self.level != level):
@@ -511,7 +511,7 @@ class Code(object):
         -------
 
         """
-        # Load tokens except indent/dedent.
+        # Load tokens except indent or dedent.
         self.tokens = []
         file = open(self.path, "r")
         buf = tokenize.generate_tokens(file.readline)
@@ -710,7 +710,7 @@ class Code(object):
         for i, text in enumerate(texts):
             self.ptrs[row + i] += len(text)
 
-        # Tail "\" after string means a concatenation.
+        # Tail "\\" after string means a concatenation.
         focus = row + num_lines - 1
         ptr = self.ptrs[focus]
         if (self.memory[focus].text[ptr:] == " \\"):
@@ -983,6 +983,7 @@ def line_rule_length(
     else:
         pass
 
+
 def line_rule_char(
     text: str, *args: object, index: int, path: str, **kargs: object,
 ) -> None:
@@ -1015,6 +1016,7 @@ def line_rule_char(
         raise RuntimeError
     else:
         pass
+
 
 def line_rule_break(
     text: str, *args: object, index: int, path: str, **kargs: object,
@@ -1109,6 +1111,16 @@ def paragraphize(
     ptr = 0
     paragraphs = []
     while (ptr < len(buf)):
+        # Reject empty paragraph.
+        if (len(buf[ptr]) == 0):
+            error(
+                "At comment line {:d}, empty paragraph is rejected.",
+                ptr + 1,
+            )
+            raise RuntimeError
+        else:
+            pass
+
         # Take lines for decoding until a blank line.
         start = ptr
         decoding = []

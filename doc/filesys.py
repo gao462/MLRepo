@@ -207,7 +207,6 @@ class DirectoryDocument(doc.base.FileSysDocument):
         This will generate notes for console and markdown in the same time.
         For most part of the notes, they will share the same Markdown syntex
         except that console notes will use ASCII color codes for some keywords.
-
         """
         # Generate sub directory notes.
         for dirdoc in self.subdirs:
@@ -371,7 +370,6 @@ class FileDocument(doc.base.FileSysDocument):
         This will generate notes for console and markdown in the same time.
         For most part of the notes, they will share the same Markdown syntex
         except that console notes will use ASCII color codes for some keywords.
-
         """
         # Create title by file path.
         console = ["## {:s}".format(self.PATH)]
@@ -436,15 +434,15 @@ def toc(notes: List[str], *args: object, **kargs: object) -> List[str]:
         headers.append((level, text, github_header(refer)))
 
     # Generate TOC.
-    toc = ["## Table Of Content", "", "* Table of Content"]
+    toc = ["## Table Of Content", ""]
     for level, text, refer in headers:
-        indent = "  " * (level - 1)
+        indent = "  " * (level - 2)
         link = "{:s}* [{:s}](#{:s})".format(indent, text, refer)
         toc.append(link)
     return toc
 
 
-def github_header(text: str, *args, **kargs) -> str:
+def github_header(text: str, *args: object, **kargs: object) -> str:
     r"""
     Get a Github header reference.
 
