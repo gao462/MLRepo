@@ -26,6 +26,7 @@ from pytorch.logging import debug, info1, info2, focus, warning, error
 from doc.code import Code, MAX
 import doc.base
 import doc.statement
+import doc.filesys
 
 
 # =============================================================================
@@ -340,8 +341,7 @@ class ClassDocument(doc.base.CodeDocument):
         if (len(source) == 0 and suffix in self.FILEDOC.classes):
             # Get in-page reference directly.
             refer = "Class: {:s}".format(suffix)
-            refer = re.sub(r"\.", "", refer)
-            refer = re.sub(r"[^\w]+", "-", refer.lower().strip())
+            refer = doc.filesys.github_header(refer)
             link = "[{:s}](#{:s})".format(self.super, refer)
         elif (len(source) == 0):
             # Python class has no reference.
@@ -355,8 +355,7 @@ class ClassDocument(doc.base.CodeDocument):
 
             # Get in-page reference.
             refer = "Class: {:s}".format(layers[-1])
-            refer = re.sub(r"\.", "", refer)
-            refer = re.sub(r"[^\w]+", "-", refer.lower().strip())
+            refer = doc.filesys.github_header(refer)
             link = "[{:s}]({:s}#{:s})".format(self.super, page, refer)
 
         # Title is class name.
@@ -633,7 +632,7 @@ class OPBlockDocument(doc.base.CodeDocument):
         # Get first sentence in the comment.
         title = self.comment.paragraphs[0][0]
         if (len(title) > self.MAX):
-            title = title[0:self.MAX - 3] + "..."
+            title = title[0:self.MAX - 3].strip() + "..."
         else:
             pass
 

@@ -1,27 +1,27 @@
 * Table of Content
-  * [doc/globe.py](#doc-globepy)
+  * [doc/globe.py](#docglobepy)
     * [Global Code Document Objects](#global-code-document-objects)
       * [Class: ModuleDocument](#class-moduledocument)
       * [Class: GlobalDocument](#class-globaldocument)
-  * [doc/base.py](#doc-basepy)
+  * [doc/base.py](#docbasepy)
     * [Document Objects](#document-objects)
       * [Class: Document](#class-document)
       * [Class: FileSysDocument](#class-filesysdocument)
       * [Block: Hierarchy constants.](#block-hierarchy-constants)
       * [Class: CodeDocument](#class-codedocument)
-  * [doc/main.py](#doc-mainpy)
+  * [doc/main.py](#docmainpy)
     * [Main](#main)
       * [Block: Generate all notes.](#block-generate-all-notes)
-  * [doc/block.py](#doc-blockpy)
+  * [doc/block.py](#docblockpy)
     * [Block Code Document Objects](#block-code-document-objects)
       * [Class: BlockDocument](#class-blockdocument)
       * [Class: ImportBlockDocument](#class-importblockdocument)
       * [Class: ConstBlockDocument](#class-constblockdocument)
-  * [doc/code.py](#doc-codepy)
+  * [doc/code.py](#doccodepy)
     * [Code Objects](#code-objects)
       * [Class: Word](#class-word)
       * [Class: Line](#class-line)
-      * [Block: Define essential ...](#block-define-essential)
+      * [Block: Define essential...](#block-define-essential)
       * [Block: Define single wor...](#block-define-single-wor)
       * [Block: Overwrite compose...](#block-overwrite-compose)
       * [Block: Define not-word w...](#block-define-not-word-w)
@@ -34,7 +34,7 @@
       * [Function: mathize](#function-mathize)
       * [Function: codize](#function-codize)
       * [Function: textize](#function-textize)
-  * [doc/series.py](#doc-seriespy)
+  * [doc/series.py](#docseriespy)
     * [Series Code Document Objects](#series-code-document-objects)
       * [Class: SeriesDocument](#class-seriesdocument)
     * [Class Code Document Objects](#class-code-document-objects)
@@ -43,18 +43,19 @@
       * [Class: FunctionDocument](#class-functiondocument)
     * [Operation Block Code Document Objects](#operation-block-code-document-objects)
       * [Class: OPBlockDocument](#class-opblockdocument)
-  * [doc/statement.py](#doc-statementpy)
+  * [doc/statement.py](#docstatementpy)
     * [Statement Code Document Objects](#statement-code-document-objects)
       * [Class: CommentDocument](#class-commentdocument)
       * [Class: ImportDocument](#class-importdocument)
       * [Class: IntroDocument](#class-introdocument)
       * [Class: DescriptionDocument](#class-descriptiondocument)
       * [Class: FuncDescDocument](#class-funcdescdocument)
-  * [doc/filesys.py](#doc-filesyspy)
+  * [doc/filesys.py](#docfilesyspy)
     * [File System Document Objects](#file-system-document-objects)
       * [Class: DirectoryDocument](#class-directorydocument)
       * [Class: FileDocument](#class-filedocument)
       * [Function: toc](#function-toc)
+      * [Function: github_header](#function-github_header)
 
 ---
 
@@ -322,7 +323,7 @@ Style related constants and utility functions are also defined.
 
 - Super: object
 
-#### Block: Define essential ...
+#### Block: Define essential...
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/code.py#L348)
 
@@ -380,7 +381,7 @@ Style related constants and utility functions are also defined.
 
 ## doc/series.py
 
-- Dependent on: `__future__`, `typing`, `sys`, `os`, `token`, `re`, `pytorch.logging`, `doc.code`, `doc.base`, `doc.statement`
+- Dependent on: `__future__`, `typing`, `sys`, `os`, `token`, `re`, `pytorch.logging`, `doc.code`, `doc.base`, `doc.statement`, `doc.filesys`
 
   > ```python
   > # Import future.
@@ -411,6 +412,7 @@ Style related constants and utility functions are also defined.
   > from doc.code import Code, MAX
   > import doc.base
   > import doc.statement
+  > import doc.filesys
   > ```
 
 ### Series Code Document Objects
@@ -421,7 +423,7 @@ It will mutually import with ClassDocument, FunctionDocument, OPBlockDocument. T
 
 #### Class: SeriesDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L48)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L49)
 
 - Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
 
@@ -431,7 +433,7 @@ Code document for a definition of class. It can mutually import with SeriesDocum
 
 #### Class: ClassDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L214)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L215)
 
 - Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
 
@@ -441,7 +443,7 @@ Code document for a definition of function. It can mutually import with SeriesDo
 
 #### Class: FunctionDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L402)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L401)
 
 - Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
 
@@ -451,7 +453,7 @@ Code document for a block of operation code. It can mutually import with SeriesD
 
 #### Class: OPBlockDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L554)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L553)
 
 - Super: [doc.base.CodeDocument](https://github.com/gao462/MLRepo/tree/main/doc/base#class-codedocument)
 
@@ -591,3 +593,7 @@ After the generation, a strict description matching is applied on classes with i
 #### Function: toc
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L401)
+
+#### Function: github_header
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/filesys.py#L447)

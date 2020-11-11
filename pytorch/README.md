@@ -1,7 +1,7 @@
 * Table of Content
-  * [pytorch/logging.py](#pytorch-loggingpy)
+  * [pytorch/logging.py](#pytorchloggingpy)
     * [Define Logging Utilities](#define-logging-utilities)
-      * [Block: Different levels ...](#block-different-levels)
+      * [Block: Different levels...](#block-different-levels)
       * [Function: default_logger](#function-default_logger)
       * [Block: Univeral logger a...](#block-univeral-logger-a)
       * [Function: update_universal_logger](#function-update_universal_logger)
@@ -53,7 +53,7 @@
 
 1, Create default logger. 2, Universal logger. 3, Update universal logger by given logger. 4, Check message format. 5, Output multiple-line message.
 
-#### Block: Different levels ...
+#### Block: Different levels...
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/pytorch/logging.py#L39)
 

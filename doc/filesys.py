@@ -431,15 +431,9 @@ def toc(notes: List[str], *args: object, **kargs: object) -> List[str]:
         text = itr[level + 1:]
         refer = text
 
-        # Github reference ignores ".".
-        refer = re.sub(r"\.", "", refer)
-
-        # Github reference ignores colorful ASCII.
+        # Github reference ignores colorful ASCII even in console.
         refer = re.sub(r"\033\[[^m]+m", "", refer)
-
-        # Github reference replace consecutive non-word chars by a "-".
-        refer = re.sub(r"[^\w]+", "-", refer.lower().strip())
-        headers.append((level, text, refer))
+        headers.append((level, text, github_header(refer)))
 
     # Generate TOC.
     toc = ["* Table of Content"]
@@ -448,3 +442,29 @@ def toc(notes: List[str], *args: object, **kargs: object) -> List[str]:
         link = "{:s}* [{:s}](#{:s})".format(indent, text, refer)
         toc.append(link)
     return toc
+
+
+def github_header(text: str, *args, **kargs) -> str:
+    r"""
+    Get a Github header reference.
+
+    Args
+    ----
+    - text
+        Header text.
+    - *args
+    - **kargs
+
+    Returns
+    -------
+    - refer
+        Reference text.
+
+    """
+    # Github reference ignores "." or "/".
+    refer = text
+    refer = re.sub(r"(\.|/)", "", refer).strip()
+
+    # Github reference should be lower case concatenated by "-".
+    refer = re.sub(r"[^\w]+", "-", refer.lower())
+    return refer
