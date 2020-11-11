@@ -347,9 +347,10 @@ class ClassDocument(doc.base.CodeDocument):
             link = self.super
         elif (dirpath == self.FILEDOC.ROOTDOC.PATH):
             # Get in-page reference directly.
-            refer = "Class: {:s}.{:s}".format(modname, classname)
+            full = "{:s}.{:s}".format(modname, classname)
+            refer = "Class: {:s}".format(full)
             refer = doc.filesys.github_header(refer)
-            link = "[{:s}](#{:s})".format(self.super, refer)
+            link = "[{:s}](#{:s})".format(full, refer)
         else:
             # Get Github page.
             raise NotImplementedError

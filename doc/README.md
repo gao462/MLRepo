@@ -658,7 +658,7 @@ This will generate notes for console and markdown in the same time. For most par
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L82)
 
-- Super: [Document](#class-docbasedocument)
+- Super: [doc.base.Document](#class-docbasedocument)
 
 Document for file system prototype.
 
@@ -737,7 +737,7 @@ Initialize.
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L124)
 
-- Super: [Document](#class-docbasedocument)
+- Super: [doc.base.Document](#class-docbasedocument)
 
 Document for code prototype.
 
@@ -1041,7 +1041,7 @@ Parse all statements of the document.
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L138)
 
-- Super: [BlockDocument](#class-docblockblockdocument)
+- Super: [doc.block.BlockDocument](#class-docblockblockdocument)
 
 Document for a block of import code.
 
@@ -3461,9 +3461,10 @@ This will generate notes for console and markdown in the same time. For most par
 >     link = self.super
 > elif (dirpath == self.FILEDOC.ROOTDOC.PATH):
 >     # Get in-page reference directly.
->     refer = "Class: {:s}.{:s}".format(modname, classname)
+>     full = "{:s}.{:s}".format(modname, classname)
+>     refer = "Class: {:s}".format(full)
 >     refer = doc.filesys.github_header(refer)
->     link = "[{:s}](#{:s})".format(self.super, refer)
+>     link = "[{:s}](#{:s})".format(full, refer)
 > else:
 >     # Get Github page.
 >     raise NotImplementedError
@@ -3538,7 +3539,7 @@ Code document for a definition of function. It can mutually import with SeriesDo
 
 ## Class: doc.series.FunctionDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L426)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L427)
 
 - Super: [doc.base.CodeDocument](#class-docbasecodedocument)
 
@@ -3555,7 +3556,7 @@ Document for a definition of function.
 
 ### Function: doc.series.FunctionDocument.allocate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L430)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L431)
 
 Allocate children memory.
 
@@ -3595,7 +3596,7 @@ Allocate children memory.
 
 ### Function: doc.series.FunctionDocument.parse
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L465)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L466)
 
 Parse information into document.
 
@@ -3653,7 +3654,7 @@ Parse information into document.
 
 ### Function: doc.series.FunctionDocument.notes
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L516)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L517)
 
 Generate notes.
 
@@ -3810,7 +3811,7 @@ Code document for a block of operation code. It can mutually import with SeriesD
 
 ## Class: doc.series.OPBlockDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L673)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L674)
 
 - Super: [doc.base.CodeDocument](#class-docbasecodedocument)
 
@@ -3828,7 +3829,7 @@ Document for a block of operation code.
 
 ### Block: doc.series.OPBlockDocument: Define constants.
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L677)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L678)
 
 > ```python
 > # Define constants.
@@ -3841,7 +3842,7 @@ Document for a block of operation code.
 
 ### Function: doc.series.OPBlockDocument.allocate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L680)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L681)
 
 Allocate children memory.
 
@@ -3871,7 +3872,7 @@ Allocate children memory.
 
 ### Function: doc.series.OPBlockDocument.parse
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L705)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L706)
 
 Parse information into document.
 
@@ -3909,7 +3910,7 @@ Parse information into document.
 
 ### Function: doc.series.OPBlockDocument.notes
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L736)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L737)
 
 Generate notes.
 
@@ -5004,7 +5005,7 @@ This will generate notes for console and markdown in the same time. For most par
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L469)
 
-- Super: [CommentDocument](#class-docstatementcommentdocument)
+- Super: [doc.statement.CommentDocument](#class-docstatementcommentdocument)
 
 Document for an introduction statement.
 
@@ -5277,7 +5278,7 @@ Decode list of texts into document.
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L688)
 
-- Super: [DescriptionDocument](#class-docstatementdescriptiondocument)
+- Super: [doc.statement.DescriptionDocument](#class-docstatementdescriptiondocument)
 
 Document for a description of class statement.
 
@@ -5329,7 +5330,7 @@ Decode list of texts into document.
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L724)
 
-- Super: [DescriptionDocument](#class-docstatementdescriptiondocument)
+- Super: [doc.statement.DescriptionDocument](#class-docstatementdescriptiondocument)
 
 Document for a description of function statement.
 
