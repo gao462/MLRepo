@@ -658,7 +658,7 @@ This will generate notes for console and markdown in the same time. For most par
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L82)
 
-- Super: [Document](#class-document)
+- Super: [Document](#class-docbasedocument)
 
 Document for file system prototype.
 
@@ -736,7 +736,7 @@ Initialize.
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/base.py#L123)
 
-- Super: [Document](#class-document)
+- Super: [Document](#class-docbasedocument)
 
 Document for code prototype.
 
@@ -1040,7 +1040,7 @@ Parse all statements of the document.
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/block.py#L138)
 
-- Super: [BlockDocument](#class-blockdocument)
+- Super: [BlockDocument](#class-docblockblockdocument)
 
 Document for a block of import code.
 
@@ -3449,7 +3449,7 @@ This will generate notes for console and markdown in the same time. For most par
 > # Locate the super.
 > if (len(source) == 0 and suffix in self.FILEDOC.classes):
 >     # Get in-page reference directly.
->     refer = "Class: {:s}".format(suffix)
+>     refer = "Class: {:s}.{:s}".format(self.FILEDOC.ME, suffix)
 >     refer = doc.filesys.github_header(refer)
 >     link = "[{:s}](#{:s})".format(self.super, refer)
 > elif (len(source) == 0):
@@ -5003,7 +5003,7 @@ This will generate notes for console and markdown in the same time. For most par
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L469)
 
-- Super: [CommentDocument](#class-commentdocument)
+- Super: [CommentDocument](#class-docstatementcommentdocument)
 
 Document for an introduction statement.
 
@@ -5276,7 +5276,7 @@ Decode list of texts into document.
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L688)
 
-- Super: [DescriptionDocument](#class-descriptiondocument)
+- Super: [DescriptionDocument](#class-docstatementdescriptiondocument)
 
 Document for a description of class statement.
 
@@ -5328,7 +5328,7 @@ Decode list of texts into document.
 
 - Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L724)
 
-- Super: [DescriptionDocument](#class-descriptiondocument)
+- Super: [DescriptionDocument](#class-docstatementdescriptiondocument)
 
 Document for a description of function statement.
 

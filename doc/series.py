@@ -336,7 +336,7 @@ class ClassDocument(doc.base.CodeDocument):
         # Locate the super.
         if (len(source) == 0 and suffix in self.FILEDOC.classes):
             # Get in-page reference directly.
-            refer = "Class: {:s}".format(suffix)
+            refer = "Class: {:s}.{:s}".format(self.FILEDOC.ME, suffix)
             refer = doc.filesys.github_header(refer)
             link = "[{:s}](#{:s})".format(self.super, refer)
         elif (len(source) == 0):
