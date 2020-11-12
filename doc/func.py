@@ -23,7 +23,7 @@ else:
 from pytorch.logging import debug, info1, info2, focus, warning, error
 
 # Import dependencies.
-from doc.code import Code, MAX
+from doc.code import Code, MAX, Line
 import doc.base
 import doc.statement
 import doc.filesys
@@ -188,8 +188,8 @@ class TypeHintDocument(doc.base.CodeDocument):
         """
         # Get name recursively.
         if (len(self.children) > 0):
-            recursive = [itr.text() for itr in self.children]
-            recursive = "[{:s}]".format(", ".join(recursive))
+            buf = [itr.text() for itr in self.children]
+            recursive = "[{:s}]".format(", ".join(buf))
         else:
             recursive = ""
         return "{:s}{:s}".format(self.name, recursive)

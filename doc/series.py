@@ -300,7 +300,7 @@ class ClassDocument(doc.base.CodeDocument):
         self.description.parse(self.code)
         self.body.parse(self.code)
 
-    def notes(self: SeriesDocument, *args: object, **kargs: object) -> None:
+    def notes(self: ClassDocument, *args: object, **kargs: object) -> None:
         r"""
         Generate notes.
 
@@ -374,9 +374,9 @@ class ClassDocument(doc.base.CodeDocument):
         self.markdown.append("- Super: {:s}".format(link))
 
         # Put descriptions here.
-        for itr in self.description.descs["paragraphs"]:
+        for para in self.description.title:
             self.markdown.append("")
-            self.markdown.append(" ".join(itr))
+            self.markdown.append(" ".join(para))
 
         # Return to TOC, file.
         self.markdown.append("")
@@ -492,18 +492,18 @@ class FunctionDocument(doc.base.CodeDocument):
         obj.match(token.NAME, level=self.LEVEL)
 
         # Get the arguments.
-        args = doc.func.ArgumentDocument(
+        argdoc = doc.func.ArgumentDocument(
             level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
             filedoc=self.FILEDOC, multiple=(obj.memory[-2].text != ":"),
         )
-        args.parse(self.code)
+        argdoc.parse(self.code)
         obj = self.code.get()
         obj.match("->", level=self.LEVEL)
-        returns = doc.func.TypeHintDocument(
+        returndoc = doc.func.TypeHintDocument(
             level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
             filedoc=self.FILEDOC,
         )
-        returns.parse(self.code)
+        returndoc.parse(self.code)
         obj = self.code.get()
         obj.match(":", level=self.LEVEL)
         obj.match(token.NEWLINE, level=self.LEVEL)
@@ -511,7 +511,7 @@ class FunctionDocument(doc.base.CodeDocument):
 
         # Parse components.
         self.description.parse(self.code)
-        self.description.review(args, returns)
+        self.description.review(argdoc, returndoc)
         self.body.parse(self.code)
 
     def notes(self: FunctionDocument, *args: object, **kargs: object) -> None:
@@ -539,7 +539,7 @@ class FunctionDocument(doc.base.CodeDocument):
             ))
         else:
             self.markdown.append("## Function: {:s}.{:s}.{:s}".format(
-                self.FILEDOC.ME, self.SUPERIOR.SUPERIOR.name,
+                self.FILEDOC.ME, getattr(self.SUPERIOR.SUPERIOR, "name"),
                 self.name.replace("_", "\\_"),
             ))
 
@@ -552,15 +552,15 @@ class FunctionDocument(doc.base.CodeDocument):
         self.markdown.append("- Source: [Github]({:s})".format(source))
 
         # Add description 1 here.
-        for itr in self.description.descs["paragraphs_1"]:
+        for para in self.description.title:
             self.markdown.append("")
-            self.markdown.append(" ".join(itr))
+            self.markdown.append(" ".join(para))
 
         # Add arguments.
         self.markdown.append("")
         self.markdown.append("> **Arguments**")
         ptr = 0
-        while (ptr < len(self.description.descs["args"])):
+        while (ptr < len(self.description.arg_names)):
             # The first argument has no breaks.
             if (ptr == 0):
                 pass
@@ -568,38 +568,33 @@ class FunctionDocument(doc.base.CodeDocument):
                 self.markdown.append(">")
 
             # Get name and type hint first.
-            name = self.description.descs["args"][ptr]
-            hint = self.description.descs["args"][ptr + 1]
-            ptr += 2
+            name = self.description.arg_names[ptr]
+            hint = self.description.arg_hints[ptr]
+            desc = self.description.arg_descs[ptr]
+            ptr += 1
 
             # Some arguments have no attachment.
-            if (name in ("self", "cls")):
-                self.markdown.append("> - **{:s}**: *{:s}*".format(name, hint))
-                continue
-            elif (name == "*args"):
+            if (name == "*args"):
                 self.markdown.append("> - **{:s}**: *{:s}*".format(
                     "\\*args", hint,
                 ))
-                continue
             elif (name == "**kargs"):
                 self.markdown.append("> - **{:s}**: *{:s}*".format(
                     "\\*\\*kargs", hint,
                 ))
-                continue
             else:
                 self.markdown.append("> - **{:s}**: *{:s}*".format(name, hint))
 
             # Output argument paragraphs with indent.
-            for itr in self.description.descs["args"][ptr]:
+            for para in desc:
                 self.markdown.append(">")
-                self.markdown.append(">   {:s}".format(" ".join(itr)))
-            ptr += 1
+                self.markdown.append(">   {:s}".format(" ".join(para)))
 
         # Add returns.
         self.markdown.append("")
         self.markdown.append("> **Returns**")
         ptr = 0
-        while (ptr < len(self.description.descs["returns"])):
+        while (ptr < len(self.description.return_names)):
             # The first argument has no breaks.
             if (ptr == 0):
                 pass
@@ -607,21 +602,21 @@ class FunctionDocument(doc.base.CodeDocument):
                 self.markdown.append(">")
 
             # Get name and type hint first.
-            name = self.description.descs["returns"][ptr]
-            hint = self.description.descs["returns"][ptr + 1]
-            attach = self.description.descs["returns"][ptr + 2]
-            ptr += 3
+            name = self.description.return_names[ptr]
+            hint = self.description.return_hints[ptr]
+            desc = self.description.return_descs[ptr]
+            ptr += 1
             self.markdown.append("> - **{:s}**: *{:s}*".format(name, hint))
 
             # Output argument paragraphs with indent.
-            for itr in attach:
+            for para in desc:
                 self.markdown.append(">")
-                self.markdown.append(">   {:s}".format(" ".join(itr)))
+                self.markdown.append(">   {:s}".format(" ".join(para)))
 
         # Add description 2 here.
-        for itr in self.description.descs["paragraphs_2"]:
+        for para in self.description.attach:
             self.markdown.append("")
-            self.markdown.append(" ".join(itr))
+            self.markdown.append(" ".join(para))
 
         # Get body note as a code block
         self.body.notes()
@@ -641,7 +636,7 @@ class FunctionDocument(doc.base.CodeDocument):
             holder = self.SUPERIOR.SUPERIOR
             class_link = " [[Class]](#{:s})".format(
                 doc.filesys.github_header("Class: {:s}.{:s}".format(
-                    holder.FILEDOC.ME, holder.name,
+                    holder.FILEDOC.ME, getattr(holder, "name"),
                 )),
             )
 
@@ -756,8 +751,8 @@ class OPBlockDocument(doc.base.CodeDocument):
         self.comment.notes()
         snap.extend(self.comment.markdown)
         start = self.LEVEL * UNIT
-        for itr in self.memory:
-            snap.append(itr.text[start:])
+        for com in self.memory:
+            snap.append(com.text[start:])
 
         # Clear children notes for memory efficency.
         self.comment.markdown.clear()
@@ -782,7 +777,8 @@ class OPBlockDocument(doc.base.CodeDocument):
             ))
         else:
             self.markdown.append("## Block: {:s}.{:s}: {:s}".format(
-                self.FILEDOC.ME, self.SUPERIOR.SUPERIOR.name, title,
+                self.FILEDOC.ME, getattr(self.SUPERIOR.SUPERIOR, "name"),
+                title,
             ))
 
         # Super link to source code is required.
@@ -810,7 +806,7 @@ class OPBlockDocument(doc.base.CodeDocument):
             holder = self.SUPERIOR.SUPERIOR
             class_link = " [[Class]](#{:s})".format(
                 doc.filesys.github_header("Class: {:s}.{:s}".format(
-                    holder.FILEDOC.ME, holder.name,
+                    holder.FILEDOC.ME, getattr(holder, "name"),
                 )),
             )
 

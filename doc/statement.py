@@ -589,7 +589,6 @@ class DescriptionDocument(doc.base.CodeDocument):
         """
         # Allocate document memory for comment lines.
         self.memory: List[Line] = []
-        self.descs: Dict[str, str] = {}
 
     def parse(
         self: DescriptionDocument, code: Code, *args: object, **kargs: object,
@@ -689,6 +688,25 @@ class ClassDescDocument(DescriptionDocument):
     r"""
     Document for a description of class statement.
     """
+    def allocate(
+        self: ClassDescDocument, *args: object, **kargs: object,
+    ) -> None:
+        r"""
+        Allocate children memory.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Super.
+        DescriptionDocument.allocate(self, *args, **kargs)
+
     def decode(
         self: ClassDescDocument, texts: List[str], *args: object,
         **kargs: object,
@@ -710,7 +728,7 @@ class ClassDescDocument(DescriptionDocument):
         """
         # Translate parsed text into paragraphs.
         try:
-            self.descs["paragraphs"] = paragraphize(texts)
+            self.title = paragraphize(texts)
         except:
             # Extend paragraph error report.
             error(
@@ -764,7 +782,7 @@ class FuncDescDocument(DescriptionDocument):
 
         # Translate parsed text into paragraphs.
         try:
-            self.descs["paragraphs_1"] = paragraphize(texts_1)
+            self.title = paragraphize(texts_1)
         except:
             # Extend paragraph error report.
             error(
@@ -776,7 +794,7 @@ class FuncDescDocument(DescriptionDocument):
 
         # Translate parsed text into paragraphs.
         try:
-            self.descs["paragraphs_2"] = paragraphize(texts_2)
+            self.attach = paragraphize(texts_2)
         except:
             # Extend paragraph error report.
             error(
@@ -787,8 +805,8 @@ class FuncDescDocument(DescriptionDocument):
             raise RuntimeError
 
         # Save argument and return description for later review.
-        self.descs["args"] = texts_args
-        self.descs["returns"] = texts_returns
+        self.texts_args = texts_args
+        self.texts_returns = texts_returns
 
     def review(
         self: FuncDescDocument, argdoc: doc.func.ArgumentDocument,
@@ -835,7 +853,7 @@ class FuncDescDocument(DescriptionDocument):
 
         """
         # Get texts.
-        texts = self.descs["args"]
+        texts = self.texts_args
 
         # Argument description has constant head.
         if (texts[0] == "Args" and texts[1] == "----"):
@@ -852,12 +870,13 @@ class FuncDescDocument(DescriptionDocument):
         ptr = 0
         texts = texts[2:]
         num = 0
-        buf = []
+        self.arg_names = []
+        self.arg_hints = []
+        self.arg_descs: List[List[List[str]]] = []
         while (ptr < len(texts)):
             # Get argument name.
             name = texts[ptr][2:]
             ptr += 1
-            attach = []
 
             # Get definition.
             if (num == len(argdoc.items)):
@@ -884,25 +903,27 @@ class FuncDescDocument(DescriptionDocument):
                     given, name,
                 )
                 raise RuntimeError
-            buf.append(name)
-            buf.append(hint.text())
+            self.arg_names.append(name)
+            self.arg_hints.append(hint.text())
 
             # Some arguments have no attachment.
             if (name in ("self", "cls", "*args", "**kargs")):
+                self.arg_descs.append([])
                 continue
             else:
                 pass
 
             # Get attachment.
+            buf = []
             while (ptr < len(texts)):
                 if (texts[ptr][0].isspace()):
                     pass
                 else:
                     break
-                attach.append(texts[ptr][UNIT:])
+                buf.append(texts[ptr][UNIT:])
                 ptr += 1
             try:
-                attach = paragraphize(attach)
+                attach = paragraphize(buf)
             except:
                 error(
                     "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
@@ -910,8 +931,8 @@ class FuncDescDocument(DescriptionDocument):
                     self.FILEDOC.PATH, "line {:d}".format(self.row),
                 )
                 raise RuntimeError
-            buf.append(attach)
-        self.descs["args"] = buf
+            self.arg_descs.append(attach)
+        del self.texts_args
 
         # Check if there is argument without description.
         if (num == len(argdoc.items)):
@@ -945,7 +966,7 @@ class FuncDescDocument(DescriptionDocument):
 
         """
         # Get texts.
-        texts = self.descs["returns"]
+        texts = self.texts_returns
 
         # Argument description has constant head.
         if (texts[0] == "Returns" and texts[1] == "-------"):
@@ -960,25 +981,26 @@ class FuncDescDocument(DescriptionDocument):
 
         # Decode return document into a list a return type hints.
         if (returndoc.name == "None"):
-            returndoc = []
+            returnlist = []
         elif (returndoc.name == "MultiReturn"):
-            returndoc = returndoc.children
+            returnlist = returndoc.children
         else:
-            returndoc = [returndoc]
+            returnlist = [returndoc]
 
         # Traverse later contents.
         ptr = 0
         texts = texts[2:]
         num = 0
-        buf = []
+        self.return_names = []
+        self.return_hints = []
+        self.return_descs = []
         while (ptr < len(texts)):
             # Get argument name.
             name = texts[ptr][2:]
             ptr += 1
-            attach = []
 
             # Get definition.
-            if (num == len(returndoc)):
+            if (num == len(returnlist)):
                 error(
                     "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
                     " defined returns are less than described returns.",
@@ -987,21 +1009,22 @@ class FuncDescDocument(DescriptionDocument):
                 raise RuntimeError
             else:
                 pass
-            hint = returndoc[num]
+            hint = returnlist[num]
             num += 1
-            buf.append(name)
-            buf.append(hint.text())
+            self.return_names.append(name)
+            self.return_hints.append(hint.text())
 
             # Get attachment.
+            buf = []
             while (ptr < len(texts)):
                 if (texts[ptr][0].isspace()):
                     pass
                 else:
                     break
-                attach.append(texts[ptr][UNIT:])
+                buf.append(texts[ptr][UNIT:])
                 ptr += 1
             try:
-                attach = paragraphize(attach)
+                attach = paragraphize(buf)
             except:
                 error(
                     "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
@@ -1009,11 +1032,11 @@ class FuncDescDocument(DescriptionDocument):
                     self.FILEDOC.PATH, "line {:d}".format(self.row),
                 )
                 raise RuntimeError
-            buf.append(attach)
-        self.descs["returns"] = buf
+            self.return_descs.append(attach)
+        del self.texts_returns
 
         # Check if there is argument without description.
-        if (num == len(returndoc)):
+        if (num == len(returnlist)):
             pass
         else:
             error(

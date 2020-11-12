@@ -150,6 +150,7 @@
       * [Function: doc.statement.DescriptionDocument.parse](#function-docstatementdescriptiondocumentparse)
       * [Function: doc.statement.DescriptionDocument.decode](#function-docstatementdescriptiondocumentdecode)
     * [Class: doc.statement.ClassDescDocument](#class-docstatementclassdescdocument)
+      * [Function: doc.statement.ClassDescDocument.allocate](#function-docstatementclassdescdocumentallocate)
       * [Function: doc.statement.ClassDescDocument.decode](#function-docstatementclassdescdocumentdecode)
     * [Class: doc.statement.FuncDescDocument](#class-docstatementfuncdescdocument)
       * [Function: doc.statement.FuncDescDocument.decode](#function-docstatementfuncdescdocumentdecode)
@@ -3420,7 +3421,7 @@ Parse information into document.
 Generate notes.
 
 > **Arguments**
-> - **self**: *SeriesDocument*
+> - **self**: *ClassDocument*
 >
 > - **\*args**: *object*
 >
@@ -3488,9 +3489,9 @@ This will generate notes for console and markdown in the same time. For most par
 > self.markdown.append("- Super: {:s}".format(link))
 >
 > # Put descriptions here.
-> for itr in self.description.descs["paragraphs"]:
+> for para in self.description.title:
 >     self.markdown.append("")
->     self.markdown.append(" ".join(itr))
+>     self.markdown.append(" ".join(para))
 >
 > # Return to TOC, file.
 > self.markdown.append("")
@@ -3625,18 +3626,18 @@ Parse information into document.
 > obj.match(token.NAME, level=self.LEVEL)
 >
 > # Get the arguments.
-> args = doc.func.ArgumentDocument(
+> argdoc = doc.func.ArgumentDocument(
 >     level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
 >     filedoc=self.FILEDOC, multiple=(obj.memory[-2].text != ":"),
 > )
-> args.parse(self.code)
+> argdoc.parse(self.code)
 > obj = self.code.get()
 > obj.match("->", level=self.LEVEL)
-> returns = doc.func.TypeHintDocument(
+> returndoc = doc.func.TypeHintDocument(
 >     level=self.LEVEL, hierarchy=self.HIERARCHY, superior=self,
 >     filedoc=self.FILEDOC,
 > )
-> returns.parse(self.code)
+> returndoc.parse(self.code)
 > obj = self.code.get()
 > obj.match(":", level=self.LEVEL)
 > obj.match(token.NEWLINE, level=self.LEVEL)
@@ -3644,7 +3645,7 @@ Parse information into document.
 >
 > # Parse components.
 > self.description.parse(self.code)
-> self.description.review(args, returns)
+> self.description.review(argdoc, returndoc)
 > self.body.parse(self.code)
 > ```
 
@@ -3678,7 +3679,7 @@ This will generate notes for console and markdown in the same time. For most par
 >     ))
 > else:
 >     self.markdown.append("## Function: {:s}.{:s}.{:s}".format(
->         self.FILEDOC.ME, self.SUPERIOR.SUPERIOR.name,
+>         self.FILEDOC.ME, getattr(self.SUPERIOR.SUPERIOR, "name"),
 >         self.name.replace("_", "\\_"),
 >     ))
 >
@@ -3691,15 +3692,15 @@ This will generate notes for console and markdown in the same time. For most par
 > self.markdown.append("- Source: [Github]({:s})".format(source))
 >
 > # Add description 1 here.
-> for itr in self.description.descs["paragraphs_1"]:
+> for para in self.description.title:
 >     self.markdown.append("")
->     self.markdown.append(" ".join(itr))
+>     self.markdown.append(" ".join(para))
 >
 > # Add arguments.
 > self.markdown.append("")
 > self.markdown.append("> **Arguments**")
 > ptr = 0
-> while (ptr < len(self.description.descs["args"])):
+> while (ptr < len(self.description.arg_names)):
 >     # The first argument has no breaks.
 >     if (ptr == 0):
 >         pass
@@ -3707,38 +3708,33 @@ This will generate notes for console and markdown in the same time. For most par
 >         self.markdown.append(">")
 >
 >     # Get name and type hint first.
->     name = self.description.descs["args"][ptr]
->     hint = self.description.descs["args"][ptr + 1]
->     ptr += 2
+>     name = self.description.arg_names[ptr]
+>     hint = self.description.arg_hints[ptr]
+>     desc = self.description.arg_descs[ptr]
+>     ptr += 1
 >
 >     # Some arguments have no attachment.
->     if (name in ("self", "cls")):
->         self.markdown.append("> - **{:s}**: *{:s}*".format(name, hint))
->         continue
->     elif (name == "*args"):
+>     if (name == "*args"):
 >         self.markdown.append("> - **{:s}**: *{:s}*".format(
 >             "\\*args", hint,
 >         ))
->         continue
 >     elif (name == "**kargs"):
 >         self.markdown.append("> - **{:s}**: *{:s}*".format(
 >             "\\*\\*kargs", hint,
 >         ))
->         continue
 >     else:
 >         self.markdown.append("> - **{:s}**: *{:s}*".format(name, hint))
 >
 >     # Output argument paragraphs with indent.
->     for itr in self.description.descs["args"][ptr]:
+>     for para in desc:
 >         self.markdown.append(">")
->         self.markdown.append(">   {:s}".format(" ".join(itr)))
->     ptr += 1
+>         self.markdown.append(">   {:s}".format(" ".join(para)))
 >
 > # Add returns.
 > self.markdown.append("")
 > self.markdown.append("> **Returns**")
 > ptr = 0
-> while (ptr < len(self.description.descs["returns"])):
+> while (ptr < len(self.description.return_names)):
 >     # The first argument has no breaks.
 >     if (ptr == 0):
 >         pass
@@ -3746,21 +3742,21 @@ This will generate notes for console and markdown in the same time. For most par
 >         self.markdown.append(">")
 >
 >     # Get name and type hint first.
->     name = self.description.descs["returns"][ptr]
->     hint = self.description.descs["returns"][ptr + 1]
->     attach = self.description.descs["returns"][ptr + 2]
->     ptr += 3
+>     name = self.description.return_names[ptr]
+>     hint = self.description.return_hints[ptr]
+>     desc = self.description.return_descs[ptr]
+>     ptr += 1
 >     self.markdown.append("> - **{:s}**: *{:s}*".format(name, hint))
 >
 >     # Output argument paragraphs with indent.
->     for itr in attach:
+>     for para in desc:
 >         self.markdown.append(">")
->         self.markdown.append(">   {:s}".format(" ".join(itr)))
+>         self.markdown.append(">   {:s}".format(" ".join(para)))
 >
 > # Add description 2 here.
-> for itr in self.description.descs["paragraphs_2"]:
+> for para in self.description.attach:
 >     self.markdown.append("")
->     self.markdown.append(" ".join(itr))
+>     self.markdown.append(" ".join(para))
 >
 > # Get body note as a code block
 > self.body.notes()
@@ -3780,7 +3776,7 @@ This will generate notes for console and markdown in the same time. For most par
 >     holder = self.SUPERIOR.SUPERIOR
 >     class_link = " [[Class]](#{:s})".format(
 >         doc.filesys.github_header("Class: {:s}.{:s}".format(
->             holder.FILEDOC.ME, holder.name,
+>             holder.FILEDOC.ME, getattr(holder, "name"),
 >         )),
 >     )
 >
@@ -3811,7 +3807,7 @@ Code document for a block of operation code. It can mutually import with SeriesD
 
 ## Class: doc.series.OPBlockDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L674)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L669)
 
 - Super: [doc.base.CodeDocument](#class-docbasecodedocument)
 
@@ -3829,7 +3825,7 @@ Document for a block of operation code.
 
 ### Block: doc.series.OPBlockDocument: Define constants.
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L678)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L673)
 
 > ```python
 > # Define constants.
@@ -3842,7 +3838,7 @@ Document for a block of operation code.
 
 ### Function: doc.series.OPBlockDocument.allocate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L681)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L676)
 
 Allocate children memory.
 
@@ -3872,7 +3868,7 @@ Allocate children memory.
 
 ### Function: doc.series.OPBlockDocument.parse
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L706)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L701)
 
 Parse information into document.
 
@@ -3910,7 +3906,7 @@ Parse information into document.
 
 ### Function: doc.series.OPBlockDocument.notes
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L737)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/series.py#L732)
 
 Generate notes.
 
@@ -3931,8 +3927,8 @@ This will generate notes for console and markdown in the same time. For most par
 > self.comment.notes()
 > snap.extend(self.comment.markdown)
 > start = self.LEVEL * UNIT
-> for itr in self.memory:
->     snap.append(itr.text[start:])
+> for com in self.memory:
+>     snap.append(com.text[start:])
 >
 > # Clear children notes for memory efficency.
 > self.comment.markdown.clear()
@@ -3957,7 +3953,8 @@ This will generate notes for console and markdown in the same time. For most par
 >     ))
 > else:
 >     self.markdown.append("## Block: {:s}.{:s}: {:s}".format(
->         self.FILEDOC.ME, self.SUPERIOR.SUPERIOR.name, title,
+>         self.FILEDOC.ME, getattr(self.SUPERIOR.SUPERIOR, "name"),
+>         title,
 >     ))
 >
 > # Super link to source code is required.
@@ -3985,7 +3982,7 @@ This will generate notes for console and markdown in the same time. For most par
 >     holder = self.SUPERIOR.SUPERIOR
 >     class_link = " [[Class]](#{:s})".format(
 >         doc.filesys.github_header("Class: {:s}.{:s}".format(
->             holder.FILEDOC.ME, holder.name,
+>             holder.FILEDOC.ME, getattr(holder, "name"),
 >         )),
 >     )
 >
@@ -4213,8 +4210,8 @@ Get text message of type hint.
 > ```python
 > # Get name recursively.
 > if (len(self.children) > 0):
->     recursive = [itr.text() for itr in self.children]
->     recursive = "[{:s}]".format(", ".join(recursive))
+>     buf = [itr.text() for itr in self.children]
+>     recursive = "[{:s}]".format(", ".join(buf))
 > else:
 >     recursive = ""
 > return "{:s}{:s}".format(self.name, recursive)
@@ -4432,6 +4429,7 @@ Parse information into document.
     * [Function: doc.statement.DescriptionDocument.parse](#function-docstatementdescriptiondocumentparse)
     * [Function: doc.statement.DescriptionDocument.decode](#function-docstatementdescriptiondocumentdecode)
   * [Class: doc.statement.ClassDescDocument](#class-docstatementclassdescdocument)
+    * [Function: doc.statement.ClassDescDocument.allocate](#function-docstatementclassdescdocumentallocate)
     * [Function: doc.statement.ClassDescDocument.decode](#function-docstatementclassdescdocumentdecode)
   * [Class: doc.statement.FuncDescDocument](#class-docstatementfuncdescdocument)
     * [Function: doc.statement.FuncDescDocument.decode](#function-docstatementfuncdescdocumentdecode)
@@ -5161,7 +5159,6 @@ Allocate children memory.
 > ```python
 > # Allocate document memory for comment lines.
 > self.memory: List[Line] = []
-> self.descs: Dict[str, str] = {}
 > ```
 
 [[TOC]](#table-of-content) [[File]](#file-docstatementpy) [[Class]](#class-docstatementdescriptiondocument)
@@ -5170,7 +5167,7 @@ Allocate children memory.
 
 ### Function: doc.statement.DescriptionDocument.parse
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L594)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L593)
 
 Parse information into document.
 
@@ -5247,7 +5244,7 @@ Parse information into document.
 
 ### Function: doc.statement.DescriptionDocument.decode
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L664)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L663)
 
 Decode list of texts into document.
 
@@ -5276,7 +5273,7 @@ Decode list of texts into document.
 
 ## Class: doc.statement.ClassDescDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L688)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L687)
 
 - Super: [doc.statement.DescriptionDocument](#class-docstatementdescriptiondocument)
 
@@ -5285,13 +5282,38 @@ Document for a description of class statement.
 [[TOC]](#table-of-content) [[File]](#file-docstatementpy)
 
 - Members:
+  * [Function: doc.statement.ClassDescDocument.allocate](#function-docstatementclassdescdocumentallocate)
   * [Function: doc.statement.ClassDescDocument.decode](#function-docstatementclassdescdocumentdecode)
+
+---
+
+### Function: doc.statement.ClassDescDocument.allocate
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L691)
+
+Allocate children memory.
+
+> **Arguments**
+> - **self**: *ClassDescDocument*
+>
+> - **\*args**: *object*
+>
+> - **\*\*kargs**: *object*
+
+> **Returns**
+
+> ```python
+> # Super.
+> DescriptionDocument.allocate(self, *args, **kargs)
+> ```
+
+[[TOC]](#table-of-content) [[File]](#file-docstatementpy) [[Class]](#class-docstatementclassdescdocument)
 
 ---
 
 ### Function: doc.statement.ClassDescDocument.decode
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L692)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L710)
 
 Decode list of texts into document.
 
@@ -5311,7 +5333,7 @@ Decode list of texts into document.
 > ```python
 > # Translate parsed text into paragraphs.
 > try:
->     self.descs["paragraphs"] = paragraphize(texts)
+>     self.title = paragraphize(texts)
 > except:
 >     # Extend paragraph error report.
 >     error(
@@ -5328,7 +5350,7 @@ Decode list of texts into document.
 
 ## Class: doc.statement.FuncDescDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L724)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L742)
 
 - Super: [doc.statement.DescriptionDocument](#class-docstatementdescriptiondocument)
 
@@ -5346,7 +5368,7 @@ Document for a description of function statement.
 
 ### Function: doc.statement.FuncDescDocument.decode
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L728)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L746)
 
 Decode list of texts into document.
 
@@ -5384,7 +5406,7 @@ Decode list of texts into document.
 >
 > # Translate parsed text into paragraphs.
 > try:
->     self.descs["paragraphs_1"] = paragraphize(texts_1)
+>     self.title = paragraphize(texts_1)
 > except:
 >     # Extend paragraph error report.
 >     error(
@@ -5396,7 +5418,7 @@ Decode list of texts into document.
 >
 > # Translate parsed text into paragraphs.
 > try:
->     self.descs["paragraphs_2"] = paragraphize(texts_2)
+>     self.attach = paragraphize(texts_2)
 > except:
 >     # Extend paragraph error report.
 >     error(
@@ -5407,8 +5429,8 @@ Decode list of texts into document.
 >     raise RuntimeError
 >
 > # Save argument and return description for later review.
-> self.descs["args"] = texts_args
-> self.descs["returns"] = texts_returns
+> self.texts_args = texts_args
+> self.texts_returns = texts_returns
 > ```
 
 [[TOC]](#table-of-content) [[File]](#file-docstatementpy) [[Class]](#class-docstatementfuncdescdocument)
@@ -5417,7 +5439,7 @@ Decode list of texts into document.
 
 ### Function: doc.statement.FuncDescDocument.review
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L793)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L811)
 
 Review argument and return.
 
@@ -5450,7 +5472,7 @@ Review argument and return.
 
 ### Function: doc.statement.FuncDescDocument.review\_args
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L818)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L836)
 
 Review argument and return.
 
@@ -5469,7 +5491,7 @@ Review argument and return.
 
 > ```python
 > # Get texts.
-> texts = self.descs["args"]
+> texts = self.texts_args
 >
 > # Argument description has constant head.
 > if (texts[0] == "Args" and texts[1] == "----"):
@@ -5486,12 +5508,13 @@ Review argument and return.
 > ptr = 0
 > texts = texts[2:]
 > num = 0
-> buf = []
+> self.arg_names = []
+> self.arg_hints = []
+> self.arg_descs: List[List[List[str]]] = []
 > while (ptr < len(texts)):
 >     # Get argument name.
 >     name = texts[ptr][2:]
 >     ptr += 1
->     attach = []
 >
 >     # Get definition.
 >     if (num == len(argdoc.items)):
@@ -5518,25 +5541,27 @@ Review argument and return.
 >             given, name,
 >         )
 >         raise RuntimeError
->     buf.append(name)
->     buf.append(hint.text())
+>     self.arg_names.append(name)
+>     self.arg_hints.append(hint.text())
 >
 >     # Some arguments have no attachment.
 >     if (name in ("self", "cls", "*args", "**kargs")):
+>         self.arg_descs.append([])
 >         continue
 >     else:
 >         pass
 >
 >     # Get attachment.
+>     buf = []
 >     while (ptr < len(texts)):
 >         if (texts[ptr][0].isspace()):
 >             pass
 >         else:
 >             break
->         attach.append(texts[ptr][UNIT:])
+>         buf.append(texts[ptr][UNIT:])
 >         ptr += 1
 >     try:
->         attach = paragraphize(attach)
+>         attach = paragraphize(buf)
 >     except:
 >         error(
 >             "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
@@ -5544,8 +5569,8 @@ Review argument and return.
 >             self.FILEDOC.PATH, "line {:d}".format(self.row),
 >         )
 >         raise RuntimeError
->     buf.append(attach)
-> self.descs["args"] = buf
+>     self.arg_descs.append(attach)
+> del self.texts_args
 >
 > # Check if there is argument without description.
 > if (num == len(argdoc.items)):
@@ -5566,7 +5591,7 @@ Review argument and return.
 
 ### Function: doc.statement.FuncDescDocument.review\_returns
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L928)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/statement.py#L949)
 
 Review argument and return.
 
@@ -5585,7 +5610,7 @@ Review argument and return.
 
 > ```python
 > # Get texts.
-> texts = self.descs["returns"]
+> texts = self.texts_returns
 >
 > # Argument description has constant head.
 > if (texts[0] == "Returns" and texts[1] == "-------"):
@@ -5600,25 +5625,26 @@ Review argument and return.
 >
 > # Decode return document into a list a return type hints.
 > if (returndoc.name == "None"):
->     returndoc = []
+>     returnlist = []
 > elif (returndoc.name == "MultiReturn"):
->     returndoc = returndoc.children
+>     returnlist = returndoc.children
 > else:
->     returndoc = [returndoc]
+>     returnlist = [returndoc]
 >
 > # Traverse later contents.
 > ptr = 0
 > texts = texts[2:]
 > num = 0
-> buf = []
+> self.return_names = []
+> self.return_hints = []
+> self.return_descs = []
 > while (ptr < len(texts)):
 >     # Get argument name.
 >     name = texts[ptr][2:]
 >     ptr += 1
->     attach = []
 >
 >     # Get definition.
->     if (num == len(returndoc)):
+>     if (num == len(returnlist)):
 >         error(
 >             "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
 >             " defined returns are less than described returns.",
@@ -5627,21 +5653,22 @@ Review argument and return.
 >         raise RuntimeError
 >     else:
 >         pass
->     hint = returndoc[num]
+>     hint = returnlist[num]
 >     num += 1
->     buf.append(name)
->     buf.append(hint.text())
+>     self.return_names.append(name)
+>     self.return_hints.append(hint.text())
 >
 >     # Get attachment.
+>     buf = []
 >     while (ptr < len(texts)):
 >         if (texts[ptr][0].isspace()):
 >             pass
 >         else:
 >             break
->         attach.append(texts[ptr][UNIT:])
+>         buf.append(texts[ptr][UNIT:])
 >         ptr += 1
 >     try:
->         attach = paragraphize(attach)
+>         attach = paragraphize(buf)
 >     except:
 >         error(
 >             "At \"{:s}\", \033[31;1;47;1m{:s}\033[0m," \
@@ -5649,11 +5676,11 @@ Review argument and return.
 >             self.FILEDOC.PATH, "line {:d}".format(self.row),
 >         )
 >         raise RuntimeError
->     buf.append(attach)
-> self.descs["returns"] = buf
+>     self.return_descs.append(attach)
+> del self.texts_returns
 >
 > # Check if there is argument without description.
-> if (num == len(returndoc)):
+> if (num == len(returnlist)):
 >     pass
 > else:
 >     error(
