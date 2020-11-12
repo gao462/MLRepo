@@ -180,6 +180,7 @@ class DirectoryDocument(FileSysDocument):
 
         # File system should trace definitions.
         self.classes: Dict[str, str] = {}
+        self.classdocs: Dict[str, ClassDocument] = {}
 
     def parse(self: DirectoryDocument, *args: object, **kargs: object) -> None:
         r"""
@@ -270,6 +271,8 @@ class DirectoryDocument(FileSysDocument):
         for dirdoc in self.subdirs:
             for key, location in dirdoc.classes.items():
                 self.classes[key] = location
+            for key, holder in dirdoc.classdocs.items():
+                self.classdocs[key] = holder
 
         # Register definitions from files.
         for filedoc in self.files:
@@ -278,6 +281,8 @@ class DirectoryDocument(FileSysDocument):
                     self.GITHUB, filedoc.PATH, row,
                 )
                 self.classes["{:s}.{:s}".format(filedoc.ME, key)] = location
+            for key, holder in filedoc.classdocs.items():
+                self.classdocs["{:s}.{:s}".format(filedoc.ME, key)] = holder
 
     def notes(self: DirectoryDocument, *args: object, **kargs: object) -> None:
         r"""
@@ -373,6 +378,10 @@ class FileDocument(FileSysDocument):
         self.ME = self.PATH.replace(os.path.join(" ", " ")[1:-1], ".")
         self.ME, _ = os.path.splitext(self.ME)
 
+        # File system should trace definitions.
+        self.classes: Dict[str, str] = {}
+        self.classdocs: Dict[str, ClassDocument] = {}
+
         # Set code to parse on.
         self.code = Code()
 
@@ -433,6 +442,7 @@ class FileDocument(FileSysDocument):
                     self.classes[component.name] = "#L{:d}".format(
                         component.row,
                     )
+                    self.classdocs[component.name] = component
                 else:
                     pass
 
@@ -1306,6 +1316,18 @@ class ClassDocument(CodeDocument):
             print(dirpath, modname, classname)
             raise NotImplementedError
 
+        # Check inheritance.
+        if (len(modname) > 0):
+            full = "{:s}.{:s}".format(modname, classname)
+            superdoc = getattr(self.FILEDOC.ROOTDOC, "classdocs")[full]
+            self.check_inheritance(
+                superdoc,
+                myname="{:s}.{:s}".format(self.FILEDOC.ME, self.name),
+                suname=full,
+            )
+        else:
+            pass
+
         # Title is class name.
         self.markdown.extend(["---", ""])
         self.markdown.append("## Class: {:s}.{:s}".format(
@@ -1362,6 +1384,262 @@ class ClassDocument(CodeDocument):
 
         # Clear children notes for memory efficency.
         self.body.markdown.clear()
+
+    def check_inheritance(
+        self: ClassDocument, superdoc: ClassDocument, *args: object,
+        myname: str, suname: str, **kargs: object,
+    ) -> None:
+        r"""
+        Ensure inheritance.
+
+        Args
+        ----
+        - self
+        - superdoc
+            Document of super class.
+        - *args
+        - myname
+            Focusing class name.
+        - suname
+            Super class name.
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Get functions of mine.
+        self.myfuncs = {}
+        for component in self.body.components:
+            if (isinstance(component, FunctionDocument)):
+                self.myfuncs[component.name] = component
+            else:
+                pass
+
+        # Get functions of super.
+        self.sufuncs = {}
+        for component in superdoc.body.components:
+            if (isinstance(component, FunctionDocument)):
+                self.sufuncs[component.name] = component
+            else:
+                pass
+
+        # Get override items.
+        override = list(set(self.myfuncs.keys()) & set(self.sufuncs.keys()))
+
+        # Get inheritance checking items.
+        for itr in override:
+            func_consistency(
+                self.myfuncs[itr], su=self.sufuncs[itr], myname=myname,
+                suname=suname,
+            )
+
+
+def func_consistency(
+    my: FunctionDocument, *args: object, su: FunctionDocument,
+    myname: str, suname: str, **kargs: object,
+) -> None:
+    r"""
+    Ensure consistency.
+
+    Args
+    ----
+    - my
+        Focusing class function document.
+    - *args
+    - su
+        Super class function document.
+    - myname
+        Focusing class name.
+    - suname
+        Super class name.
+    - **kargs
+
+    Returns
+    -------
+
+    """
+    # Get esssential items.
+    my_title = my.description.title
+    my_arg_names = my.description.arg_names
+    my_arg_descs = my.description.arg_descs
+    my_ret_names = my.description.return_names
+    my_ret_descs = my.description.return_descs
+    my_attach = my.description.attach
+    su_title = su.description.title
+    su_arg_names = su.description.arg_names
+    su_arg_descs = su.description.arg_descs
+    su_ret_names = su.description.return_names
+    su_ret_descs = su.description.return_descs
+    su_attach = su.description.attach
+
+    # Super texts should be a subset of my texts.
+    if (is_subparagraphs(su_title, my_title)):
+        pass
+    else:
+        error(
+            "Title text of \"{:s}.{:s}\" should a subset of" \
+            " \"{:s}.{:s}\".",
+            myname, my.name, suname, su.name,
+        )
+        raise RuntimeError
+    if (is_subparagraphs(su_attach, my_attach)):
+        pass
+    else:
+        error(
+            "Attached text of \"{:s}.{:s}\" should a subset of" \
+            " \"{:s}.{:s}\".",
+            myname, my.name, suname, su.name,
+        )
+        raise RuntimeError
+
+    # Break ordered and keyword things.
+    my_arg_break = order_key_argbreak(my_arg_names)
+    su_arg_break = order_key_argbreak(su_arg_names)
+    my_argord_names = my_arg_names[:my_arg_break - 1]
+    my_argkey_names = my_arg_names[my_arg_break + 1:-1]
+    my_argord_descs = my_arg_descs[:my_arg_break - 1]
+    my_argkey_descs = my_arg_descs[my_arg_break + 1:-1]
+    su_argord_names = su_arg_names[:my_arg_break - 1]
+    su_argkey_names = su_arg_names[my_arg_break + 1:-1]
+    su_argord_descs = su_arg_descs[:my_arg_break - 1]
+    su_argkey_descs = su_arg_descs[my_arg_break + 1:-1]
+
+    # Arguments and returns should also be subsets.
+    if (is_subdefs(
+        su_argord_names, my_argord_names,
+        su_argord_descs, my_argord_descs,
+    )):
+        pass
+    else:
+        error(
+            "Ordered argument of \"{:s}.{:s}\" should a subset of" \
+            " \"{:s}.{:s}\".",
+            myname, my.name, suname, su.name,
+        )
+        raise RuntimeError
+    if (is_subdefs(
+        su_argkey_names, my_argkey_names,
+        su_argkey_descs, my_argkey_descs,
+    )):
+        pass
+    else:
+        error(
+            "Keyword argument of \"{:s}.{:s}\" should a subset of" \
+            " \"{:s}.{:s}\".",
+            myname, my.name, suname, su.name,
+        )
+        raise RuntimeError
+    if (is_subdefs(
+        su_ret_names, my_ret_names,
+        su_ret_descs, my_ret_descs,
+    )):
+        pass
+    else:
+        error(
+            "Return of \"{:s}.{:s}\" should a subset of" \
+            " \"{:s}.{:s}\".",
+            myname, my.name, suname, su.name,
+        )
+        raise RuntimeError
+
+
+def is_subparagraphs(
+    small: List[List[str]], large: List[List[str]],
+    *args: object, **kargs: object,
+) -> bool:
+    r"""
+    Is a subset list of paragraphs.
+
+    Args
+    ----
+    - small
+        Smaller paragraphs.
+    - large
+        Larger paragraphs.
+    - *args
+    - **kargs
+
+    Returns
+    -------
+    - flag
+        If True, smaller one is subset of larger one.
+
+    """
+    # Check line by line.
+    for i in range(len(small)):
+        if (i < len(large) and " ".join(small[i]) == " ".join(large[i])):
+            pass
+        else:
+            return False
+    return True
+
+
+def is_subdefs(
+    small1: List[str], large1: List[str],
+    small2: List[List[List[str]]], large2: List[List[List[str]]],
+    *args: object, **kargs: object,
+) -> bool:
+    r"""
+    Is a subset list of paragraphs.
+
+    Args
+    ----
+    - small1
+        Smaller names.
+    - large1
+        Larger names.
+    - small2
+        Smaller paragraphs.
+    - large2
+        Larger paragraphs.
+    - *args
+    - **kargs
+
+    Returns
+    -------
+    - flag
+        If True, smaller one is subset of larger one.
+
+    """
+    # Check name by name.
+    for i in range(len(small1)):
+        if (i < len(large1) and small1[i] == large1[i]):
+            if (is_subparagraphs(small2[i], large2[i])):
+                pass
+            else:
+                return False
+        else:
+            return False
+    return True
+
+
+def order_key_argbreak(
+    names: List[str], *args: object, **kargs: object,
+) -> int:
+    r"""
+    Break position between ordered and keyword arguments
+
+    Args
+    ----
+    - names
+        Argument names.
+    - *args
+    - **kargs
+
+    Returns
+    -------
+    - i
+        Break index.
+
+    """
+    # Traverse to find.
+    for i, itr in enumerate(names):
+        if (itr == "*args"):
+            return i
+        else:
+            pass
+    return len(names)
 
 
 # =============================================================================
@@ -1482,6 +1760,14 @@ class FunctionDocument(CodeDocument):
         For most part of the notes, they will share the same Markdown syntex
         except that console notes will use ASCII color codes for some keywords.
         """
+        # In deep level there is no need to provide details.
+        if (self.HIERARCHY in (GLOBAL, CLASS)):
+            pass
+        else:
+            self.markdown.append("def {:s}(...):".format(self.name))
+            self.markdown.append("{:s}...;".format(" " * UNIT))
+            return
+
         # Title is function name.
         self.markdown.extend(["---", ""])
         if (self.HIERARCHY == GLOBAL):
@@ -2991,8 +3277,8 @@ class IntroDocument(CommentDocument):
         """
         # Statement note is just its code lines without indents.
         self.markdown.append("## Section: {:s}".format(self.title))
-        self.markdown.append("")
         for itr in self.paragraphs:
+            self.markdown.append("")
             self.markdown.append(" ".join(itr))
 
         # Return to TOC, file.

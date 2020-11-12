@@ -48,6 +48,11 @@
       * [Function: doc.main.ClassDocument.allocate](#function-docmainclassdocumentallocate)
       * [Function: doc.main.ClassDocument.parse](#function-docmainclassdocumentparse)
       * [Function: doc.main.ClassDocument.notes](#function-docmainclassdocumentnotes)
+      * [Function: doc.main.ClassDocument.check\_inheritance](#function-docmainclassdocumentcheck_inheritance)
+    * [Function: doc.main.func\_consistency](#function-docmainfunc_consistency)
+    * [Function: doc.main.is\_subparagraphs](#function-docmainis_subparagraphs)
+    * [Function: doc.main.is\_subdefs](#function-docmainis_subdefs)
+    * [Function: doc.main.order\_key\_argbreak](#function-docmainorder_key_argbreak)
   * [Section: Function Code Document Objects](#section-function-code-document-objects)
     * [Class: doc.main.FunctionDocument](#class-docmainfunctiondocument)
       * [Function: doc.main.FunctionDocument.allocate](#function-docmainfunctiondocumentallocate)
@@ -218,6 +223,11 @@
     * [Function: doc.main.ClassDocument.allocate](#function-docmainclassdocumentallocate)
     * [Function: doc.main.ClassDocument.parse](#function-docmainclassdocumentparse)
     * [Function: doc.main.ClassDocument.notes](#function-docmainclassdocumentnotes)
+    * [Function: doc.main.ClassDocument.check\_inheritance](#function-docmainclassdocumentcheck_inheritance)
+  * [Function: doc.main.func\_consistency](#function-docmainfunc_consistency)
+  * [Function: doc.main.is\_subparagraphs](#function-docmainis_subparagraphs)
+  * [Function: doc.main.is\_subdefs](#function-docmainis_subdefs)
+  * [Function: doc.main.order\_key\_argbreak](#function-docmainorder_key_argbreak)
 * [Section: Function Code Document Objects](#section-function-code-document-objects)
   * [Class: doc.main.FunctionDocument](#class-docmainfunctiondocument)
     * [Function: doc.main.FunctionDocument.allocate](#function-docmainfunctiondocumentallocate)
@@ -367,9 +377,13 @@ This will generate notes for console and markdown in the same time. For most par
 ## Section: File System Document Objects
 
 Documentize tokenized code files, and check style rules in the meanwhile.
+
 In this level, a document directory controller will traverse every folder in MLRepo. At each folder, controller will identify all python files, and generate their markdown notes by their file controllers. Generated notes is then merged into README file inside current directory.
+
 In the README file, super links to exact Github code position are also created for global or global-class level classes, functions, and blocks. Styled code snaps for those parts are also attached with them.
+
 For function or class inside a function, local-class or branch-of-block, it will be compressed into its name definition. Arguments or codes of it will be replaced by "..." which can be used as python ellipsis for code.
+
 After the generation, a strict description matching is applied on classes with inheritance relationships so that inherited classes only extends function argument names and description details of inheriting classes. This also autofills the exact Github code positions for module imports and classes.
 
 [[TOC]](#table-of-content) [[File]](#file-docmainpy)
@@ -489,6 +503,7 @@ Initialize.
 >
 > # File system should trace definitions.
 > self.classes: Dict[str, str] = {}
+> self.classdocs: Dict[str, ClassDocument] = {}
 > ```
 
 [[TOC]](#table-of-content) [[File]](#file-docmainpy) [[Class]](#class-docmaindirectorydocument)
@@ -497,7 +512,7 @@ Initialize.
 
 ### Function: doc.main.DirectoryDocument.parse
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L184)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L185)
 
 Parse content.
 
@@ -573,7 +588,7 @@ Parse content.
 
 ### Function: doc.main.DirectoryDocument.register
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L253)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L254)
 
 Register definitions.
 
@@ -591,6 +606,8 @@ Register definitions.
 > for dirdoc in self.subdirs:
 >     for key, location in dirdoc.classes.items():
 >         self.classes[key] = location
+>     for key, holder in dirdoc.classdocs.items():
+>         self.classdocs[key] = holder
 >
 > # Register definitions from files.
 > for filedoc in self.files:
@@ -599,6 +616,8 @@ Register definitions.
 >             self.GITHUB, filedoc.PATH, row,
 >         )
 >         self.classes["{:s}.{:s}".format(filedoc.ME, key)] = location
+>     for key, holder in filedoc.classdocs.items():
+>         self.classdocs["{:s}.{:s}".format(filedoc.ME, key)] = holder
 > ```
 
 [[TOC]](#table-of-content) [[File]](#file-docmainpy) [[Class]](#class-docmaindirectorydocument)
@@ -607,7 +626,7 @@ Register definitions.
 
 ### Function: doc.main.DirectoryDocument.notes
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L282)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L287)
 
 Generate notes.
 
@@ -652,7 +671,7 @@ This will generate notes for console and markdown in the same time. For most par
 
 ### Function: doc.main.DirectoryDocument.root
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L321)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L326)
 
 Root specific operations.
 
@@ -676,7 +695,7 @@ Root specific operations.
 
 ## Class: doc.main.FileDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L339)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L344)
 
 - Super: [doc.main.FileSysDocument](#class-docmainfilesysdocument)
 
@@ -694,7 +713,7 @@ Document for a file.
 
 ### Function: doc.main.FileDocument.\_\_init\_\_
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L343)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L348)
 
 Initialize.
 
@@ -728,6 +747,10 @@ Initialize.
 > self.ME = self.PATH.replace(os.path.join(" ", " ")[1:-1], ".")
 > self.ME, _ = os.path.splitext(self.ME)
 >
+> # File system should trace definitions.
+> self.classes: Dict[str, str] = {}
+> self.classdocs: Dict[str, ClassDocument] = {}
+>
 > # Set code to parse on.
 > self.code = Code()
 >
@@ -748,7 +771,7 @@ Initialize.
 
 ### Function: doc.main.FileDocument.parse
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L389)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L398)
 
 Parse content.
 
@@ -778,7 +801,7 @@ Parse content.
 
 ### Function: doc.main.FileDocument.register\_classes
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L412)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L421)
 
 Register defined classes for later consistency check.
 
@@ -800,6 +823,7 @@ Register defined classes for later consistency check.
 >             self.classes[component.name] = "#L{:d}".format(
 >                 component.row,
 >             )
+>             self.classdocs[component.name] = component
 >         else:
 >             pass
 > ```
@@ -810,7 +834,7 @@ Register defined classes for later consistency check.
 
 ### Function: doc.main.FileDocument.notes
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L439)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L449)
 
 Generate notes.
 
@@ -849,7 +873,7 @@ This will generate notes for console and markdown in the same time. For most par
 
 ## Function: doc.main.toc
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L473)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L483)
 
 Generate table of content from given notes.
 
@@ -919,7 +943,7 @@ Generate table of content from given notes.
 
 ## Function: doc.main.github\_header
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L535)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L545)
 
 Get a Github header reference.
 
@@ -962,7 +986,7 @@ Code document on codes of in a file.
 
 ## Block: doc.main: Hierarchy constants.
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L574)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L584)
 
 > ```python
 > # Hierarchy constants.
@@ -979,7 +1003,7 @@ Code document on codes of in a file.
 
 ## Class: doc.main.CodeDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L582)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L592)
 
 - Super: [doc.main.Document](#class-docmaindocument)
 
@@ -996,7 +1020,7 @@ Document for code prototype.
 
 ### Function: doc.main.CodeDocument.\_\_init\_\_
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L586)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L596)
 
 Initialize.
 
@@ -1045,7 +1069,7 @@ Initialize.
 
 ### Function: doc.main.CodeDocument.allocate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L625)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L635)
 
 Allocate children memory.
 
@@ -1070,7 +1094,7 @@ Allocate children memory.
 
 ### Function: doc.main.CodeDocument.parse
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L643)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L653)
 
 Parse information into document.
 
@@ -1105,7 +1129,7 @@ Code document on global level. It contains module import document which traces a
 
 ## Class: doc.main.ModuleDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L678)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L688)
 
 - Super: [doc.main.CodeDocument](#class-docmaincodedocument)
 
@@ -1122,7 +1146,7 @@ Document for module imports.
 
 ### Function: doc.main.ModuleDocument.allocate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L682)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L692)
 
 Allocate children memory.
 
@@ -1184,7 +1208,7 @@ Allocate children memory.
 
 ### Function: doc.main.ModuleDocument.parse
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L737)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L747)
 
 Parse information into document.
 
@@ -1291,7 +1315,7 @@ Parse information into document.
 
 ### Function: doc.main.ModuleDocument.notes
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L837)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L847)
 
 Generate notes.
 
@@ -1344,7 +1368,7 @@ This will generate notes for console and markdown in the same time. For most par
 
 ## Class: doc.main.GlobalDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L885)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L895)
 
 - Super: [doc.main.CodeDocument](#class-docmaincodedocument)
 
@@ -1361,7 +1385,7 @@ Document for global level codes.
 
 ### Function: doc.main.GlobalDocument.allocate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L889)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L899)
 
 Allocate children memory.
 
@@ -1385,7 +1409,7 @@ Allocate children memory.
 
 ### Function: doc.main.GlobalDocument.parse
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L906)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L916)
 
 Parse information into document.
 
@@ -1432,7 +1456,7 @@ Parse information into document.
 
 ### Function: doc.main.GlobalDocument.notes
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L946)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L956)
 
 Generate notes.
 
@@ -1472,6 +1496,7 @@ This will generate notes for console and markdown in the same time. For most par
 ## Section: Series Code Document Objects
 
 Code document for a series of codes. It works as a midterm contatenation for class definitions, function definitions and code blocks with the same indent level, thus it contains nothing in memory except a list of documents attached to it.
+
 It will mutually import with ClassDocument, FunctionDocument, OPBlockDocument. Thus, they four are aggregated together in this file.
 
 [[TOC]](#table-of-content) [[File]](#file-docmainpy)
@@ -1480,7 +1505,7 @@ It will mutually import with ClassDocument, FunctionDocument, OPBlockDocument. T
 
 ## Class: doc.main.SeriesDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L999)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1009)
 
 - Super: [doc.main.CodeDocument](#class-docmaincodedocument)
 
@@ -1498,7 +1523,7 @@ Document for a series of code.
 
 ### Function: doc.main.SeriesDocument.allocate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1003)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1013)
 
 Allocate children memory.
 
@@ -1527,7 +1552,7 @@ Allocate children memory.
 
 ### Function: doc.main.SeriesDocument.parse
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1025)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1035)
 
 Parse information into document.
 
@@ -1587,7 +1612,7 @@ Parse information into document.
 
 ### Function: doc.main.SeriesDocument.dedent
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1078)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1088)
 
 Check if a dedent is happening.
 
@@ -1634,7 +1659,7 @@ Check if a dedent is happening.
 
 ### Function: doc.main.SeriesDocument.notes
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1118)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1128)
 
 Generate notes.
 
@@ -1680,7 +1705,7 @@ Code document for a definition of class. It can mutually import with SeriesDocum
 
 ## Class: doc.main.ClassDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1164)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1174)
 
 - Super: [doc.main.CodeDocument](#class-docmaincodedocument)
 
@@ -1692,12 +1717,13 @@ Document for a definition of class.
   * [Function: doc.main.ClassDocument.allocate](#function-docmainclassdocumentallocate)
   * [Function: doc.main.ClassDocument.parse](#function-docmainclassdocumentparse)
   * [Function: doc.main.ClassDocument.notes](#function-docmainclassdocumentnotes)
+  * [Function: doc.main.ClassDocument.check\_inheritance](#function-docmainclassdocumentcheck_inheritance)
 
 ---
 
 ### Function: doc.main.ClassDocument.allocate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1168)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1178)
 
 Allocate children memory.
 
@@ -1742,7 +1768,7 @@ Allocate children memory.
 
 ### Function: doc.main.ClassDocument.parse
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1206)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1216)
 
 Parse information into document.
 
@@ -1795,7 +1821,7 @@ Parse information into document.
 
 ### Function: doc.main.ClassDocument.notes
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1252)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1262)
 
 Generate notes.
 
@@ -1850,6 +1876,18 @@ This will generate notes for console and markdown in the same time. For most par
 >     # Get Github page.
 >     print(dirpath, modname, classname)
 >     raise NotImplementedError
+>
+> # Check inheritance.
+> if (len(modname) > 0):
+>     full = "{:s}.{:s}".format(modname, classname)
+>     superdoc = getattr(self.FILEDOC.ROOTDOC, "classdocs")[full]
+>     self.check_inheritance(
+>         superdoc,
+>         myname="{:s}.{:s}".format(self.FILEDOC.ME, self.name),
+>         suname=full,
+>     )
+> else:
+>     pass
 >
 > # Title is class name.
 > self.markdown.extend(["---", ""])
@@ -1911,6 +1949,305 @@ This will generate notes for console and markdown in the same time. For most par
 
 [[TOC]](#table-of-content) [[File]](#file-docmainpy) [[Class]](#class-docmainclassdocument)
 
+---
+
+### Function: doc.main.ClassDocument.check\_inheritance
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1388)
+
+Ensure inheritance.
+
+> **Arguments**
+> - *self*: `ClassDocument`
+>
+> - *superdoc*: `ClassDocument`
+>
+>   Document of super class.
+>
+> - *\*args*: `object`
+>
+> - *myname*: `str`
+>
+>   Focusing class name.
+>
+> - *suname*: `str`
+>
+>   Super class name.
+>
+> - *\*\*kargs*: `object`
+
+> **Returns**
+
+> ```python
+> # Get functions of mine.
+> self.myfuncs = {}
+> for component in self.body.components:
+>     if (isinstance(component, FunctionDocument)):
+>         self.myfuncs[component.name] = component
+>     else:
+>         pass
+>
+> # Get functions of super.
+> self.sufuncs = {}
+> for component in superdoc.body.components:
+>     if (isinstance(component, FunctionDocument)):
+>         self.sufuncs[component.name] = component
+>     else:
+>         pass
+>
+> # Get override items.
+> override = list(set(self.myfuncs.keys()) & set(self.sufuncs.keys()))
+>
+> # Get inheritance checking items.
+> for itr in override:
+>     func_consistency(
+>         self.myfuncs[itr], su=self.sufuncs[itr], myname=myname,
+>         suname=suname,
+>     )
+> ```
+
+[[TOC]](#table-of-content) [[File]](#file-docmainpy) [[Class]](#class-docmainclassdocument)
+
+---
+
+## Function: doc.main.func\_consistency
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1438)
+
+Ensure consistency.
+
+> **Arguments**
+> - *my*: `FunctionDocument`
+>
+>   Focusing class function document.
+>
+> - *\*args*: `object`
+>
+> - *su*: `FunctionDocument`
+>
+>   Super class function document.
+>
+> - *myname*: `str`
+>
+>   Focusing class name.
+>
+> - *suname*: `str`
+>
+>   Super class name.
+>
+> - *\*\*kargs*: `object`
+
+> **Returns**
+
+> ```python
+> # Get esssential items.
+> my_title = my.description.title
+> my_arg_names = my.description.arg_names
+> my_arg_descs = my.description.arg_descs
+> my_ret_names = my.description.return_names
+> my_ret_descs = my.description.return_descs
+> my_attach = my.description.attach
+> su_title = su.description.title
+> su_arg_names = su.description.arg_names
+> su_arg_descs = su.description.arg_descs
+> su_ret_names = su.description.return_names
+> su_ret_descs = su.description.return_descs
+> su_attach = su.description.attach
+>
+> # Super texts should be a subset of my texts.
+> if (is_subparagraphs(su_title, my_title)):
+>     pass
+> else:
+>     error(
+>         "Title text of \"{:s}.{:s}\" should a subset of" \
+>         " \"{:s}.{:s}\".",
+>         myname, my.name, suname, su.name,
+>     )
+>     raise RuntimeError
+> if (is_subparagraphs(su_attach, my_attach)):
+>     pass
+> else:
+>     error(
+>         "Attached text of \"{:s}.{:s}\" should a subset of" \
+>         " \"{:s}.{:s}\".",
+>         myname, my.name, suname, su.name,
+>     )
+>     raise RuntimeError
+>
+> # Break ordered and keyword things.
+> my_arg_break = order_key_argbreak(my_arg_names)
+> su_arg_break = order_key_argbreak(su_arg_names)
+> my_argord_names = my_arg_names[:my_arg_break - 1]
+> my_argkey_names = my_arg_names[my_arg_break + 1:-1]
+> my_argord_descs = my_arg_descs[:my_arg_break - 1]
+> my_argkey_descs = my_arg_descs[my_arg_break + 1:-1]
+> su_argord_names = su_arg_names[:my_arg_break - 1]
+> su_argkey_names = su_arg_names[my_arg_break + 1:-1]
+> su_argord_descs = su_arg_descs[:my_arg_break - 1]
+> su_argkey_descs = su_arg_descs[my_arg_break + 1:-1]
+>
+> # Arguments and returns should also be subsets.
+> if (is_subdefs(
+>     su_argord_names, my_argord_names,
+>     su_argord_descs, my_argord_descs,
+> )):
+>     pass
+> else:
+>     error(
+>         "Ordered argument of \"{:s}.{:s}\" should a subset of" \
+>         " \"{:s}.{:s}\".",
+>         myname, my.name, suname, su.name,
+>     )
+>     raise RuntimeError
+> if (is_subdefs(
+>     su_argkey_names, my_argkey_names,
+>     su_argkey_descs, my_argkey_descs,
+> )):
+>     pass
+> else:
+>     error(
+>         "Keyword argument of \"{:s}.{:s}\" should a subset of" \
+>         " \"{:s}.{:s}\".",
+>         myname, my.name, suname, su.name,
+>     )
+>     raise RuntimeError
+> if (is_subdefs(
+>     su_ret_names, my_ret_names,
+>     su_ret_descs, my_ret_descs,
+> )):
+>     pass
+> else:
+>     error(
+>         "Return of \"{:s}.{:s}\" should a subset of" \
+>         " \"{:s}.{:s}\".",
+>         myname, my.name, suname, su.name,
+>     )
+>     raise RuntimeError
+> ```
+
+[[TOC]](#table-of-content) [[File]](#file-docmainpy)
+
+---
+
+## Function: doc.main.is\_subparagraphs
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1547)
+
+Is a subset list of paragraphs.
+
+> **Arguments**
+> - *small*: `List[List[str]]`
+>
+>   Smaller paragraphs.
+>
+> - *large*: `List[List[str]]`
+>
+>   Larger paragraphs.
+>
+> - *\*args*: `object`
+>
+> - *\*\*kargs*: `object`
+
+> **Returns**
+> - *flag*: `bool`
+>
+>   If True, smaller one is subset of larger one.
+
+> ```python
+> # Check line by line.
+> for i in range(len(small)):
+>     if (i < len(large) and " ".join(small[i]) == " ".join(large[i])):
+>         pass
+>     else:
+>         return False
+> return True
+> ```
+
+[[TOC]](#table-of-content) [[File]](#file-docmainpy)
+
+---
+
+## Function: doc.main.is\_subdefs
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1578)
+
+Is a subset list of paragraphs.
+
+> **Arguments**
+> - *small1*: `List[str]`
+>
+>   Smaller names.
+>
+> - *large1*: `List[str]`
+>
+>   Larger names.
+>
+> - *small2*: `List[List[List[str]]]`
+>
+>   Smaller paragraphs.
+>
+> - *large2*: `List[List[List[str]]]`
+>
+>   Larger paragraphs.
+>
+> - *\*args*: `object`
+>
+> - *\*\*kargs*: `object`
+
+> **Returns**
+> - *flag*: `bool`
+>
+>   If True, smaller one is subset of larger one.
+
+> ```python
+> # Check name by name.
+> for i in range(len(small1)):
+>     if (i < len(large1) and small1[i] == large1[i]):
+>         if (is_subparagraphs(small2[i], large2[i])):
+>             pass
+>         else:
+>             return False
+>     else:
+>         return False
+> return True
+> ```
+
+[[TOC]](#table-of-content) [[File]](#file-docmainpy)
+
+---
+
+## Function: doc.main.order\_key\_argbreak
+
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1617)
+
+Break position between ordered and keyword arguments
+
+> **Arguments**
+> - *names*: `List[str]`
+>
+>   Argument names.
+>
+> - *\*args*: `object`
+>
+> - *\*\*kargs*: `object`
+
+> **Returns**
+> - *i*: `int`
+>
+>   Break index.
+
+> ```python
+> # Traverse to find.
+> for i, itr in enumerate(names):
+>     if (itr == "*args"):
+>         return i
+>     else:
+>         pass
+> return len(names)
+> ```
+
+[[TOC]](#table-of-content) [[File]](#file-docmainpy)
+
 ## Section: Function Code Document Objects
 
 Code document for a definition of function. It can mutually import with SeriesDocument, thus it is put in this file.
@@ -1921,7 +2258,7 @@ Code document for a definition of function. It can mutually import with SeriesDo
 
 ## Class: doc.main.FunctionDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1378)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1656)
 
 - Super: [doc.main.CodeDocument](#class-docmaincodedocument)
 
@@ -1938,7 +2275,7 @@ Document for a definition of function.
 
 ### Function: doc.main.FunctionDocument.allocate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1382)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1660)
 
 Allocate children memory.
 
@@ -1978,7 +2315,7 @@ Allocate children memory.
 
 ### Function: doc.main.FunctionDocument.parse
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1417)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1695)
 
 Parse information into document.
 
@@ -2036,7 +2373,7 @@ Parse information into document.
 
 ### Function: doc.main.FunctionDocument.notes
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1468)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1746)
 
 Generate notes.
 
@@ -2052,6 +2389,14 @@ Generate notes.
 This will generate notes for console and markdown in the same time. For most part of the notes, they will share the same Markdown syntex except that console notes will use ASCII color codes for some keywords.
 
 > ```python
+> # In deep level there is no need to provide details.
+> if (self.HIERARCHY in (GLOBAL, CLASS)):
+>     pass
+> else:
+>     self.markdown.append("def {:s}(...):".format(self.name))
+>     self.markdown.append("{:s}...;".format(" " * UNIT))
+>     return
+>
 > # Title is function name.
 > self.markdown.extend(["---", ""])
 > if (self.HIERARCHY == GLOBAL):
@@ -2188,7 +2533,7 @@ Code document for a block of operation code. It can mutually import with SeriesD
 
 ## Class: doc.main.OPBlockDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1620)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1906)
 
 - Super: [doc.main.CodeDocument](#class-docmaincodedocument)
 
@@ -2206,7 +2551,7 @@ Document for a block of operation code.
 
 ### Block: doc.main.OPBlockDocument: Define constants.
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1624)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1910)
 
 > ```python
 > # Define constants.
@@ -2219,7 +2564,7 @@ Document for a block of operation code.
 
 ### Function: doc.main.OPBlockDocument.allocate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1627)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1913)
 
 Allocate children memory.
 
@@ -2249,7 +2594,7 @@ Allocate children memory.
 
 ### Function: doc.main.OPBlockDocument.parse
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1652)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1938)
 
 Parse information into document.
 
@@ -2287,7 +2632,7 @@ Parse information into document.
 
 ### Function: doc.main.OPBlockDocument.notes
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1683)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1969)
 
 Generate notes.
 
@@ -2394,7 +2739,7 @@ Code document for function related codes. This only contains elements of a funct
 
 ## Class: doc.main.TypeHintDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1791)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2077)
 
 - Super: [doc.main.CodeDocument](#class-docmaincodedocument)
 
@@ -2412,7 +2757,7 @@ Document for type hint definition.
 
 ### Function: doc.main.TypeHintDocument.allocate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1795)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2081)
 
 Allocate children memory.
 
@@ -2436,7 +2781,7 @@ Allocate children memory.
 
 ### Function: doc.main.TypeHintDocument.parse
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1814)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2100)
 
 Parse information into document.
 
@@ -2520,7 +2865,7 @@ Parse information into document.
 
 ### Function: doc.main.TypeHintDocument.parse\_type
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1891)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2177)
 
 Parse information (type) into document.
 
@@ -2557,7 +2902,7 @@ Parse information (type) into document.
 
 ### Function: doc.main.TypeHintDocument.text
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1920)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2206)
 
 Get text message of type hint.
 
@@ -2589,7 +2934,7 @@ Get text message of type hint.
 
 ## Class: doc.main.ArgumentDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1945)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2231)
 
 - Super: [doc.main.CodeDocument](#class-docmaincodedocument)
 
@@ -2606,7 +2951,7 @@ Document for argument definition.
 
 ### Function: doc.main.ArgumentDocument.\_\_init\_\_
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1949)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2235)
 
 Initialize.
 
@@ -2656,7 +3001,7 @@ Initialize.
 
 ### Function: doc.main.ArgumentDocument.allocate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L1987)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2273)
 
 Allocate children memory.
 
@@ -2680,7 +3025,7 @@ Allocate children memory.
 
 ### Function: doc.main.ArgumentDocument.parse
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2006)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2292)
 
 Parse information into document.
 
@@ -2769,6 +3114,7 @@ Parse information into document.
 ## Section: Block Code Document Objects
 
 Code document on block level. There are several kinds of block documents, but they all share the same workflow.
+
 A block often start with several comments lines, except that in a branch with only one block, it may have no comments.
 
 [[TOC]](#table-of-content) [[File]](#file-docmainpy)
@@ -2777,7 +3123,7 @@ A block often start with several comments lines, except that in a branch with on
 
 ## Class: doc.main.BlockDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2105)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2391)
 
 - Super: [doc.main.CodeDocument](#class-docmaincodedocument)
 
@@ -2795,7 +3141,7 @@ Document for a block of code prototype.
 
 ### Function: doc.main.BlockDocument.allocate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2109)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2395)
 
 Allocate children memory.
 
@@ -2823,7 +3169,7 @@ Allocate children memory.
 
 ### Function: doc.main.BlockDocument.allocate\_statements
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2132)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2418)
 
 Allocate statement children memory.
 
@@ -2848,7 +3194,7 @@ Allocate statement children memory.
 
 ### Function: doc.main.BlockDocument.parse
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2152)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2438)
 
 Parse information into document.
 
@@ -2880,7 +3226,7 @@ Parse information into document.
 
 ### Function: doc.main.BlockDocument.parse\_statements
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2177)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2463)
 
 Parse all statements of the document.
 
@@ -2905,7 +3251,7 @@ Parse all statements of the document.
 
 ## Class: doc.main.ImportBlockDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2198)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2484)
 
 - Super: [doc.main.BlockDocument](#class-docmainblockdocument)
 
@@ -2924,7 +3270,7 @@ Document for a block of import code.
 
 ### Function: doc.main.ImportBlockDocument.allocate\_statements
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2202)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2488)
 
 Allocate statement children memory.
 
@@ -2953,7 +3299,7 @@ Allocate statement children memory.
 
 ### Function: doc.main.ImportBlockDocument.parse\_statements
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2226)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2512)
 
 Parse all statements of the document.
 
@@ -2997,7 +3343,7 @@ Parse all statements of the document.
 
 ### Function: doc.main.ImportBlockDocument.eob
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2265)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2551)
 
 Check end of the block.
 
@@ -3024,7 +3370,7 @@ Check end of the block.
 
 ### Function: doc.main.ImportBlockDocument.notes
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2284)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2570)
 
 Generate notes.
 
@@ -3059,7 +3405,7 @@ This will generate notes for console and markdown in the same time. For most par
 
 ### Function: doc.main.ImportBlockDocument.check
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2315)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2601)
 
 Check if requiring row is exactly the given text.
 
@@ -3096,7 +3442,7 @@ This is specially defined because some imports are constantly required.
 
 ## Class: doc.main.ConstBlockDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2343)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2629)
 
 - Super: [doc.main.CodeDocument](#class-docmaincodedocument)
 
@@ -3114,7 +3460,7 @@ Document for a block of constant code.
 
 ### Function: doc.main.ConstBlockDocument.\_\_init\_\_
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2347)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2633)
 
 Initialize.
 
@@ -3164,7 +3510,7 @@ Initialize.
 
 ### Function: doc.main.ConstBlockDocument.allocate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2385)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2671)
 
 Allocate children memory.
 
@@ -3188,7 +3534,7 @@ Allocate children memory.
 
 ### Function: doc.main.ConstBlockDocument.parse
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2404)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2690)
 
 Parse information into document.
 
@@ -3238,7 +3584,7 @@ Parse information into document.
 
 ### Function: doc.main.ConstBlockDocument.notes
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2447)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2733)
 
 Generate notes.
 
@@ -3272,7 +3618,7 @@ Code document for a line of statement. Different statement types have their own 
 
 ## Class: doc.main.CommentDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2484)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2770)
 
 - Super: [doc.main.CodeDocument](#class-docmaincodedocument)
 
@@ -3290,7 +3636,7 @@ Document for a line of comment statement.
 
 ### Function: doc.main.CommentDocument.allocate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2488)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2774)
 
 Allocate children memory.
 
@@ -3314,7 +3660,7 @@ Allocate children memory.
 
 ### Function: doc.main.CommentDocument.parse
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2507)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2793)
 
 Parse information into document.
 
@@ -3368,7 +3714,7 @@ Parse information into document.
 
 ### Function: doc.main.CommentDocument.translate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2554)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2840)
 
 Translate parsed text into paragraphs.
 
@@ -3405,7 +3751,7 @@ Translate parsed text into paragraphs.
 
 ### Function: doc.main.CommentDocument.notes
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2585)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2871)
 
 Generate notes.
 
@@ -3433,7 +3779,7 @@ This will generate notes for console and markdown in the same time. For most par
 
 ## Class: doc.main.ImportDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2608)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2894)
 
 - Super: [doc.main.CodeDocument](#class-docmaincodedocument)
 
@@ -3457,7 +3803,7 @@ Document for a line of import statement.
 
 ### Function: doc.main.ImportDocument.allocate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2612)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2898)
 
 Allocate children memory.
 
@@ -3483,7 +3829,7 @@ Allocate children memory.
 
 ### Function: doc.main.ImportDocument.parse
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2631)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2917)
 
 Parse information into document.
 
@@ -3519,7 +3865,7 @@ Parse information into document.
 
 ### Function: doc.main.ImportDocument.parse\_import
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2660)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2946)
 
 Parse information (import, as) into document.
 
@@ -3554,7 +3900,7 @@ Parse information (import, as) into document.
 
 ### Function: doc.main.ImportDocument.parse\_from
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2688)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2974)
 
 Parse information (from, import, as) into document.
 
@@ -3603,7 +3949,7 @@ Parse information (from, import, as) into document.
 
 ### Function: doc.main.ImportDocument.parse\_module
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2730)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3016)
 
 Parse information (module) into document.
 
@@ -3640,7 +3986,7 @@ Parse information (module) into document.
 
 ### Function: doc.main.ImportDocument.parse\_identifier
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2759)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3045)
 
 Parse information (identifier) into document.
 
@@ -3673,7 +4019,7 @@ Parse information (identifier) into document.
 
 ### Function: doc.main.ImportDocument.parse\_rename
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2784)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3070)
 
 Parse information (as) into document.
 
@@ -3712,7 +4058,7 @@ Parse information (as) into document.
 
 ### Function: doc.main.ImportDocument.append\_module
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2815)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3101)
 
 Append an identifier import to document.
 
@@ -3750,7 +4096,7 @@ Trace module and identifier name mappings. There final name should be unique in 
 
 ### Function: doc.main.ImportDocument.append\_identifier
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2847)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3133)
 
 Append an identifier import to document.
 
@@ -3799,7 +4145,7 @@ Append an identifier import to document.
 
 ### Function: doc.main.ImportDocument.notes
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2886)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3172)
 
 Generate notes.
 
@@ -3826,7 +4172,7 @@ This will generate notes for console and markdown in the same time. For most par
 
 ## Class: doc.main.IntroDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2908)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3194)
 
 - Super: [doc.main.CommentDocument](#class-docmaincommentdocument)
 
@@ -3842,7 +4188,7 @@ Document for an introduction statement.
 
 ### Function: doc.main.IntroDocument.translate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2912)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3198)
 
 Translate parsed text into paragraphs.
 
@@ -3912,7 +4258,7 @@ Translate parsed text into paragraphs.
 
 ### Function: doc.main.IntroDocument.notes
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L2975)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3261)
 
 Generate notes.
 
@@ -3930,8 +4276,8 @@ This will generate notes for console and markdown in the same time. For most par
 > ```python
 > # Statement note is just its code lines without indents.
 > self.markdown.append("## Section: {:s}".format(self.title))
-> self.markdown.append("")
 > for itr in self.paragraphs:
+>     self.markdown.append("")
 >     self.markdown.append(" ".join(itr))
 >
 > # Return to TOC, file.
@@ -3951,7 +4297,7 @@ This will generate notes for console and markdown in the same time. For most par
 
 ## Class: doc.main.DescriptionDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3009)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3295)
 
 - Super: [doc.main.CodeDocument](#class-docmaincodedocument)
 
@@ -3968,7 +4314,7 @@ Document for a description statement prototype.
 
 ### Function: doc.main.DescriptionDocument.allocate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3013)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3299)
 
 Allocate children memory.
 
@@ -3992,7 +4338,7 @@ Allocate children memory.
 
 ### Function: doc.main.DescriptionDocument.parse
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3032)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3318)
 
 Parse information into document.
 
@@ -4069,7 +4415,7 @@ Parse information into document.
 
 ### Function: doc.main.DescriptionDocument.decode
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3102)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3388)
 
 Decode list of texts into document.
 
@@ -4098,7 +4444,7 @@ Decode list of texts into document.
 
 ## Class: doc.main.ClassDescDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3126)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3412)
 
 - Super: [doc.main.DescriptionDocument](#class-docmaindescriptiondocument)
 
@@ -4114,7 +4460,7 @@ Document for a description of class statement.
 
 ### Function: doc.main.ClassDescDocument.allocate
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3130)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3416)
 
 Allocate children memory.
 
@@ -4138,7 +4484,7 @@ Allocate children memory.
 
 ### Function: doc.main.ClassDescDocument.decode
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3149)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3435)
 
 Decode list of texts into document.
 
@@ -4175,7 +4521,7 @@ Decode list of texts into document.
 
 ## Class: doc.main.FuncDescDocument
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3181)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3467)
 
 - Super: [doc.main.DescriptionDocument](#class-docmaindescriptiondocument)
 
@@ -4193,7 +4539,7 @@ Document for a description of function statement.
 
 ### Function: doc.main.FuncDescDocument.decode
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3185)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3471)
 
 Decode list of texts into document.
 
@@ -4264,7 +4610,7 @@ Decode list of texts into document.
 
 ### Function: doc.main.FuncDescDocument.review
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3250)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3536)
 
 Review argument and return.
 
@@ -4297,7 +4643,7 @@ Review argument and return.
 
 ### Function: doc.main.FuncDescDocument.review\_args
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3275)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3561)
 
 Review argument and return.
 
@@ -4416,7 +4762,7 @@ Review argument and return.
 
 ### Function: doc.main.FuncDescDocument.review\_returns
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3388)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3674)
 
 Review argument and return.
 
@@ -4528,7 +4874,7 @@ Main branch starts from here.
 
 ## Block: doc.main: Main branch.
 
-- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3499)
+- Source: [Github](https://github.com/gao462/MLRepo/blob/master/doc/main.py#L3785)
 
 > ```python
 > # Main branch.
@@ -4595,6 +4941,7 @@ Main branch starts from here.
 ## Section: Code Objects
 
 Tokenized code for any arbitrary file is defined based on Python token library. Each tokenized code word is automatically attached with its indent level for later styled document check.
+
 Style related constants and utility functions are also defined.
 
 [[TOC]](#table-of-content) [[File]](#file-doccodepy)
