@@ -74,12 +74,12 @@
 Create default logger.
 
 > **Arguments**
-> - **\*args**: *object*
+> - *\*args*: `object`
 >
-> - **\*\*kargs**: *object*
+> - *\*\*kargs*: `object`
 
 > **Returns**
-> - **logger**: *logging.Logger*
+> - *logger*: `logging.Logger`
 >
 >   Default logger.
 
@@ -126,13 +126,13 @@ Create default logger.
 Update universal logger by given logger.
 
 > **Arguments**
-> - **\*args**: *object*
+> - *\*args*: `object`
 >
-> - **logger**: *logging.Logger*
+> - *logger*: `logging.Logger`
 >
 >   New logger.
 >
-> - **\*\*kargs**: *object*
+> - *\*\*kargs*: `object`
 
 > **Returns**
 
@@ -153,13 +153,13 @@ Update universal logger by given logger.
 Update maximum number of characters.
 
 > **Arguments**
-> - **\*args**: *object*
+> - *\*args*: `object`
 >
-> - **val**: *int*
+> - *val*: `int`
 >
 >   Maximum.
 >
-> - **\*\*kargs**: *object*
+> - *\*\*kargs*: `object`
 
 > **Returns**
 
@@ -227,17 +227,17 @@ Update maximum number of characters.
 Check message format.
 
 > **Arguments**
-> - **\*args**: *object*
+> - *\*args*: `object`
 >
-> - **level**: *int*
+> - *level*: `int`
 >
 >   Logging level.
 >
-> - **msg**: *str*
+> - *msg*: `str`
 >
 >   Message.
 >
-> - **\*\*kargs**: *object*
+> - *\*\*kargs*: `object`
 
 > **Returns**
 
@@ -270,17 +270,17 @@ Check message format.
 Log debug message.
 
 > **Arguments**
-> - **level**: *int*
+> - *level*: `int`
 >
 >   Logging level.
 >
-> - **fmt**: *str*
+> - *fmt*: `str`
 >
 >   Formatter.
 >
-> - **\*args**: *object*
+> - *\*args*: `object`
 >
-> - **\*\*kargs**: *object*
+> - *\*\*kargs*: `object`
 
 > **Returns**
 
@@ -339,13 +339,13 @@ Operations are just `log` function with fixed logging level integer. The corresp
 Log debug message.
 
 > **Arguments**
-> - **fmt**: *str*
+> - *fmt*: `str`
 >
 >   Formatter.
 >
-> - **\*args**: *object*
+> - *\*args*: `object`
 >
-> - **\*\*kargs**: *object*
+> - *\*\*kargs*: `object`
 
 > **Returns**
 
@@ -365,13 +365,13 @@ Log debug message.
 Log info (dark) message.
 
 > **Arguments**
-> - **fmt**: *str*
+> - *fmt*: `str`
 >
 >   Formatter.
 >
-> - **\*args**: *object*
+> - *\*args*: `object`
 >
-> - **\*\*kargs**: *object*
+> - *\*\*kargs*: `object`
 
 > **Returns**
 
@@ -391,13 +391,13 @@ Log info (dark) message.
 Log info (bright) message.
 
 > **Arguments**
-> - **fmt**: *str*
+> - *fmt*: `str`
 >
 >   Formatter.
 >
-> - **\*args**: *object*
+> - *\*args*: `object`
 >
-> - **\*\*kargs**: *object*
+> - *\*\*kargs*: `object`
 
 > **Returns**
 
@@ -417,13 +417,13 @@ Log info (bright) message.
 Log focusing message.
 
 > **Arguments**
-> - **fmt**: *str*
+> - *fmt*: `str`
 >
 >   Formatter.
 >
-> - **\*args**: *object*
+> - *\*args*: `object`
 >
-> - **\*\*kargs**: *object*
+> - *\*\*kargs*: `object`
 
 > **Returns**
 
@@ -443,13 +443,13 @@ Log focusing message.
 Log warning message.
 
 > **Arguments**
-> - **fmt**: *str*
+> - *fmt*: `str`
 >
 >   Formatter.
 >
-> - **\*args**: *object*
+> - *\*args*: `object`
 >
-> - **\*\*kargs**: *object*
+> - *\*\*kargs*: `object`
 
 > **Returns**
 
@@ -469,13 +469,13 @@ Log warning message.
 Log error message.
 
 > **Arguments**
-> - **fmt**: *str*
+> - *fmt*: `str`
 >
 >   Formatter.
 >
-> - **\*args**: *object*
+> - *\*args*: `object`
 >
-> - **\*\*kargs**: *object*
+> - *\*\*kargs*: `object`
 
 > **Returns**
 
