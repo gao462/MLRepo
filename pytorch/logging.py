@@ -37,57 +37,6 @@ else:
 # =============================================================================
 
 
-def default_logger(
-    *args: VarArg,
-    **kargs: VarArg,
-) -> logging.Logger:
-    r"""
-    Default logger.
-
-    Args
-    ----
-    - *args
-    - **kargs
-
-    Returns
-    -------
-    - logger
-        Default logger.
-
-    """
-    # \
-    # ANNOTATE VARIABLES
-    # \
-    ...
-
-    # Allocate logger.
-    level = DEBUG
-    logger = logging.getLogger("")
-    logger.setLevel(level=level)
-
-    # Define logging line format.
-    formatter = logging.Formatter("%(message)s")
-
-    # Define console streaming.
-    console = logging.StreamHandler()
-    console.setLevel(level=level)
-    console.setFormatter(formatter)
-
-    # Add stream to logger.
-    logger.addHandler(console)
-    return logger
-
-
-# =============================================================================
-# *****************************************************************************
-# -----------------------------------------------------------------------------
-# << Define Global Constants >>
-# Level constants, color constants, colorful message headers are defined.
-# -----------------------------------------------------------------------------
-# *****************************************************************************
-# =============================================================================
-
-
 # \
 # ANNOTATE VARIABLES
 # \
@@ -176,15 +125,46 @@ SENTENCE: Const = r"^{:s}({:s}{:s}({:s}{:s})?)*\.$".format(
     FIRST, BREAK, LATER, BREAK, PARANTHESE,
 )
 
-# =============================================================================
-# *****************************************************************************
-# -----------------------------------------------------------------------------
-# << Define Global Constant Update >>
-# Serveral global variables are allowed to be updated.
-# Their update calls are defined here.
-# -----------------------------------------------------------------------------
-# *****************************************************************************
-# =============================================================================
+
+def default_logger(
+    *args: VarArg,
+    **kargs: VarArg,
+) -> logging.Logger:
+    r"""
+    Default logger.
+
+    Args
+    ----
+    - *args
+    - **kargs
+
+    Returns
+    -------
+    - logger
+        Default logger.
+
+    """
+    # \
+    # ANNOTATE VARIABLES
+    # \
+    ...
+
+    # Allocate logger.
+    level = DEBUG
+    logger = logging.getLogger("")
+    logger.setLevel(level=level)
+
+    # Define logging line format.
+    formatter = logging.Formatter("%(message)s")
+
+    # Define console streaming.
+    console = logging.StreamHandler()
+    console.setLevel(level=level)
+    console.setFormatter(formatter)
+
+    # Add stream to logger.
+    logger.addHandler(console)
+    return logger
 
 
 # Univeral logger.
@@ -219,24 +199,13 @@ def update_universal_logger(
     universal = logger
 
 
-# =============================================================================
-# *****************************************************************************
-# -----------------------------------------------------------------------------
-# << Universal Log >>
-# Universal log operation is defined.
-# It will be shared by log operations of all levels.
-# -----------------------------------------------------------------------------
-# *****************************************************************************
-# =============================================================================
-
-
 def chunk(
     messages: List[str],
     *args: VarArg,
     **kargs: VarArg,
 ) -> List[str]:
     r"""
-    Check message.
+    Chunk messages into messages with length limitation.
 
     Args
     ----
@@ -341,8 +310,8 @@ def log(
 
     # Generate a list of texts.
     lines = []
-    for itr in paragraphs:
-        lines.append(" ".join(itr))
+    for sec in paragraphs:
+        lines.append(" ".join(sec))
         lines.append("")
     outputs = chunk(lines[:-1])
 
@@ -560,7 +529,7 @@ def textize(
             if (re.match(SENTENCE, sentence) is None):
                 # Use naive print inside logging operations.
                 msgerr = (
-                    "Message {:s}, wrong sentence regex.\n" \
+                    "Message {:s}, wrong sentence regex.\n\n" \
                     "```\n{:s}\n```".format(
                         POSITION.format("line {:d}".format(start + i)),
                         sentence,
@@ -577,17 +546,6 @@ def textize(
             # A sentence is not ending, continue.
             pass
     return [block]
-
-
-# =============================================================================
-# *****************************************************************************
-# -----------------------------------------------------------------------------
-# << Logging Operations Of All Levels >>
-# Operations are just `log` function with an arbitrary logging level integer
-# binding with those operations.
-# -----------------------------------------------------------------------------
-# *****************************************************************************
-# =============================================================================
 
 
 class CallableLog(Protocol):
