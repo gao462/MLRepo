@@ -46,7 +46,7 @@ from pytorch.batches.batching import Batching
 
 
 class Transfering(FunctionalThread[
-    List[int], List[Dict[str, torch.Tensor]],
+    List[int], Dict[str, List[torch.Tensor]],
 ]):
     r"""
     Transfering to device.
@@ -78,7 +78,7 @@ class Transfering(FunctionalThread[
         # ANNOTATE VARIABLES
         # /
         self.requires: multiprocessing.Queue[List[int]]
-        self.responses: multiprocessing.Queue[List[Dict[str, torch.Tensor]]]
+        self.responses: multiprocessing.Queue[Dict[str, List[torch.Tensor]]]
         self.batchers: List[multiprocessing.Process]
 
         # Get device.
@@ -156,7 +156,7 @@ class Transfering(FunctionalThread[
         input: List[int],
         *args: ArgT,
         **kargs: KArgT,
-    ) -> List[Dict[str, torch.Tensor]]:
+    ) -> Dict[str, List[torch.Tensor]]:
         r"""
         Real operations.
 
@@ -195,29 +195,23 @@ class Transfering(FunctionalThread[
             pass
         batch = self.responses.get()
 
-        # Use clone as PyTorch suggested.
-        clone = [
-            {key: val.clone() for key, val in sample.items()}
-            for sample in batch
-        ]
-        del batch
-
         # Transfer to device without blocking.
-        ondevice = [
-            {
-                key: val.to(self.device, non_blocking=True)
-                for key, val in sample.items()
-            }
-            for sample in clone
-        ]
-        return ondevice
+        clonedev = {
+            key: [
+                itr.clone().to(self.device, non_blocking=True)
+                for itr in val
+            ]
+            for key, val in batch.items()
+        }
+        del batch
+        return clonedev
 
     def fin(
         self: Transfering,
         input: List[int],
         *args: ArgT,
         **kargs: KArgT,
-    ) -> List[Dict[str, torch.Tensor]]:
+    ) -> Dict[str, List[torch.Tensor]]:
         r"""
         Final operations.
 
@@ -262,4 +256,4 @@ class Transfering(FunctionalThread[
             pass
 
         # Return a null element.
-        return []
+        return {"": []}

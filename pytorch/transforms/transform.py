@@ -116,7 +116,7 @@ class SampleTransform(Transform[Dict[str, torch.Tensor]]):
     pass
 
 
-class BatchTransform(Transform[List[Dict[str, torch.Tensor]]]):
+class BatchTransform(Transform[Dict[str, List[torch.Tensor]]]):
     r"""
     Virtual class for data transform processing on sample level.
     """
@@ -218,10 +218,10 @@ class IdentityBatchTransform(BatchTransform):
 
     def __call__(
         self: IdentityBatchTransform,
-        raw: List[Dict[str, torch.Tensor]],
+        raw: Dict[str, List[torch.Tensor]],
         *args: ArgT,
         **kargs: KArgT,
-    ) -> List[Dict[str, torch.Tensor]]:
+    ) -> Dict[str, List[torch.Tensor]]:
         r"""
         Call as function.
 

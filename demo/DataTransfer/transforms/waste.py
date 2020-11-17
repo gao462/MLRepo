@@ -168,10 +168,10 @@ class WasteBatchTransform(BatchTransform):
 
     def __call__(
         self: WasteBatchTransform,
-        raw: List[Dict[str, torch.Tensor]],
+        raw: Dict[str, List[torch.Tensor]],
         *args: ArgT,
         **kargs: KArgT,
-    ) -> List[Dict[str, torch.Tensor]]:
+    ) -> Dict[str, List[torch.Tensor]]:
         r"""
         Call as function.
 
@@ -192,13 +192,12 @@ class WasteBatchTransform(BatchTransform):
         # \
         # ANNOTATE VARIABLES
         # \
-        ...
+        processed: Dict[str, List[torch.Tensor]]
 
         # Do a bench of meaningless operations.
         start = time.time()
-        processed = []
-        for sample in raw:
-            mat = sample["input"]
+        processed = {"input": []}
+        for mat in raw["input"]:
             for _ in range(self.NUM):
                 # Shape tricks.
                 num_rows, num_cols = mat.size()
@@ -217,7 +216,7 @@ class WasteBatchTransform(BatchTransform):
                 mmx = getattr(torch, "max")(mat)
                 mmn = getattr(torch, "min")(mat)
                 mat = (mat - mmn) / (mmx - mmn)
-            processed.append({"input": mat})
+            processed["input"].append(mat)
         end = time.time()
         elapsed = end - start
 
@@ -266,10 +265,10 @@ class WasteModelTransform(BatchTransform):
 
     def __call__(
         self: WasteModelTransform,
-        raw: List[Dict[str, torch.Tensor]],
+        raw: Dict[str, List[torch.Tensor]],
         *args: ArgT,
         **kargs: KArgT,
-    ) -> List[Dict[str, torch.Tensor]]:
+    ) -> Dict[str, List[torch.Tensor]]:
         r"""
         Call as function.
 
@@ -290,13 +289,12 @@ class WasteModelTransform(BatchTransform):
         # \
         # ANNOTATE VARIABLES
         # \
-        ...
+        processed: Dict[str, List[torch.Tensor]]
 
         # Do a bench of meaningless operations.
         start = time.time()
-        processed = []
-        for sample in raw:
-            mat = sample["input"]
+        processed = {"input": []}
+        for mat in raw["input"]:
             for _ in range(self.NUM):
                 # Matrix operations.
                 dupl = mat
@@ -323,7 +321,7 @@ class WasteModelTransform(BatchTransform):
                 mmx = getattr(torch, "max")(mat)
                 mmn = getattr(torch, "min")(mat)
                 mat = (mat - mmn) / (mmx - mmn)
-            processed.append({"input": mat})
+            processed["input"].append(mat)
         end = time.time()
         elapsed = end - start
 

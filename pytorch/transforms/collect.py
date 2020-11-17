@@ -138,10 +138,10 @@ class BatchTransformSeq(BatchTransform):
 
     def __call__(
         self: BatchTransformSeq,
-        raw: List[Dict[str, torch.Tensor]],
+        raw: Dict[str, List[torch.Tensor]],
         *args: ArgT,
         **kargs: KArgT,
-    ) -> List[Dict[str, torch.Tensor]]:
+    ) -> Dict[str, List[torch.Tensor]]:
         r"""
         Call as function.
 

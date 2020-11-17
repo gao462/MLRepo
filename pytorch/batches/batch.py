@@ -207,7 +207,7 @@ class Batch(abc.ABC):
         # ANNOTATE VARIABLES
         # /
         self.schedules: queue.Queue[List[int]]
-        self.caches: queue.Queue[List[Dict[str, torch.Tensor]]]
+        self.caches: queue.Queue[Dict[str, List[torch.Tensor]]]
 
         # Set schedule tracer.
         self.schedule_max = 0
@@ -340,7 +340,7 @@ class Batch(abc.ABC):
         self: Batch,
         *args: ArgT,
         **kargs: KArgT,
-    ) -> MultiReturn[bool, List[Dict[str, torch.Tensor]]]:
+    ) -> MultiReturn[bool, Dict[str, List[torch.Tensor]]]:
         """
         Fetch batched object from memory.
 

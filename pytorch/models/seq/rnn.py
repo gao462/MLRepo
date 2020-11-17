@@ -16,6 +16,7 @@ from typing import cast
 # Import dependencies.
 import sys
 import os
+import abc
 import torch
 
 # Add development library to path.
@@ -29,39 +30,43 @@ else:
 from pytorch.logging import debug, info1, info2, focus, warning, error
 
 # Import dependencies.
-from pytorch.transforms.transform import BatchTransform
+from pytorch.models.model import GradModel
 
 
 # =============================================================================
 # *****************************************************************************
 # -----------------------------------------------------------------------------
-# << Transform Stacking Objects >>
-# Transforms that stacking a batch of tensors with the same keyword into a
-# single tensor with the same keyword.
-# It is still a list to list operation.
-# It should compress a list of N dicts of K-dim tensors into a list of 1 dict
-# of (K+1)-dim tensors.
-# The first dimension is extended as batch dimension.
+# << Recurrent Gradient Model >>
+# The recurrent gradient model.
+# The model forward function $f$ must be described as:
+# $$
+# h_{t + 1} = f(x_{t + 1}, h_{t})
+# $$
 # -----------------------------------------------------------------------------
 # *****************************************************************************
 # =============================================================================
 
 
-class StackBatchTransform(BatchTransform):
+class GRU(GradModel):
     r"""
-    Data transform processing stacking tensors together in a tensor.
+    GRU Model.
     """
-    def __init__(
-        self: StackBatchTransform,
+    def configure(
+        self: GRU,
+        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         *args: ArgT,
         **kargs: KArgT,
     ) -> None:
         r"""
-        Initialize.
+        Configure model.
 
         Args
         ----
         - self
+        - xargs
+            Extra arguments to specific configuration.
+        - xkargs
+            Extra keyword arguments to specific configuration.
         - *args
         - **kargs
 
@@ -70,41 +75,62 @@ class StackBatchTransform(BatchTransform):
 
         """
         # \
-        # ANNOTATE VARIABLES
+        # VIRTUAL
         # \
         ...
 
-        # Nothing is required.
-        pass
-
-    def call(
-        self: StackBatchTransform,
-        raw: Dict[str, List[torch.Tensor]],
+    def initialize(
+        self: GradModel,
+        rng: torch._C.Generator,
         *args: ArgT,
         **kargs: KArgT,
-    ) -> Dict[str, List[torch.Tensor]]:
+    ) -> None:
         r"""
-        Call as function.
+        Initialize model parameters and sub models.
 
         Args
         ----
         - self
-        - raw
-            Raw data before processing.
         - *args
         - **kargs
 
         Returns
         -------
-        - processed
-            Processed data.
 
         """
-        # \
-        # ANNOTATE VARIABLES
-        # \
+        # /
+        # VIRTUAL
+        # /
         ...
 
-        # Concatenate given keywords.
-        processed = {key: [torch.stack(val)] for key, val in raw.items()}
-        return processed
+    def decode(
+        self: GRU,
+        batch: List[Dict[str, torch.Tensor]],
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> MultiReturn[
+        List[Dict[str, torch.Tensor]], List[Dict[str, torch.Tensor]]
+    ]:
+        r"""
+        Decode batch.
+
+        Args
+        ----
+        - self
+        - batch
+            Batch.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+        - input
+            Batch with input parts only.
+        - target
+            Batch with target parts only.
+
+        """
+        # /
+        # VIRTUAL
+        # /
+        ...

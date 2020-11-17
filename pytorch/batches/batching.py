@@ -47,7 +47,7 @@ from pytorch.logging import POSITION
 
 
 class Batching(FunctionalProcess[
-    List[int], List[Dict[str, torch.Tensor]],
+    List[int], Dict[str, List[torch.Tensor]],
 ]):
     r"""
     Batching from dataset.
@@ -152,7 +152,7 @@ class Batching(FunctionalProcess[
         input: List[int],
         *args: ArgT,
         **kargs: KArgT,
-    ) -> List[Dict[str, torch.Tensor]]:
+    ) -> Dict[str, List[torch.Tensor]]:
         r"""
         Real operations.
 
@@ -175,6 +175,7 @@ class Batching(FunctionalProcess[
         # /
         memory: List[Tuple[int, Dict[str, torch.Tensor]]]
         ordering: Callable[[Tuple[int, Dict[str, torch.Tensor]]], int]
+        raw: Dict[str, List[torch.Tensor]]
 
         # Decode input.
         chunk = input
@@ -210,13 +211,16 @@ class Batching(FunctionalProcess[
         ordering = lambda x: x[0]
         memory = sorted(memory, key=ordering)
 
-        # Process pure dict of tensors.
-        raw = [clone for slot, clone in memory]
+        # Process raw memory into proper batch form.
+        raw = {key: [] for key in memory[0][1].keys()}
+        for slot, clone in memory:
+            for key, val in clone.items():
+                raw[key].append(val)
 
         # Some additional transforms on the loaded batch.
         try:
             obj = self.transform(raw)
-            return cast(List[Dict[str, torch.Tensor]], obj)
+            return cast(Dict[str, List[torch.Tensor]], obj)
         except:
             error(
                 "{:s}Fail to transform \"{:s}\".",
@@ -232,7 +236,7 @@ class Batching(FunctionalProcess[
         input: List[int],
         *args: ArgT,
         **kargs: KArgT,
-    ) -> List[Dict[str, torch.Tensor]]:
+    ) -> Dict[str, List[torch.Tensor]]:
         r"""
         Final operations.
 
@@ -277,4 +281,4 @@ class Batching(FunctionalProcess[
             pass
 
         # Return a null element.
-        return []
+        return {"": []}
