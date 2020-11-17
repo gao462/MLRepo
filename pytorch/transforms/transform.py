@@ -16,6 +16,7 @@ from typing import cast
 # Import dependencies.
 import sys
 import os
+import abc
 import torch
 
 # Add development library to path.
@@ -29,39 +30,42 @@ else:
 from pytorch.logging import debug, info1, info2, focus, warning, error
 
 # Import dependencies.
-from pytorch.datasets.generate import GenerateDataset
 
 
 # =============================================================================
 # *****************************************************************************
 # -----------------------------------------------------------------------------
-# << Dataset Objects >>
-# A dataset generating meaningless data.
+# << Transform Virtual Objects >>
+# The virtual transform protoype to process a raw sample data in dataset or
+# already-batched data in batching.
 # -----------------------------------------------------------------------------
 # *****************************************************************************
 # =============================================================================
 
 
-class WasteDataset(GenerateDataset):
+# /
+# GENERIC TYPES
+# /
+# Define generic process IO types.
+DATA = TypeVar("DATA")
+
+
+class Transform(Generic[DATA]):
     r"""
-    Dataset generating waste data.
+    Virtual class for data transform processing.
     """
-    def configure(
-        self: WasteDataset,
-        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
+    @abc.abstractmethod
+    def __init__(
+        self: Transform[DATA],
         *args: ArgT,
         **kargs: KArgT,
     ) -> None:
         r"""
-        Configure dataset.
+        Initialize.
 
         Args
         ----
         - self
-        - xargs
-            Extra arguments to specific configuration.
-        - xkargs
-            Extra keyword arguments to specific configuration.
         - *args
         - **kargs
 
@@ -70,22 +74,67 @@ class WasteDataset(GenerateDataset):
 
         """
         # \
-        # ANNOTATE VARIABLES
+        # VIRTUAL
         # \
         ...
 
-        # Save necessary attributes.
-        self.rng = xargs[0]
-        self.num_samples = xkargs["num_samples"]
-        self.sample_size = xkargs["sample_size"]
+    @abc.abstractmethod
+    def __call__(
+        self: Transform[DATA],
+        raw: DATA,
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> DATA:
+        r"""
+        Call as function.
 
-    def generate(
-        self: WasteDataset,
+        Args
+        ----
+        - self
+        - raw
+            Raw data before processing.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+        - processed
+            Processed data.
+
+        """
+        # \
+        # VIRTUAL
+        # \
+        ...
+
+
+class SampleTransform(Transform[Dict[str, torch.Tensor]]):
+    r"""
+    Virtual class for data transform processing on sample level.
+    """
+    # Nothing is required.
+    pass
+
+
+class BatchTransform(Transform[List[Dict[str, torch.Tensor]]]):
+    r"""
+    Virtual class for data transform processing on sample level.
+    """
+    # Nothing is required.
+    pass
+
+
+class IdentitySampleTransform(SampleTransform):
+    r"""
+    Identity data transform processing on sample level.
+    """
+    def __init__(
+        self: IdentitySampleTransform,
         *args: ArgT,
         **kargs: KArgT,
     ) -> None:
         r"""
-        Generate dataset memory.
+        Initialize.
 
         Args
         ----
@@ -102,21 +151,52 @@ class WasteDataset(GenerateDataset):
         # \
         ...
 
-        # Generate a list of vectors to memory.
-        for _ in range(self.num_samples):
-            sample = getattr(torch, "zeros")(
-                self.sample_size, self.sample_size, dtype=self.DTYPE,
-            )
-            sample.uniform_(0, 1, generator=self.rng)
-            self.memory.append({"input": sample})
+        # Nothing is required.
+        pass
 
-    def relative(
-        self: WasteDataset,
+    def __call__(
+        self: IdentitySampleTransform,
+        raw: Dict[str, torch.Tensor],
         *args: ArgT,
         **kargs: KArgT,
-    ) -> str:
+    ) -> Dict[str, torch.Tensor]:
         r"""
-        Relative path to dataset.
+        Call as function.
+
+        Args
+        ----
+        - self
+        - raw
+            Raw data before processing.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+        - processed
+            Processed data.
+
+        """
+        # \
+        # VIRTUAL
+        # \
+        ...
+
+        # Return what it gets.
+        return raw
+
+
+class IdentityBatchTransform(BatchTransform):
+    r"""
+    Identity data transform processing on batch level.
+    """
+    def __init__(
+        self: IdentityBatchTransform,
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> None:
+        r"""
+        Initialize.
 
         Args
         ----
@@ -126,8 +206,6 @@ class WasteDataset(GenerateDataset):
 
         Returns
         -------
-        - relative
-            Relative path.
 
         """
         # \
@@ -135,63 +213,36 @@ class WasteDataset(GenerateDataset):
         # \
         ...
 
-        # Waste data does not need caching.
-        return "waste"
+        # Nothing is required.
+        pass
 
-    def aggregate(
-        self: WasteDataset,
+    def __call__(
+        self: IdentityBatchTransform,
+        raw: List[Dict[str, torch.Tensor]],
         *args: ArgT,
         **kargs: KArgT,
     ) -> List[Dict[str, torch.Tensor]]:
         r"""
-        Aggregate dataset memory into a single object.
+        Call as function.
 
         Args
         ----
         - self
+        - raw
+            Raw data before processing.
         - *args
         - **kargs
 
         Returns
         -------
-        - obj
-            Single object.
+        - processed
+            Processed data.
 
         """
         # \
-        # ANNOTATE VARIABLES
+        # VIRTUAL
         # \
         ...
 
-        # Create a null object.
-        obj = self.memory
-        return obj
-
-    def segregate(
-        self: WasteDataset,
-        obj: List[Dict[str, torch.Tensor]],
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> None:
-        r"""
-        Segregate a single object into dataset memory.
-
-        Args
-        ----
-        - self
-        - obj
-            Single object.
-        - *args
-        - **kargs
-
-        Returns
-        -------
-
-        """
-        # \
-        # ANNOTATE VARIABLES
-        # \
-        ...
-
-        # Create a null object.
-        self.memory = obj
+        # Return what it gets.
+        return raw

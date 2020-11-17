@@ -29,39 +29,43 @@ else:
 from pytorch.logging import debug, info1, info2, focus, warning, error
 
 # Import dependencies.
-from pytorch.datasets.generate import GenerateDataset
+from pytorch.batches.paralf import FunctionalProcess
+from pytorch.logging import POSITION
 
 
 # =============================================================================
 # *****************************************************************************
 # -----------------------------------------------------------------------------
-# << Dataset Objects >>
-# A dataset generating meaningless data.
+# << Sampling Operations >>
+# The sampling operations.
+# They are parallelable.
 # -----------------------------------------------------------------------------
 # *****************************************************************************
 # =============================================================================
 
 
-class WasteDataset(GenerateDataset):
+class Sampling(FunctionalProcess[
+    Tuple[int, int], Tuple[int, Dict[str, torch.Tensor]],
+]):
     r"""
-    Dataset generating waste data.
+    Sampling from dataset.
     """
-    def configure(
-        self: WasteDataset,
+    def init(
+        self: Sampling,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         *args: ArgT,
         **kargs: KArgT,
     ) -> None:
         r"""
-        Configure dataset.
+        Specific initialization.
 
         Args
         ----
         - self
         - xargs
-            Extra arguments to specific configuration.
+            Extra arguments to specific initialization.
         - xkargs
-            Extra keyword arguments to specific configuration.
+            Extra keyword arguments to specific initialization.
         - *args
         - **kargs
 
@@ -69,27 +73,29 @@ class WasteDataset(GenerateDataset):
         -------
 
         """
-        # \
+        # /
         # ANNOTATE VARIABLES
-        # \
+        # /
         ...
 
-        # Save necessary attributes.
-        self.rng = xargs[0]
-        self.num_samples = xkargs["num_samples"]
-        self.sample_size = xkargs["sample_size"]
+        # Get disk dataset and its transform.
+        self.disk = xargs[0]
+        self.transform = xargs[1]
 
-    def generate(
-        self: WasteDataset,
+    def ending(
+        self: Sampling,
+        input: Tuple[int, int],
         *args: ArgT,
         **kargs: KArgT,
-    ) -> None:
+    ) -> bool:
         r"""
-        Generate dataset memory.
+        Check ending signal.
 
         Args
         ----
         - self
+        - input
+            Input.
         - *args
         - **kargs
 
@@ -97,101 +103,94 @@ class WasteDataset(GenerateDataset):
         -------
 
         """
-        # \
+
+        # Decode input.
+        src, dst = input
+        return src < 0 or dst < 0
+
+    def run(
+        self: Sampling,
+        input: Tuple[int, int],
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> Tuple[int, Dict[str, torch.Tensor]]:
+        r"""
+        Real operations.
+
+        Args
+        ----
+        - self
+        - input
+            Input.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+        - output
+            Output.
+
+        """
+        # /
         # ANNOTATE VARIABLES
-        # \
+        # /
         ...
 
-        # Generate a list of vectors to memory.
-        for _ in range(self.num_samples):
-            sample = getattr(torch, "zeros")(
-                self.sample_size, self.sample_size, dtype=self.DTYPE,
+        # Decode input.
+        src, dst = input
+
+        # Get from disk.
+        debug(
+            "{:s}\"\033[33mDisk [{:d} ==> {:d}]\033[0m\".",
+            self.name, src, dst,
+        )
+
+        # Load from disk.
+        raw = self.disk[src]
+
+        # Some additional transforms on the loaded sample.
+        try:
+            obj = self.transform(raw)
+            return (dst, cast(Dict[str, torch.Tensor], obj))
+        except:
+            error(
+                "{:s}Fail to transform \"{:s}\".",
+                self.name,
+                POSITION.format("Disk [{:d}]".format(src)),
             )
-            sample.uniform_(0, 1, generator=self.rng)
-            self.memory.append({"input": sample})
+            raise RuntimeError
 
-    def relative(
-        self: WasteDataset,
+    def fin(
+        self: Sampling,
+        input: Tuple[int, int],
         *args: ArgT,
         **kargs: KArgT,
-    ) -> str:
+    ) -> Tuple[int, Dict[str, torch.Tensor]]:
         r"""
-        Relative path to dataset.
+        Final operations.
 
         Args
         ----
         - self
+        - input
+            Input.
         - *args
         - **kargs
 
         Returns
         -------
-        - relative
-            Relative path.
+        - output
+            Output.
 
         """
-        # \
+        # /
         # ANNOTATE VARIABLES
-        # \
+        # /
         ...
 
-        # Waste data does not need caching.
-        return "waste"
+        # Decode input.
+        src, dst = input
+        debug("{:s}\"\033[33mDisk [{:d}]\033[0m\" (Fin).", self.name, src)
 
-    def aggregate(
-        self: WasteDataset,
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> List[Dict[str, torch.Tensor]]:
-        r"""
-        Aggregate dataset memory into a single object.
-
-        Args
-        ----
-        - self
-        - *args
-        - **kargs
-
-        Returns
-        -------
-        - obj
-            Single object.
-
-        """
-        # \
-        # ANNOTATE VARIABLES
-        # \
-        ...
-
-        # Create a null object.
-        obj = self.memory
-        return obj
-
-    def segregate(
-        self: WasteDataset,
-        obj: List[Dict[str, torch.Tensor]],
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> None:
-        r"""
-        Segregate a single object into dataset memory.
-
-        Args
-        ----
-        - self
-        - obj
-            Single object.
-        - *args
-        - **kargs
-
-        Returns
-        -------
-
-        """
-        # \
-        # ANNOTATE VARIABLES
-        # \
-        ...
-
-        # Create a null object.
-        self.memory = obj
+        # Return a null element.
+        return (-1, {})

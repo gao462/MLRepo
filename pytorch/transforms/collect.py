@@ -29,39 +29,36 @@ else:
 from pytorch.logging import debug, info1, info2, focus, warning, error
 
 # Import dependencies.
-from pytorch.datasets.generate import GenerateDataset
+from pytorch.transforms.transform import SampleTransform
+from pytorch.transforms.transform import BatchTransform
 
 
 # =============================================================================
 # *****************************************************************************
 # -----------------------------------------------------------------------------
-# << Dataset Objects >>
-# A dataset generating meaningless data.
+# << Transform Collection Objects >>
+# Transforms that are collections of transforms.
 # -----------------------------------------------------------------------------
 # *****************************************************************************
 # =============================================================================
 
 
-class WasteDataset(GenerateDataset):
+class SampleTransformSeq(SampleTransform):
     r"""
-    Dataset generating waste data.
+    A sequence of data transform processing on sample level.
     """
-    def configure(
-        self: WasteDataset,
-        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
+    def __init__(
+        self: SampleTransformSeq,
+        transforms: List[SampleTransform],
         *args: ArgT,
         **kargs: KArgT,
     ) -> None:
         r"""
-        Configure dataset.
+        Initialize.
 
         Args
         ----
         - self
-        - xargs
-            Extra arguments to specific configuration.
-        - xkargs
-            Extra keyword arguments to specific configuration.
         - *args
         - **kargs
 
@@ -72,20 +69,56 @@ class WasteDataset(GenerateDataset):
         # \
         # ANNOTATE VARIABLES
         # \
-        ...
-
         # Save necessary attributes.
-        self.rng = xargs[0]
-        self.num_samples = xkargs["num_samples"]
-        self.sample_size = xkargs["sample_size"]
+        self.TRANSFORMS: Const = transforms
 
-    def generate(
-        self: WasteDataset,
+    def __call__(
+        self: SampleTransformSeq,
+        raw: Dict[str, torch.Tensor],
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> Dict[str, torch.Tensor]:
+        r"""
+        Call as function.
+
+        Args
+        ----
+        - self
+        - raw
+            Raw data before processing.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+        - processed
+            Processed data.
+
+        """
+        # \
+        # ANNOTATE VARIABLES
+        # \
+        ...
+
+        # Process in order.
+        processed = raw
+        for transform in self.TRANSFORMS:
+            processed = transform(processed)
+        return processed
+
+
+class BatchTransformSeq(BatchTransform):
+    r"""
+    A sequence of data transform processing on batch level.
+    """
+    def __init__(
+        self: BatchTransformSeq,
+        transforms: List[BatchTransform],
         *args: ArgT,
         **kargs: KArgT,
     ) -> None:
         r"""
-        Generate dataset memory.
+        Initialize.
 
         Args
         ----
@@ -100,62 +133,30 @@ class WasteDataset(GenerateDataset):
         # \
         # ANNOTATE VARIABLES
         # \
-        ...
+        # Save necessary attributes.
+        self.TRANSFORMS: Const = transforms
 
-        # Generate a list of vectors to memory.
-        for _ in range(self.num_samples):
-            sample = getattr(torch, "zeros")(
-                self.sample_size, self.sample_size, dtype=self.DTYPE,
-            )
-            sample.uniform_(0, 1, generator=self.rng)
-            self.memory.append({"input": sample})
-
-    def relative(
-        self: WasteDataset,
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> str:
-        r"""
-        Relative path to dataset.
-
-        Args
-        ----
-        - self
-        - *args
-        - **kargs
-
-        Returns
-        -------
-        - relative
-            Relative path.
-
-        """
-        # \
-        # ANNOTATE VARIABLES
-        # \
-        ...
-
-        # Waste data does not need caching.
-        return "waste"
-
-    def aggregate(
-        self: WasteDataset,
+    def __call__(
+        self: BatchTransformSeq,
+        raw: List[Dict[str, torch.Tensor]],
         *args: ArgT,
         **kargs: KArgT,
     ) -> List[Dict[str, torch.Tensor]]:
         r"""
-        Aggregate dataset memory into a single object.
+        Call as function.
 
         Args
         ----
         - self
+        - raw
+            Raw data before processing.
         - *args
         - **kargs
 
         Returns
         -------
-        - obj
-            Single object.
+        - processed
+            Processed data.
 
         """
         # \
@@ -163,35 +164,8 @@ class WasteDataset(GenerateDataset):
         # \
         ...
 
-        # Create a null object.
-        obj = self.memory
-        return obj
-
-    def segregate(
-        self: WasteDataset,
-        obj: List[Dict[str, torch.Tensor]],
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> None:
-        r"""
-        Segregate a single object into dataset memory.
-
-        Args
-        ----
-        - self
-        - obj
-            Single object.
-        - *args
-        - **kargs
-
-        Returns
-        -------
-
-        """
-        # \
-        # ANNOTATE VARIABLES
-        # \
-        ...
-
-        # Create a null object.
-        self.memory = obj
+        # Process in order.
+        processed = raw
+        for transform in self.TRANSFORMS:
+            processed = transform(processed)
+        return processed

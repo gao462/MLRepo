@@ -2,12 +2,16 @@
 from __future__ import annotations
 
 # Import typing.
-from typing import Any as VarArg
+from typing import Any as ArgT
+from typing import Any as KArgT
+from typing import Any as Naive
 from typing import Final as Const
 from typing import Tuple as MultiReturn
 from typing import Type, Protocol
 from typing import TextIO, BinaryIO
 from typing import Union, Tuple, List, Dict, Set, Callable
+from typing import TypeVar, Generic
+from typing import cast
 
 # Import dependencies.
 import sys
@@ -34,21 +38,24 @@ import pytorch.filesys as filesys
 # -----------------------------------------------------------------------------
 # << Dataset Virtual Objects >>
 # The virtual dataset protoype for any dataset types.
+# For best utilization of PyTorch offical optimization, it is inherited from
+# PyTorch abstract dataset class. It makes no difference in implementation from
+# inheriting from object.
 # -----------------------------------------------------------------------------
 # *****************************************************************************
 # =============================================================================
 
 
-class Dataset(abc.ABC):
+class Dataset(object):
     r"""
     Virtual class for dataset.
     """
     def __init__(
         self: Dataset,
         root: str,
-        *args: VarArg,
+        *args: ArgT,
         dtype: str, pin: Dict[str, Union[str, None]],
-        **kargs: VarArg,
+        **kargs: KArgT,
     ) -> None:
         r"""
         Initialize.
@@ -92,8 +99,8 @@ class Dataset(abc.ABC):
 
     def __len__(
         self: Dataset,
-        *args: VarArg,
-        **kargs: VarArg,
+        *args: ArgT,
+        **kargs: KArgT,
     ) -> int:
         r"""
         Get length.
@@ -119,8 +126,8 @@ class Dataset(abc.ABC):
     def __getitem__(
         self: Dataset,
         i: int,
-        *args: VarArg,
-        **kargs: VarArg,
+        *args: ArgT,
+        **kargs: KArgT,
     ) -> Dict[str, torch.Tensor]:
         r"""
         Get length.
@@ -142,14 +149,14 @@ class Dataset(abc.ABC):
         # \
         ...
 
-        # Get memory length.
+        # Get item from memory.
         return self.memory[i]
 
     def set(
         self: Dataset,
-        *args: VarArg,
-        config: Dict[str, VarArg],
-        **kargs: VarArg,
+        *args: ArgT,
+        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
+        **kargs: KArgT,
     ) -> None:
         r"""
         Settle down dataset by given configuration.
@@ -158,8 +165,10 @@ class Dataset(abc.ABC):
         ----
         - self
         - *args
-        - config
-            Configuration dict.
+        - xargs
+            Extra arguments to specific configuration.
+        - xkargs
+            Extra keyword arguments to specific configuration.
         - **kargs
 
         Returns
@@ -171,8 +180,8 @@ class Dataset(abc.ABC):
         # \
         ...
 
-        # Configure dataset with given arguments.
-        self.configure(config)
+        # Configure dataset with extra arguments.
+        self.configure(xargs, xkargs)
 
         # Get relative file path.
         relative = self.relative()
@@ -197,9 +206,9 @@ class Dataset(abc.ABC):
     @abc.abstractmethod
     def configure(
         self: Dataset,
-        config: Dict[str, VarArg],
-        *args: VarArg,
-        **kargs: VarArg,
+        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
+        *args: ArgT,
+        **kargs: KArgT,
     ) -> None:
         r"""
         Configure dataset.
@@ -207,8 +216,10 @@ class Dataset(abc.ABC):
         Args
         ----
         - self
-        - config
-            Configuration dict.
+        - xargs
+            Extra arguments to specific configuration.
+        - xkargs
+            Extra keyword arguments to specific configuration.
         - *args
         - **kargs
 
@@ -224,8 +235,8 @@ class Dataset(abc.ABC):
     @abc.abstractmethod
     def relative(
         self: Dataset,
-        *args: VarArg,
-        **kargs: VarArg,
+        *args: ArgT,
+        **kargs: KArgT,
     ) -> str:
         r"""
         Relative path to dataset.
@@ -250,9 +261,9 @@ class Dataset(abc.ABC):
     def save(
         self: Dataset,
         path: str,
-        *args: VarArg,
+        *args: ArgT,
         md5: Union[str, None],
-        **kargs: VarArg,
+        **kargs: KArgT,
     ) -> None:
         """
         Save dataset memory.
@@ -291,7 +302,7 @@ class Dataset(abc.ABC):
         tensors = self.aggregate()
 
         # Save data to given path.
-        torch.save(tensors, path)
+        getattr(torch, "save")(tensors, path)
 
         # Check MD5 if it is required.
         if (md5 is None):
@@ -299,7 +310,11 @@ class Dataset(abc.ABC):
         elif (len(md5) == 0):
             warning(
                 "\"{:s}\" updates \"MD5\" to \"\033[35;1m{:s}\033[0m\".",
-                path, filesys.md5(path),
+                os.path.join(
+                    os.path.dirname(path),
+                    "\033[35;1m{:s}\033[0m".format(os.path.basename(path)),
+                ),
+                filesys.md5(path),
             )
         elif (filesys.md5(path) == md5):
             pass
@@ -313,8 +328,8 @@ class Dataset(abc.ABC):
     def load(
         self: Dataset,
         path: str,
-        *args: VarArg,
-        **kargs: VarArg,
+        *args: ArgT,
+        **kargs: KArgT,
     ) -> None:
         r"""
         Load dataset memory.
@@ -344,7 +359,7 @@ class Dataset(abc.ABC):
             pass
 
         # Load data from given path.
-        tensors = torch.load(path)
+        tensors = getattr(torch, "load")(path)
 
         # Segregate data.
         debug("Segregating for \"{:s}\".", path)
@@ -353,8 +368,8 @@ class Dataset(abc.ABC):
     @abc.abstractmethod
     def aggregate(
         self: Dataset,
-        *args: VarArg,
-        **kargs: VarArg,
+        *args: ArgT,
+        **kargs: KArgT,
     ) -> List[Dict[str, torch.Tensor]]:
         r"""
         Aggregate dataset memory into a single object.
@@ -380,8 +395,8 @@ class Dataset(abc.ABC):
     def segregate(
         self: Dataset,
         obj: List[Dict[str, torch.Tensor]],
-        *args: VarArg,
-        **kargs: VarArg,
+        *args: ArgT,
+        **kargs: KArgT,
     ) -> None:
         r"""
         Segregate a single object into dataset memory.

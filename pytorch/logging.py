@@ -2,12 +2,16 @@
 from __future__ import annotations
 
 # Import typing.
-from typing import Any as VarArg
+from typing import Any as ArgT
+from typing import Any as KArgT
+from typing import Any as Naive
 from typing import Final as Const
 from typing import Tuple as MultiReturn
 from typing import Type, Protocol
 from typing import TextIO, BinaryIO
 from typing import Union, Tuple, List, Dict, Set, Callable
+from typing import TypeVar, Generic
+from typing import cast
 
 # Import dependencies.
 import sys
@@ -107,7 +111,7 @@ UNIT: Const = 4
 # ANNOTATE VARIABLES
 # \
 # Define message regex.
-NUMBER: Const = r"[1-9][0-9]*"
+NUMBER: Const = r"(0|[1-9][0-9]*)"
 UNIT_INITIAL: Const = r"([A-Z][A-Za-z]*|{:s})".format(NUMBER)
 UNIT_INSIDE: Const = r"([a-z]+|{:s}|{:s})".format(UNIT_INITIAL, NUMBER)
 INITIAL: Const = r"({:s}(-{:s})*)".format(UNIT_INITIAL, UNIT_INSIDE)
@@ -121,20 +125,25 @@ FIRST: Const = r"({:s}|{:s}|{:s}|{:s})".format(
 LATER: Const = r"({:s}|{:s}|{:s}|{:s})".format(INSIDE, MATH, CODE, STRING)
 BREAK: Const = r"( |, )"
 PARANTHESE: Const = r"\({:s}({:s}{:s})*\)".format(LATER, BREAK, LATER)
-SENTENCE: Const = r"^{:s}({:s}{:s}({:s}{:s})?)*\.$".format(
-    FIRST, BREAK, LATER, BREAK, PARANTHESE,
+SENTENCE: Const = r"^{:s}({:s}({:s}|{:s}))*(\.|:)$".format(
+    FIRST, BREAK, LATER, PARANTHESE,
 )
 
 
 def default_logger(
-    *args: VarArg,
-    **kargs: VarArg,
+    name: str, level: int,
+    *args: ArgT,
+    **kargs: KArgT,
 ) -> logging.Logger:
     r"""
     Default logger.
 
     Args
     ----
+    - name
+        Logger name.
+    - level
+        Logging level.
     - *args
     - **kargs
 
@@ -150,8 +159,7 @@ def default_logger(
     ...
 
     # Allocate logger.
-    level = DEBUG
-    logger = logging.getLogger("")
+    logger = logging.getLogger(name)
     logger.setLevel(level=level)
 
     # Define logging line format.
@@ -168,13 +176,13 @@ def default_logger(
 
 
 # Univeral logger.
-universal: logging.Logger = default_logger()
+universal: logging.Logger = default_logger(__file__, DEBUG)
 
 
 def update_universal_logger(
     logger: logging.Logger,
-    *args: VarArg,
-    **kargs: VarArg,
+    *args: ArgT,
+    **kargs: KArgT,
 ) -> None:
     r"""
     Update universal logger.
@@ -195,14 +203,19 @@ def update_universal_logger(
     # \
     ...
 
+    # \
+    # GLOBAL VARIABLES
+    # \
+    global universal
+
     # Replace directly.
     universal = logger
 
 
 def chunk(
     messages: List[str],
-    *args: VarArg,
-    **kargs: VarArg,
+    *args: ArgT,
+    **kargs: KArgT,
 ) -> List[str]:
     r"""
     Chunk messages into messages with length limitation.
@@ -304,6 +317,11 @@ def log(
     # \
     ...
 
+    # \
+    # GLOBAL VARIABLES
+    # \
+    global universal
+
     # Get message string.
     message = fmt.format(*args, **kargs)
     paragraphs = paragraphize(message.split("\n"))
@@ -316,15 +334,15 @@ def log(
     outputs = chunk(lines[:-1])
 
     # Break message into lines with color inheritance.
-    print("{:s} | {:s}".format(CLRFIX[level], outputs[0]))
+    universal.log(level, "{:s} | {:s}".format(CLRFIX[level], outputs[0]))
     for itr in outputs[1:]:
-        print(("{:s} | {:s}".format(CLRFIX[NULL], itr)))
+        universal.log(level, "{:s} | {:s}".format(CLRFIX[NULL], itr))
 
 
 def paragraphize(
     messages: List[str],
-    *args: object,
-    **kargs: object,
+    *args: ArgT,
+    **kargs: KArgT,
 ) -> List[List[str]]:
     r"""
     Transfer a list of messages into paragraphs.
@@ -382,9 +400,9 @@ def paragraphize(
 
 def mathize(
     decoding: List[str],
-    *args: object,
+    *args: ArgT,
     row: int,
-    **kargs: object,
+    **kargs: KArgT,
 ) -> List[List[str]]:
     r"""
     Transfer a list of messages into a match block.
@@ -433,9 +451,9 @@ def mathize(
 
 def codize(
     decoding: List[str],
-    *args: object,
+    *args: ArgT,
     row: int,
-    **kargs: object,
+    **kargs: KArgT,
 ) -> List[List[str]]:
     r"""
     Transfer a list of messages into a code block.
@@ -484,9 +502,9 @@ def codize(
 
 def textize(
     decoding: List[str],
-    *args: object,
+    *args: ArgT,
     row: int,
-    **kargs: object,
+    **kargs: KArgT,
 ) -> List[List[str]]:
     r"""
     Transfer a list of messages into a text block.
@@ -555,8 +573,8 @@ class CallableLog(Protocol):
     def __call__(
         self: CallableLog,
         fmt: str,
-        *args: object,
-        **kargs: object,
+        *args: ArgT,
+        **kargs: KArgT,
     ) -> None:
         r"""
         Call.
@@ -581,8 +599,8 @@ class CallableLog(Protocol):
 
 def wrap(
     level: int,
-    *args: VarArg,
-    **kargs: VarArg,
+    *args: ArgT,
+    **kargs: KArgT,
 ) -> CallableLog:
     r"""
     Bind log function with a level integer.

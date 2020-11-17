@@ -16,7 +16,10 @@ from typing import cast
 # Import dependencies.
 import sys
 import os
+import abc
+import queue
 import torch
+import threading
 
 # Add development library to path.
 if (os.path.basename(os.getcwd()) == "MLRepo"):
@@ -29,31 +32,34 @@ else:
 from pytorch.logging import debug, info1, info2, focus, warning, error
 
 # Import dependencies.
-from pytorch.datasets.generate import GenerateDataset
+from pytorch.batches.batch import Batch
 
 
 # =============================================================================
 # *****************************************************************************
 # -----------------------------------------------------------------------------
-# << Dataset Objects >>
-# A dataset generating meaningless data.
+# << Shuffle Batching Objects >>
+# The batching by shuffling dataset indices.
+# This type of batching is mostly used for stochastic gradient, and requires
+# that dataset indices is fixed and random-accessible (not too large) before
+# an epoch.
 # -----------------------------------------------------------------------------
 # *****************************************************************************
 # =============================================================================
 
 
-class WasteDataset(GenerateDataset):
+class ConstShuffleBatch(Batch):
     r"""
-    Dataset generating waste data.
+    Batching by shuffling with constant batch size.
     """
     def configure(
-        self: WasteDataset,
+        self: ConstShuffleBatch,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         *args: ArgT,
         **kargs: KArgT,
     ) -> None:
         r"""
-        Configure dataset.
+        Configure batching.
 
         Args
         ----
@@ -74,27 +80,85 @@ class WasteDataset(GenerateDataset):
         # \
         ...
 
-        # Save necessary attributes.
+        # Get batch size.
         self.rng = xargs[0]
-        self.num_samples = xkargs["num_samples"]
-        self.sample_size = xkargs["sample_size"]
+        self.batch_size = xkargs["batch_size"]
+        self.tail = xkargs["tail"]
 
-    def generate(
-        self: WasteDataset,
+    def refresh_schedule(
+        self: ConstShuffleBatch,
+        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         *args: ArgT,
         **kargs: KArgT,
-    ) -> None:
+    ) -> List[List[int]]:
         r"""
-        Generate dataset memory.
+        Refresh batching schedule.
 
         Args
         ----
         - self
+        - xargs
+            Extra arguments to specific configuration.
+        - xkargs
+            Extra keyword arguments to specific configuration.
         - *args
         - **kargs
 
         Returns
         -------
+        - chunks
+            A list of refreshed schedule chunks.
+
+        """
+        # \
+        # ANNOTATE VARIABLES
+        # \
+        aranged: List[List[int]]
+
+        # Get number of completely batched samples.
+        num_batches = len(self.dataset) // self.batch_size
+        num_completes = num_batches * self.batch_size
+
+        # Get a random schedule.
+        indices = getattr(torch, "randperm")(
+            len(self.dataset), generator=self.rng,
+        )
+
+        # Get completely batched chunks.
+        aranged = indices[0:num_completes].view(
+            num_batches, self.batch_size,
+        ).tolist()
+
+        # Determine tail.
+        if (num_completes < len(self.dataset) and self.tail):
+            aranged.append(indices[num_completes:].tolist())
+        else:
+            pass
+        return aranged
+
+    def update_schedule(
+        self: ConstShuffleBatch,
+        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> List[List[int]]:
+        r"""
+        Update batching schedule.
+
+        Args
+        ----
+        - self
+        - xargs
+            Extra arguments to specific configuration.
+        - xkargs
+            Extra keyword arguments to specific configuration.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+        - chunks
+            A list of refreshed schedule chunks.
 
         """
         # \
@@ -102,96 +166,6 @@ class WasteDataset(GenerateDataset):
         # \
         ...
 
-        # Generate a list of vectors to memory.
-        for _ in range(self.num_samples):
-            sample = getattr(torch, "zeros")(
-                self.sample_size, self.sample_size, dtype=self.DTYPE,
-            )
-            sample.uniform_(0, 1, generator=self.rng)
-            self.memory.append({"input": sample})
-
-    def relative(
-        self: WasteDataset,
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> str:
-        r"""
-        Relative path to dataset.
-
-        Args
-        ----
-        - self
-        - *args
-        - **kargs
-
-        Returns
-        -------
-        - relative
-            Relative path.
-
-        """
-        # \
-        # ANNOTATE VARIABLES
-        # \
-        ...
-
-        # Waste data does not need caching.
-        return "waste"
-
-    def aggregate(
-        self: WasteDataset,
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> List[Dict[str, torch.Tensor]]:
-        r"""
-        Aggregate dataset memory into a single object.
-
-        Args
-        ----
-        - self
-        - *args
-        - **kargs
-
-        Returns
-        -------
-        - obj
-            Single object.
-
-        """
-        # \
-        # ANNOTATE VARIABLES
-        # \
-        ...
-
-        # Create a null object.
-        obj = self.memory
-        return obj
-
-    def segregate(
-        self: WasteDataset,
-        obj: List[Dict[str, torch.Tensor]],
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> None:
-        r"""
-        Segregate a single object into dataset memory.
-
-        Args
-        ----
-        - self
-        - obj
-            Single object.
-        - *args
-        - **kargs
-
-        Returns
-        -------
-
-        """
-        # \
-        # ANNOTATE VARIABLES
-        # \
-        ...
-
-        # Create a null object.
-        self.memory = obj
+        # Can not update anything.
+        error("Constant-sized shuffling batching can not update.")
+        raise RuntimeError

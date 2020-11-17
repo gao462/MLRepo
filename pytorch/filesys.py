@@ -2,12 +2,16 @@
 from __future__ import annotations
 
 # Import typing.
-from typing import Any as VarArg
+from typing import Any as ArgT
+from typing import Any as KArgT
+from typing import Any as Naive
 from typing import Final as Const
 from typing import Tuple as MultiReturn
 from typing import Type, Protocol
 from typing import TextIO, BinaryIO
 from typing import Union, Tuple, List, Dict, Set, Callable
+from typing import TypeVar, Generic
+from typing import cast
 
 # Import dependencies.
 import sys
@@ -39,8 +43,8 @@ from pytorch.logging import debug, info1, info2, focus, warning, error
 
 def ensure_dir(
     path: str,
-    *args: VarArg,
-    **kargs: VarArg,
+    *args: ArgT,
+    **kargs: KArgT,
 ) -> None:
     r"""
     Ensure existence of path directory.
@@ -59,9 +63,9 @@ def ensure_dir(
     # \
     # ANNOTATE VARIABLES
     # \
-    directory: str
+    ...
 
-    # Create directory if it does not exist
+    # Create directory if it does not exist.
     if (os.path.isdir(path)):
         pass
     elif (os.path.isfile(path)):
@@ -72,8 +76,8 @@ def ensure_dir(
 
 def md5(
     path: str,
-    *args: VarArg,
-    **kargs: VarArg,
+    *args: ArgT,
+    **kargs: KArgT,
 ) -> str:
     r"""
     Get MD5 hash.

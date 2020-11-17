@@ -16,7 +16,7 @@ from typing import cast
 # Import dependencies.
 import sys
 import os
-import abc
+import torch
 
 # Add development library to path.
 if (os.path.basename(os.getcwd()) == "MLRepo"):
@@ -29,41 +29,40 @@ else:
 from pytorch.logging import debug, info1, info2, focus, warning, error
 
 # Import dependencies.
-from pytorch.datasets.dataset import Dataset
+from pytorch.transforms.transform import BatchTransform
 
 
 # =============================================================================
 # *****************************************************************************
 # -----------------------------------------------------------------------------
-# << Dataset Virtual Objects >>
-# The virtual dataset protoype for any dataset types.
+# << Transform Stacking Objects >>
+# Transforms that stacking a batch of tensors with the same keyword into a
+# single tensor with the same keyword.
+# It is still a list to list operation.
+# It should compress a list of N dicts of K-dim tensors into a list of 1 dict
+# of (K+1)-dim tensors.
+# The first dimension is extended as batch dimension.
 # -----------------------------------------------------------------------------
 # *****************************************************************************
 # =============================================================================
 
 
-class GenerateDataset(Dataset):
+class StackBatchTransform(BatchTransform):
     r"""
-    Virtual class for dataset.
+    Data transform processing stacking tensors together in a tensor.
     """
-    def save(
-        self: GenerateDataset,
-        path: str,
+    def __init__(
+        self: StackBatchTransform,
         *args: ArgT,
-        md5: Union[str, None],
         **kargs: KArgT,
     ) -> None:
-        """
-        Save dataset memory.
+        r"""
+        Initialize.
 
         Args
         ----
         - self
-        - path
-            Path to save memory.
         - *args
-        - md5
-            Requiring MD5.
         - **kargs
 
         Returns
@@ -75,33 +74,41 @@ class GenerateDataset(Dataset):
         # \
         ...
 
-        # Generate data.
-        debug("Generating for \"{:s}\".", path)
-        self.generate()
+        # Nothing is required.
+        pass
 
-        # Super.
-        Dataset.save(self, path, md5=md5)
-
-    @abc.abstractmethod
-    def generate(
-        self: GenerateDataset,
+    def call(
+        self: StackBatchTransform,
+        raw: List[Dict[str, torch.Tensor]],
         *args: ArgT,
         **kargs: KArgT,
-    ) -> None:
+    ) -> List[Dict[str, torch.Tensor]]:
         r"""
-        Generate dataset memory.
+        Call as function.
 
         Args
         ----
         - self
+        - raw
+            Raw data before processing.
         - *args
         - **kargs
 
         Returns
         -------
+        - processed
+            Processed data.
 
         """
         # \
-        # VIRTUAL
+        # ANNOTATE VARIABLES
         # \
-        ...
+        processed: Dict[str, torch.Tensor]
+        buf: List[torch.Tensor]
+
+        # Concatenate given keywords.
+        processed = {
+            key: torch.stack([sample[key] for sample in raw])
+            for key in raw[0].keys()
+        }
+        return [processed]
