@@ -30,8 +30,7 @@ else:
 from pytorch.logging import debug, info1, info2, focus, warning, error
 
 # Import dependencies.
-from pytorch.transforms.transform import SampleTransform
-from pytorch.transforms.transform import BatchTransform
+from pytorch.reforms.transform import Transform
 
 
 # =============================================================================
@@ -44,16 +43,24 @@ from pytorch.transforms.transform import BatchTransform
 # =============================================================================
 
 
-class WasteSampleTransform(SampleTransform):
+class WasteTransform(Transform):
     r"""
-    Meaningless data transform processing on samples.
+    Meaningless data transform processing on different levels.
 
     On samples, it is assumed that only simple operations such as add,
     substract, multiple and divide is adopted, for example, normalization.
+
+    On batches, it is assumed that operations including reshape, split,
+    concatentation are adopted besides sample operations.
+
+    On models, besides operations on samples and batches, it also extends with
+    matrix multiplication, element-wise multiplication, activation, and
+    softmax.
     """
     def __init__(
-        self: WasteSampleTransform,
+        self: WasteTransform,
         num: int, sec: float,
+        arith: bool, reshape: bool, matmul: bool,
         *args: ArgT,
         **kargs: KArgT,
     ) -> None:
@@ -67,6 +74,12 @@ class WasteSampleTransform(SampleTransform):
             Number of repeating times.
         - sec
             Minimum seconds spending in this transform.
+        - arith
+            If True, do wasteful arithmetic operations.
+        - reshape
+            If True, do wasteful reshaping operations.
+        - matmul
+            If True, do wasteful matrix multiplication operations.
         - *args
         - **kargs
 
@@ -80,9 +93,12 @@ class WasteSampleTransform(SampleTransform):
         # Save necessary attributes.
         self.NUM: Const = num
         self.SEC: Const = sec
+        self.ARITH: Const = arith
+        self.RESHAPE: Const = reshape
+        self.MATMUL: Const = matmul
 
     def __call__(
-        self: WasteSampleTransform,
+        self: WasteTransform,
         raw: Dict[str, torch.Tensor],
         *args: ArgT,
         **kargs: KArgT,
@@ -114,217 +130,59 @@ class WasteSampleTransform(SampleTransform):
         mat = raw["input"]
         for _ in range(self.NUM):
             # Basic arithmetic.
-            mat = mat * 5
-            mat = mat + 2
-            mat = mat - 3
-            mat = mat / 4
-            mmx = getattr(torch, "max")(mat)
-            mmn = getattr(torch, "min")(mat)
-            mat = (mat - mmn) / (mmx - mmn)
+            if (self.ARITH):
+                mat = mat * 5
+                mat = mat + 2
+                mat = mat - 3
+                mat = mat / 4
+                mmx = getattr(torch, "max")(mat)
+                mmn = getattr(torch, "min")(mat)
+                mat = (mat - mmn) / (mmx - mmn)
+            else:
+                pass
+
+            # Shape tricks.
+            if (self.RESHAPE):
+                if (mat.dim() == 2):
+                    num_rows, num_cols = mat.size()
+                    mat = mat.view(num_cols, num_rows)
+                    buf = []
+                    for i in range(num_cols):
+                        buf.append(mat[i])
+                    mat = getattr(torch, "stack")(buf)
+                    mat = mat.view(num_rows, num_cols)
+                else:
+                    num_batches, num_rows, num_cols = mat.size()
+                    mat = mat.view(num_batches, num_cols, num_rows)
+                    buf = []
+                    for i in range(num_cols):
+                        buf.append(mat[:, i])
+                    mat = getattr(torch, "stack")(buf, dim=1)
+                    mat = mat.view(num_batches, num_rows, num_cols)
+            else:
+                pass
+
+            # Matrix operations.
+            if (self.MATMUL):
+                if (mat.dim() == 2):
+                    dupl = mat
+                    dupr = mat.t()
+                    attn = getattr(torch, "mm")(dupl, dupr)
+                    attn = getattr(torch, "sigmoid")(attn)
+                    mat = attn * mat
+                    mat = getattr(torch, "softmax")(mat, dim=1)
+                else:
+                    dupl = mat
+                    dupr = mat.permute(0, 2, 1)
+                    attn = getattr(torch, "bmm")(dupl, dupr)
+                    attn = getattr(torch, "sigmoid")(attn)
+                    mat = attn * mat
+                    mat = getattr(torch, "softmax")(mat, dim=2)
+            else:
+                pass
         end = time.time()
         elapsed = end - start
 
         # Sleep for enough time.
         time.sleep(max(self.SEC - elapsed, 0))
         return {"input": mat}
-
-
-class WasteBatchTransform(BatchTransform):
-    r"""
-    Meaningless data transform processing on batches.
-
-    On batches, it is assumed that operations including reshape, split,
-    concatentation are adopted besides sample operations.
-    """
-    def __init__(
-        self: WasteBatchTransform,
-        num: int, sec: float,
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> None:
-        r"""
-        Initialize.
-
-        Args
-        ----
-        - self
-        - num
-            Number of repeating times.
-        - sec
-            Minimum seconds spending in this transform.
-        - *args
-        - **kargs
-
-        Returns
-        -------
-
-        """
-        # \
-        # ANNOTATE VARIABLES
-        # \
-        # Save necessary attributes.
-        self.NUM: Const = num
-        self.SEC: Const = sec
-
-    def __call__(
-        self: WasteBatchTransform,
-        raw: Dict[str, List[torch.Tensor]],
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> Dict[str, List[torch.Tensor]]:
-        r"""
-        Call as function.
-
-        Args
-        ----
-        - self
-        - raw
-            Raw data before processing.
-        - *args
-        - **kargs
-
-        Returns
-        -------
-        - processed
-            Processed data.
-
-        """
-        # \
-        # ANNOTATE VARIABLES
-        # \
-        processed: Dict[str, List[torch.Tensor]]
-
-        # Do a bench of meaningless operations.
-        start = time.time()
-        processed = {"input": []}
-        for mat in raw["input"]:
-            for _ in range(self.NUM):
-                # Shape tricks.
-                num_rows, num_cols = mat.size()
-                mat = mat.view(num_cols, num_rows)
-                buf = []
-                for i in range(len(mat)):
-                    buf.append(mat[i])
-                mat = getattr(torch, "stack")(buf)
-                mat = mat.view(num_rows, num_cols)
-
-                # Basic arithmetic.
-                mat = mat * 5
-                mat = mat + 2
-                mat = mat - 3
-                mat = mat / 4
-                mmx = getattr(torch, "max")(mat)
-                mmn = getattr(torch, "min")(mat)
-                mat = (mat - mmn) / (mmx - mmn)
-            processed["input"].append(mat)
-        end = time.time()
-        elapsed = end - start
-
-        # Sleep for enough time.
-        time.sleep(max(self.SEC - elapsed, 0))
-        return processed
-
-
-class WasteModelTransform(BatchTransform):
-    r"""
-    Meaningless data transform processing on models.
-
-    On models, besides operations on samples and batches, it also extends with
-    matrix multiplication, element-wise multiplication, activation, and
-    softmax.
-    """
-    def __init__(
-        self: WasteModelTransform,
-        num: int, sec: float,
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> None:
-        r"""
-        Initialize.
-
-        Args
-        ----
-        - self
-        - num
-            Number of repeating times.
-        - sec
-            Minimum seconds spending in this transform.
-        - *args
-        - **kargs
-
-        Returns
-        -------
-
-        """
-        # \
-        # ANNOTATE VARIABLES
-        # \
-        # Save necessary attributes.
-        self.NUM: Const = num
-        self.SEC: Const = sec
-
-    def __call__(
-        self: WasteModelTransform,
-        raw: Dict[str, List[torch.Tensor]],
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> Dict[str, List[torch.Tensor]]:
-        r"""
-        Call as function.
-
-        Args
-        ----
-        - self
-        - raw
-            Raw data before processing.
-        - *args
-        - **kargs
-
-        Returns
-        -------
-        - processed
-            Processed data.
-
-        """
-        # \
-        # ANNOTATE VARIABLES
-        # \
-        processed: Dict[str, List[torch.Tensor]]
-
-        # Do a bench of meaningless operations.
-        start = time.time()
-        processed = {"input": []}
-        for mat in raw["input"]:
-            for _ in range(self.NUM):
-                # Matrix operations.
-                dupl = mat
-                dupr = mat.t()
-                attn = getattr(torch, "mm")(dupl, dupr)
-                attn = getattr(torch, "sigmoid")(attn)
-                mat = attn * mat
-                mat = getattr(torch, "softmax")(mat, dim=1)
-
-                # Shape tricks.
-                num_rows, num_cols = mat.size()
-                mat = mat.view(num_cols, num_rows)
-                buf = []
-                for i in range(len(mat)):
-                    buf.append(mat[i])
-                mat = getattr(torch, "stack")(buf)
-                mat = mat.view(num_rows, num_cols)
-
-                # Basic arithmetic.
-                mat = mat * 5
-                mat = mat + 2
-                mat = mat - 3
-                mat = mat / 4
-                mmx = getattr(torch, "max")(mat)
-                mmn = getattr(torch, "min")(mat)
-                mat = (mat - mmn) / (mmx - mmn)
-            processed["input"].append(mat)
-        end = time.time()
-        elapsed = end - start
-
-        # Sleep for enough time.
-        time.sleep(max(self.SEC - elapsed, 0))
-        return processed

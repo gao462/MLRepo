@@ -33,36 +33,26 @@ from pytorch.logging import debug, info1, info2, focus, warning, error
 # Import dependencies.
 from pytorch.models.model import GradModel
 from pytorch.models.model import ForwardFunction, Parameter
-from pytorch.models.linear import Linear
 
 
 # =============================================================================
 # *****************************************************************************
 # -----------------------------------------------------------------------------
-# << Recurrent Gradient Model >>
-# The recurrent gradient model.
-# The model forward function $f$ must be described as:
-#
-# $$
-# y = f \left(
-#     f_{\text{input}} \left(
-#         \theta_{\text{input}}, x_{\text{input}},
-#     \right) + f_{\text{hidden}} \left(
-#         \theta_{\text{hidden}}, x_{\text{hidden}},
-#     \right)
-# \right)
-# $$
+# << Linear Gradient Model >>
+# The linear gradient model.
+# The model forward function $f$ must be constructed with linear matrix
+# operations, such as matrix multiplication, element-wise addition.
 # -----------------------------------------------------------------------------
 # *****************************************************************************
 # =============================================================================
 
 
-class RNN(GradModel):
+class Linear(GradModel):
     r"""
-    RNN.
+    Linear.
     """
     def configure(
-        self: RNN,
+        self: Linear,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         *args: ArgT,
         **kargs: KArgT,
@@ -87,20 +77,30 @@ class RNN(GradModel):
         # \
         # ANNOTATE VARIABLES
         # \
-        self.transform: Callable[[torch.Tensor], torch.Tensor]
-        self.isub: GradModel
-        self.hsub: GradModel
+        self.weight: torch.nn.parameter.Parameter
+        self.bias: torch.nn.parameter.Parameter
+        self.num_inputs: int
+        self.num_outputs: int
+        self.no_bias: bool
 
-        # Get model aggregation transform.
-        self.transform_name = xkargs["transform"]
-        self.transform = getattr(torch, self.transform_name)
+        # Save necessary attributes.
+        self.num_inputs = xkargs["num_inputs"]
+        self.num_outputs = xkargs["num_outputs"]
+        self.no_bias = xkargs["no_bias"]
 
-        # Get models for raw input and hidden state.
-        self.isub = xkargs["isub"]
-        self.hsub = xkargs["hsub"]
+        # Allocate parameters.
+        self.weight = torch.nn.parameter.Parameter(getattr(torch, "zeros")(
+            self.num_outputs, self.num_inputs, dtype=self.DTYPE,
+        ))
+        if (self.no_bias):
+            pass
+        else:
+            self.bias = torch.nn.parameter.Parameter(getattr(torch, "zeros")(
+                self.num_outputs, dtype=self.DTYPE,
+            ))
 
     def initialize(
-        self: RNN,
+        self: Linear,
         rng: torch._C.Generator,
         *args: ArgT,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
@@ -124,18 +124,79 @@ class RNN(GradModel):
         Returns
         -------
 
+        Use Kaiming Uniform as PyTorch default.
         """
         # /
         # ANNOTATE VARIABLES
         # /
         ...
 
-        # Initialize recursively.
-        self.isub.initialize(rng, xargs=xargs, xkargs=xkargs)
-        self.hsub.initialize(rng, xargs=xargs, xkargs=xkargs)
+        # Initialize weight.
+        gain = Linear.activation_gain(
+            name=xkargs["activation"], negative_slope=xkargs["negative_slope"],
+        )
+        std = gain / math.sqrt(self.num_inputs)
+        bound = math.sqrt(3) * std
+        self.weight.data.uniform_(-bound, bound, generator=rng)
+
+        # Initialize bias if necessary.
+        if (self.no_bias):
+            pass
+        else:
+            bound = 1 / math.sqrt(self.num_inputs)
+            self.bias.data.uniform_(-bound, bound, generator=rng)
+
+    @staticmethod
+    def activation_gain(
+        *args: ArgT,
+        name: str, negative_slope: float,
+        **kargs: KArgT,
+    ) -> float:
+        r"""
+        Activation gain for initialization.
+
+        Args
+        ----
+        - *args
+        - name
+            Activation name.
+            "null" for no activation or convolution.
+            "sigmoid" for Sigmoid activation.
+            "tanh" for Tanh activation.
+            "relu" for Relu activation.
+            "leaky_relu" for Leaky ReLU activation.
+        - negative_slope
+            Negative slope for Leaky ReLU activation.
+            Use 0 if activation is not Leaky ReLU.
+        - **kargs
+
+        Returns
+        -------
+        - gain
+            Gain.
+
+        It is directly duplicated from PyTorch default.
+        """
+        # /
+        # ANNOTATE VARIABLES
+        # /
+        ...
+
+        # Get gain.
+        if (name == "sigmoid"):
+            return 1.0
+        elif (name == "tanh"):
+            return 5.0 / 3.0
+        elif (name == "relu"):
+            return math.sqrt(2.0)
+        elif (name == "leaky_relu"):
+            return math.sqrt(2.0 / (1.0 + negative_slope ** 2))
+        else:
+            error("Activcation \"{:s}\" has no gain definition.", name)
+            raise RuntimeError
 
     def set_forward(
-        self: RNN,
+        self: Linear,
         *args: ArgT,
         **kargs: KArgT,
     ) -> ForwardFunction:
@@ -160,21 +221,6 @@ class RNN(GradModel):
         $$
 
         where $y$ is output, $\theta$ is parameter and $x$ is input.
-
-        In RNN, the function $f$ is further abstracted into:
-
-        $$
-        y = f \left(
-            f_{\text{input}} \left(
-                \theta_{\text{input}}, x_{\text{input}},
-            \right) + f_{\text{hidden}} \left(
-                \theta_{\text{hidden}}, x_{\text{hidden}},
-            \right)
-        \right)
-        $$
-
-        where $f_{\text{input}}$ and $f_{\text{hidden}}$ are sub models for raw
-        input and hidden state, $f$ is the aggregation transform function.
         """
         # /
         # ANNOTATE VARIABLES
@@ -182,8 +228,7 @@ class RNN(GradModel):
         ...
 
         # Get IO direction.
-        (rec_inkey,), (rec_outkey,) = self.IOKEYS["rnn_aggregate"]
-        (inkey,), (outkey,) = self.IOKEYS["rnn"]
+        (inkey,), (outkey,) = self.IOKEYS["linear"]
 
         def f(
             parameter: Parameter,
@@ -192,7 +237,7 @@ class RNN(GradModel):
             **kargs: KArgT,
         ) -> Dict[str, torch.Tensor]:
             r"""
-            Get a gate.
+            Forward a batch input.
 
             Args
             ----
@@ -214,26 +259,15 @@ class RNN(GradModel):
             # /
             output: Dict[str, torch.Tensor]
 
-            # Get essential sequence info.
-            tensor = next(iter(input.values()))
-            sample_length = tensor.size(0)
-            batch_size = tensor.size(1)
-            device = tensor.device
-
-            # Get essential recurrent transient buffer.
-            transient = self.hsub.null_output(batch_size, device)
-
-            # Compute directly.
-            for t in range(sample_length):
-                for key, val in input.items():
-                    transient[key] = val[t]
-                ibuf = self.isub.forward(parameter.sub("isub"), transient)
-                hbuf = self.hsub.forward(parameter.sub("hsub"), transient)
-                transient[rec_outkey] = self.transform(
-                    ibuf[rec_inkey] + hbuf[rec_inkey],
-                )
+            # Apply matrix multiplication and bias.
             output = {}
-            output[outkey] = transient[inkey]
+            tensor = getattr(torch, "matmul")(
+                input[inkey], parameter["weight"].t(),
+            )
+            if (self.no_bias):
+                output[outkey] = tensor
+            else:
+                output[outkey] = tensor + parameter["bias"]
             return output
 
         # Return the function.
@@ -274,9 +308,15 @@ class RNN(GradModel):
         # /
         ...
 
-        # Null input is undefined.
-        error("Null input is undefined with current arguments.")
-        raise RuntimeError
+        # Get IO direction.
+        (inkey,), (outkey,) = self.IOKEYS["linear"]
+
+        # return all-zero.
+        return {
+            inkey: getattr(torch, "zeros")(
+                batch_size, self.num_inputs, dtype=self.DTYPE, device=device,
+            ),
+        }
 
     def null_output(
         self: Linear,
@@ -316,17 +356,23 @@ class RNN(GradModel):
         # /
         ...
 
-        # Null output is undefined.
-        error("Null output is undefined with current arguments.")
-        raise RuntimeError
+        # Get IO direction.
+        (inkey,), (outkey,) = self.IOKEYS["linear"]
+
+        # return all-zero.
+        return {
+            outkey: getattr(torch, "zeros")(
+                batch_size, self.num_outputs, dtype=self.DTYPE, device=device,
+            ),
+        }
 
 
-class __RNN__(RNN):
+class __Linear__(Linear):
     r"""
-    PyTorch RNN.
+    PyTorch Linear.
     """
     def configure(
-        self: __RNN__,
+        self: __Linear__,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         *args: ArgT,
         **kargs: KArgT,
@@ -351,88 +397,27 @@ class __RNN__(RNN):
         # \
         # ANNOTATE VARIABLES
         # \
-        self.weight_ih: torch.nn.parameter.Parameter
-        self.weight_hh: torch.nn.parameter.Parameter
-        self.bias_ih: torch.nn.parameter.Parameter
-        self.bias_hh: torch.nn.parameter.Parameter
+        self.weight: torch.nn.parameter.Parameter
+        self.bias: torch.nn.parameter.Parameter
+        self.num_inputs: int
+        self.num_outputs: int
+        self.no_bias: bool
 
         # Save necessary attributes.
         self.num_inputs = xkargs["num_inputs"]
         self.num_outputs = xkargs["num_outputs"]
         self.no_bias = xkargs["no_bias"]
-        self.transform_name = xkargs["transform"]
 
         # Allocate parameters.
-        self.pytorch = torch.nn.RNNCell(
-            input_size=self.num_inputs, hidden_size=self.num_outputs,
-            bias=not self.no_bias, nonlinearity=self.transform_name,
+        self.pytorch = torch.nn.Linear(
+            in_features=self.num_inputs, out_features=self.num_outputs,
+            bias=not self.no_bias,
         )
-        self.weight_ih = getattr(self.pytorch, "weight_ih")
-        self.weight_hh = getattr(self.pytorch, "weight_hh")
-        self.bias_ih = getattr(self.pytorch, "bias_ih")
-        self.bias_hh = getattr(self.pytorch, "bias_hh")
-
-        # Temporarily save sub models for initialization consistency.
-        self.isub = xkargs["isub"]
-        self.hsub = xkargs["hsub"]
-
-        # Pre-fetch IO direction only for linear form.
-        (self.i_inkey,), (_,) = self.isub.IOKEYS["linear"]
-        (self.h_inkey,), (_,) = self.hsub.IOKEYS["linear"]
-
-    def initialize(
-        self: __RNN__,
-        rng: torch._C.Generator,
-        *args: ArgT,
-        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
-        **kargs: KArgT,
-    ) -> None:
-        r"""
-        Initialize model parameters and sub models.
-
-        Args
-        ----
-        - self
-        - rng
-            Random number generator.
-        - *args
-        - xargs
-            Extra arguments to specific initialization.
-        - xkargs
-            Extra keyword arguments to specific initialization.
-        - **kargs
-
-        Returns
-        -------
-
-        Use Kaiming Uniform as PyTorch default.
-        """
-        # /
-        # ANNOTATE VARIABLES
-        # /
-        ...
-
-        # Simulate linear units.
-        self.isub = cast(Linear, self.isub)
-        self.hsub = cast(Linear, self.hsub)
-        self.isub.initialize(rng, xargs=xargs, xkargs=xkargs)
-        self.hsub.initialize(rng, xargs=xargs, xkargs=xkargs)
-
-        # Copy data to correct place.
-        self.weight_ih.data.copy_(self.isub.weight.data)
-        self.weight_hh.data.copy_(self.hsub.weight.data)
-        if (self.no_bias):
-            pass
-        else:
-            self.bias_ih.data.copy_(self.isub.bias.data)
-            self.bias_hh.data.copy_(self.hsub.bias.data)
-
-        # Remove from registration.
-        del self.parameter.submodels["isub"]
-        del self.parameter.submodels["hsub"]
+        self.weight = getattr(self.pytorch, "weight")
+        self.bias = getattr(self.pytorch, "bias")
 
     def set_forward(
-        self: __RNN__,
+        self: __Linear__,
         *args: ArgT,
         **kargs: KArgT,
     ) -> ForwardFunction:
@@ -463,10 +448,6 @@ class __RNN__(RNN):
         # /
         ...
 
-        # Get IO direction.
-        (rec_inkey,), (rec_outkey,) = self.IOKEYS["rnn_aggregate"]
-        (inkey,), (outkey,) = self.IOKEYS["rnn"]
-
         def f(
             parameter: Parameter,
             input: Dict[str, torch.Tensor],
@@ -496,22 +477,10 @@ class __RNN__(RNN):
             # /
             output: Dict[str, torch.Tensor]
 
-            # Get essential sequence info.
-            tensor = next(iter(input.values()))
-            sample_length = tensor.size(0)
-            batch_size = tensor.size(1)
-            device = tensor.device
-
-            # Get essential recurrent transient buffer.
-            transient = self.hsub.null_output(batch_size, device)
-            hidden = transient[self.h_inkey][[0]].expand(batch_size, -1)
-
-            # Compute directly.
-            for t in range(sample_length):
-                raw = input[self.i_inkey][t]
-                hidden = self.pytorch.forward(raw, hidden)
+            # Apply matrix multiplication and bias.
             output = {}
-            output[outkey] = hidden
+            (inkey,), (outkey,) = self.IOKEYS["linear"]
+            output[outkey] = self.pytorch.forward(input[inkey])
             return output
 
         # Return the function.

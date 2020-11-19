@@ -43,20 +43,13 @@ from pytorch.logging import debug, info1, info2, focus, warning, error
 # =============================================================================
 
 
-# /
-# GENERIC TYPES
-# /
-# Define generic process IO types.
-DATA = TypeVar("DATA")
-
-
-class Transform(Generic[DATA]):
+class Transform(object):
     r"""
     Virtual class for data transform processing.
     """
     @abc.abstractmethod
     def __init__(
-        self: Transform[DATA],
+        self: Transform,
         *args: ArgT,
         **kargs: KArgT,
     ) -> None:
@@ -80,82 +73,7 @@ class Transform(Generic[DATA]):
 
     @abc.abstractmethod
     def __call__(
-        self: Transform[DATA],
-        raw: DATA,
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> DATA:
-        r"""
-        Call as function.
-
-        Args
-        ----
-        - self
-        - raw
-            Raw data before processing.
-        - *args
-        - **kargs
-
-        Returns
-        -------
-        - processed
-            Processed data.
-
-        """
-        # \
-        # VIRTUAL
-        # \
-        ...
-
-
-class SampleTransform(Transform[Dict[str, torch.Tensor]]):
-    r"""
-    Virtual class for data transform processing on sample level.
-    """
-    # Nothing is required.
-    pass
-
-
-class BatchTransform(Transform[Dict[str, List[torch.Tensor]]]):
-    r"""
-    Virtual class for data transform processing on sample level.
-    """
-    # Nothing is required.
-    pass
-
-
-class IdentitySampleTransform(SampleTransform):
-    r"""
-    Identity data transform processing on sample level.
-    """
-    def __init__(
-        self: IdentitySampleTransform,
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> None:
-        r"""
-        Initialize.
-
-        Args
-        ----
-        - self
-        - *args
-        - **kargs
-
-        Returns
-        -------
-
-        """
-        # \
-        # ANNOTATE VARIABLES
-        # \
-        ...
-
-        # Nothing is required.
-        pass
-
-    def __call__(
-        self: IdentitySampleTransform,
+        self: Transform,
         raw: Dict[str, torch.Tensor],
         *args: ArgT,
         **kargs: KArgT,
@@ -182,16 +100,13 @@ class IdentitySampleTransform(SampleTransform):
         # \
         ...
 
-        # Return what it gets.
-        return raw
 
-
-class IdentityBatchTransform(BatchTransform):
+class IdentityTransform(Transform):
     r"""
-    Identity data transform processing on batch level.
+    Identity data transform processing.
     """
     def __init__(
-        self: IdentityBatchTransform,
+        self: IdentityTransform,
         *args: ArgT,
         **kargs: KArgT,
     ) -> None:
@@ -217,11 +132,11 @@ class IdentityBatchTransform(BatchTransform):
         pass
 
     def __call__(
-        self: IdentityBatchTransform,
-        raw: Dict[str, List[torch.Tensor]],
+        self: IdentityTransform,
+        raw: Dict[str, torch.Tensor],
         *args: ArgT,
         **kargs: KArgT,
-    ) -> Dict[str, List[torch.Tensor]]:
+    ) -> Dict[str, torch.Tensor]:
         r"""
         Call as function.
 

@@ -31,11 +31,10 @@ from pytorch.logging import debug, info1, info2, focus, warning, error
 
 # Import dependencies.
 from pytorch.logging import update_universal_logger, default_logger
-from pytorch.logging import INFO2 as LOGLV
+from pytorch.logging import INFO1 as LOGLV
 from demo.DataTransfer.datasets.waste import WasteDataset
-from demo.DataTransfer.transforms.waste import WasteSampleTransform
-from demo.DataTransfer.transforms.waste import WasteBatchTransform
-from demo.DataTransfer.transforms.waste import WasteModelTransform
+from pytorch.reforms.stackform import NaiveStackform
+from demo.DataTransfer.transforms.waste import WasteTransform
 from pytorch.batches.shuffle import ConstShuffleBatch
 
 
@@ -56,9 +55,9 @@ class Benchmark(object):
     def __init__(
         self: Benchmark,
         dataset: WasteDataset, device: str,
-        sample_transform: WasteSampleTransform,
-        batch_transform: WasteBatchTransform,
-        model_transform: WasteModelTransform,
+        sample_transform: WasteTransform,
+        batch_stackform: NaiveStackform, batch_transform: WasteTransform,
+        model_transform: WasteTransform,
         *args: ArgT,
         num_samplers: int, qmax_samples: int,
         num_batchers: int, qmax_batches: int,
@@ -80,6 +79,8 @@ class Benchmark(object):
             Random generator.
         - sample_transform
             Sample transform.
+        - batch_stackform
+            Batch stackform.
         - batch_transform
             Batch transform.
         - model_transform
@@ -116,14 +117,17 @@ class Benchmark(object):
 
         # Get transforms.
         self.sample_transform = sample_transform
+        self.batch_stackform = batch_stackform
         self.batch_transform = batch_transform
         self.model_transform = model_transform
 
         # Get batching
         self.bat = ConstShuffleBatch()
         self.bat.set(
-            self.dataset, self.sample_transform, self.batch_transform,
-            self.device,
+            self.dataset, self.device,
+            sample_transform=self.sample_transform,
+            batch_stackform=self.batch_stackform,
+            batch_transform=self.batch_transform,
             num_samplers=num_samplers, qmax_samples=qmax_samples,
             num_batchers=num_batchers, qmax_batches=qmax_batches,
             qmax_remotes=qmax_remotes,
@@ -203,7 +207,7 @@ def main(
     batch_size = 16
     num_batches = 16
     dat = WasteDataset(
-        "../FastIO/DataTransfer",
+        "../FastDataset/DataTransfer",
         pin={
             "waste": None,
         },
@@ -220,12 +224,14 @@ def main(
     info1("Datasets are ready.")
 
     # Get simulation transforms.
-    sample_transform = WasteSampleTransform(1, 0.01)
-    batch_transform = WasteBatchTransform(1, 0.05)
-    model_transform = WasteModelTransform(10, 0.1)
+    sample_transform = WasteTransform(1, 0, True, False, False)
+    batch_stackform = NaiveStackform(["input"])
+    batch_transform = WasteTransform(10, 0, True, True, True)
+    model_transform = WasteTransform(10, 0, True, True, True)
     info1("Transforms are ready.")
 
     # Collect performances.
+    import os
     performances = {
         (0, 0, 1): [],
         (0, 1, 1): [],
@@ -239,7 +245,7 @@ def main(
     info2("\"ID #Samplers #Batchers #GPUQueue\".")
     info2("\"-- --------- --------- ---------\".")
     for num_samplers, num_batchers, qmax_remotes in performances.keys():
-        for i in range(5):
+        for i in range(1):
             # Get a benchmark and start.
             info2(
                 "\"{:s} {:s} {:s} {:s}\".",
@@ -250,10 +256,11 @@ def main(
             )
             rng.set_state(rngmem)
             benchmark = Benchmark(
-                dat, "cuda:0",
-                sample_transform, batch_transform, model_transform,
-                num_samplers=num_samplers, qmax_samples=0,
-                num_batchers=num_batchers, qmax_batches=0,
+                dat, "cpu",
+                sample_transform, batch_stackform, batch_transform,
+                model_transform,
+                num_samplers=num_samplers, qmax_samples=4,
+                num_batchers=num_batchers, qmax_batches=4,
                 qmax_remotes=qmax_remotes,
                 rng=rng, batch_size=batch_size,
             )

@@ -30,7 +30,9 @@ else:
 from pytorch.logging import debug, info1, info2, focus, warning, error
 
 # Import dependencies.
-from pytorch.batches.paralf import FunctionalProcess
+from pytorch.datasets.dataset import Dataset
+from pytorch.reforms.transform import Transform
+from pytorch.reforms.stackform import Stackform
 from pytorch.batches.sampling import Sampling
 from pytorch.logging import POSITION
 
@@ -39,36 +41,58 @@ from pytorch.logging import POSITION
 # *****************************************************************************
 # -----------------------------------------------------------------------------
 # << Batching Operations >>
-# The batching operations.
-# They are parallelable.
+# The parallelable batching operations.
+# They will communicate with both sampling and transfering operations with a
+# pair of sample requirement and response queues and a pair of batch requirment
+# and response queues.
+# It will automatically stack a list of samples into intergrated batch.
 # -----------------------------------------------------------------------------
 # *****************************************************************************
 # =============================================================================
 
 
-class Batching(FunctionalProcess[
-    List[int], Dict[str, List[torch.Tensor]],
-]):
+class Batching(object):
     r"""
     Batching from dataset.
     """
-    def init(
+    def __init__(
         self: Batching,
-        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
+        sample_blocking: Union[Sampling, None],
+        sample_requires: multiprocessing.Queue[Tuple[int, int]],
+        sample_responses: multiprocessing.Queue[
+            Tuple[int, Dict[str, torch.Tensor]],
+        ],
+        batch_requires: multiprocessing.Queue[List[int]],
+        batch_responses: multiprocessing.Queue[Dict[str, torch.Tensor]],
         *args: ArgT,
+        stackform: Stackform, transform: Transform,
+        blocking: bool,
         **kargs: KArgT,
     ) -> None:
         r"""
-        Specific initialization.
+        Initialization.
 
         Args
         ----
         - self
-        - xargs
-            Extra arguments to specific initialization.
-        - xkargs
-            Extra keyword arguments to specific initialization.
+        - sample_blocking
+            Blocking interface for sampling.
+            If it is None, it is assumed that sampling is non-blocking.
+        - sample_requires.
+            Sample requirement queue.
+        - sample_responses.
+            Sample response queue.
+        - batch_requires.
+            Batch requirement queue.
+        - batch_responses.
+            Batch response queue.
         - *args
+        - stackform
+            Stackform.
+        - transform
+            Transform.
+        - blocking
+            If True, it should be used as blocking way.
         - **kargs
 
         Returns
@@ -78,52 +102,102 @@ class Batching(FunctionalProcess[
         # /
         # ANNOTATE VARIABLES
         # /
-        self.requires: multiprocessing.Queue[Tuple[int, int]]
-        self.responses: multiprocessing.Queue[
-            Tuple[int, Dict[str, torch.Tensor]],
-        ]
-        self.samplers: List[multiprocessing.Process]
+        # Save necessary attributes.
+        self.PID: Const = os.getpid()
+        self.SAMPLE_BLOCKING: Const = sample_blocking
+        self.SAMPLE_REQUIRES: Const = sample_requires
+        self.SAMPLE_RESPONSES: Const = sample_responses
+        self.BATCH_REQUIRES: Const = batch_requires
+        self.BATCH_RESPONSES: Const = batch_responses
+        self.STACKFORM: Const = stackform
+        self.TRANSFORM: Const = transform
+        self.BLOCKING: Const = blocking
 
-        # Get batching transform.
-        self.transform = xargs[2]
+        # Get name for logging.
+        self.name = "\"Batching{:s}\", ".format(
+            "" if self.BLOCKING else " [{:d}]".format(self.PID)
+        )
 
-        # Allocate queues.
-        self.requires = multiprocessing.Queue()
-        self.responses = multiprocessing.Queue(xkargs["qmax_samples"])
+        # Allow calling.
+        self.closed = False
 
-        # Define and start children sampling processes.
-        self.samplers = []
-        for i in range(xkargs["num_samplers"]):
-            # Define children PID.
-            if (self.PID == "0"):
-                pid = "{:d}".format(i + 1)
-            else:
-                pid = "{:s}.{:d}".format(self.PID, i + 1)
+    def __call__(
+        self: Batching,
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> None:
+        r"""
+        Call as function.
 
-            # Create and start a children process.
-            sampler = multiprocessing.Process(
-                target=Sampling(
-                    pid=pid, inputs=self.requires, outputs=self.responses,
-                    xargs=(xargs[0], xargs[1]),
-                    xkargs=dict(),
-                ),
-                args=(), kwargs={}, daemon=False,
-            )
-            sampler.start()
-            self.samplers.append(sampler)
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
 
-        # Define blocking operation.
-        if (len(self.samplers) == 0):
-            self.blocking = Sampling(
-                pid=self.PID, inputs=self.requires, outputs=self.responses,
-                xargs=(xargs[0], xargs[1]), xkargs={},
-            )
+        Returns
+        -------
+
+        """
+        # Notify a new process forking from main process.
+        debug("{:s}\"\033[36;4;1mDuplicate\033[0m\".", self.name)
+
+        # Loop forever.
+        while (self.call()):
+            # Operations are embedded in condition.
+            pass
+
+        # Notify a new process joining to main process.
+        debug("{:s}\"\033[32;4;1mTerminate\033[0m\".", self.name)
+
+    def call(
+        self: Batching,
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> bool:
+        r"""
+        An explicit step of blocking running flow.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+        - flag
+            If True, the forever run is approaching termination.
+            If False, the step should never be called again.
+
+        """
+        # /
+        # ANNOTATE VARIABLES
+        # /
+        ...
+
+        # Reject closed calling.
+        if (self.closed):
+            error("{:s} operates a closed parallelable function.", self.name)
+            raise RuntimeError
         else:
             pass
 
+        # Get a batch requirement or ending signal.
+        batch_require = self.BATCH_REQUIRES.get()
+
+        # Put a batch response or tail element.
+        if (self.ending(batch_require)):
+            self.BATCH_RESPONSES.put(self.fin(batch_require))
+            self.closed = True
+        else:
+            self.BATCH_RESPONSES.put(self.run(batch_require))
+            self.closed = False
+        return not self.closed
+
     def ending(
         self: Batching,
-        input: List[int],
+        batch_require: List[int],
         *args: ArgT,
         **kargs: KArgT,
     ) -> bool:
@@ -133,41 +207,43 @@ class Batching(FunctionalProcess[
         Args
         ----
         - self
-        - input
-            Input.
+        - batch_require
+            Batch requirement.
         - *args
         - **kargs
 
         Returns
         -------
+        - flag
+            If True, this requirement is an ending signal.
 
         """
 
-        # Decode input.
-        chunk = input
+        # Decode requirement.
+        chunk = batch_require
         return len(chunk) == 0
 
     def run(
         self: Batching,
-        input: List[int],
+        batch_require: List[int],
         *args: ArgT,
         **kargs: KArgT,
-    ) -> Dict[str, List[torch.Tensor]]:
+    ) -> Dict[str, torch.Tensor]:
         r"""
         Real operations.
 
         Args
         ----
         - self
-        - input
-            Input.
+        - batch_require
+            Batch requirement.
         - *args
         - **kargs
 
         Returns
         -------
-        - output
-            Output.
+        - batch_response
+            Batch response.
 
         """
         # /
@@ -175,52 +251,47 @@ class Batching(FunctionalProcess[
         # /
         memory: List[Tuple[int, Dict[str, torch.Tensor]]]
         ordering: Callable[[Tuple[int, Dict[str, torch.Tensor]]], int]
-        raw: Dict[str, List[torch.Tensor]]
+        batch: Dict[str, torch.Tensor]
 
-        # Decode input.
-        chunk = input
+        # Decode requirement.
+        chunk = batch_require
         debug(
             "{:s}\"\033[32mBatch [{:s}]\033[0m\".",
             self.name, ", ".join([str(itr) for itr in chunk]),
         )
 
-        # Put decoded requirements.
+        # Put sample requirements based on requiring chunk.
         for dst, src in enumerate(chunk):
-            self.requires.put((src, dst))
+            self.SAMPLE_REQUIRES.put((src, dst))
 
-        # Get enough responses to memory.
+        # Get enough sample responses to memory.
         memory = []
         while (len(memory) < len(chunk)):
             # Run blocking operation explicitly if necessary.
-            if (len(self.samplers) == 0):
-                self.blocking.call()
-            else:
+            if (self.SAMPLE_BLOCKING is None):
                 pass
+            else:
+                self.SAMPLE_BLOCKING.call()
 
-            # Fetch a response.
-            slot, sample = self.responses.get()
+            # Get a sample response.
+            slot, sample = self.SAMPLE_RESPONSES.get()
 
-            # Use clone as PyTorch suggested.
+            # Use cloned sample as PyTorch suggested.
             clone = {key: val.clone() for key, val in sample.items()}
             del sample
 
             # Save to batch memory.
             memory.append((slot, clone))
 
-        # Recover requirement order.
+        # Recover requiring chunk order.
         ordering = lambda x: x[0]
         memory = sorted(memory, key=ordering)
 
-        # Process raw memory into proper batch form.
-        raw = {key: [] for key in memory[0][1].keys()}
-        for slot, clone in memory:
-            for key, val in clone.items():
-                raw[key].append(val)
-
-        # Some additional transforms on the loaded batch.
+        # Stack samples into batch and transform.
         try:
-            obj = self.transform(raw)
-            return cast(Dict[str, List[torch.Tensor]], obj)
+            batch = self.STACKFORM([clone for _, clone in memory])
+            batch = self.TRANSFORM(batch)
+            return batch
         except:
             error(
                 "{:s}Fail to transform \"{:s}\".",
@@ -233,25 +304,25 @@ class Batching(FunctionalProcess[
 
     def fin(
         self: Batching,
-        input: List[int],
+        batch_require: List[int],
         *args: ArgT,
         **kargs: KArgT,
-    ) -> Dict[str, List[torch.Tensor]]:
+    ) -> Dict[str, torch.Tensor]:
         r"""
         Final operations.
 
         Args
         ----
         - self
-        - input
-            Input.
+        - batch_require
+            Batch requirement.
         - *args
         - **kargs
 
         Returns
         -------
-        - output
-            Output.
+        - batch_response
+            Batch response.
 
         """
         # /
@@ -259,26 +330,12 @@ class Batching(FunctionalProcess[
         # /
         ...
 
-        # Decode input.
-        chunk = input
+        # Decode requirement.
+        chunk = batch_require
         debug(
             "{:s}\"\033[32mBatch [{:s}]\033[0m\" (Fin).",
             self.name, ", ".join([str(itr) for itr in chunk]),
         )
 
-        # Send ending signals to sampling processes.
-        for sampler in self.samplers:
-            self.requires.put((-1, -1))
-        for sampler in self.samplers:
-            self.responses.get()
-
-        # Run blocking final operation explicitly for its explicit definition.
-        if (len(self.samplers) == 0):
-            self.requires.put((-1, -1))
-            self.blocking.call()
-            self.responses.get()
-        else:
-            pass
-
         # Return a null element.
-        return {"": []}
+        return {"": torch.Tensor([0])}

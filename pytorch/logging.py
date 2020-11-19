@@ -103,7 +103,7 @@ POSITION: Const = "\033[31;1;47;1m{:s}\033[0m"
 # \
 # Maximum number of characters per message line.
 # Number of indent spaces.
-MAX: Const = 79
+MAX: Const = 159
 UNIT: Const = 4
 
 
@@ -483,7 +483,7 @@ def codize(
     end = start + len(decoding) - 1
 
     # Block must end properly.
-    if (decoding[-1] != "$$"):
+    if (decoding[-1] != "```"):
         # Use naive print inside logging operations.
         msgerr = (
             "Message {:s}, code block starts from line {:d} and is" \

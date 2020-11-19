@@ -33,7 +33,8 @@ from pytorch.logging import debug, info1, info2, focus, warning, error
 
 # Import dependencies.
 from pytorch.datasets.dataset import Dataset
-from pytorch.transforms.transform import SampleTransform, BatchTransform
+from pytorch.reforms.transform import Transform
+from pytorch.reforms.stackform import Stackform
 from pytorch.batches.transfering import Transfering
 
 
@@ -85,9 +86,10 @@ class Batch(abc.ABC):
     """
     def set(
         self: Batch,
-        dataset: Dataset, sample_transform: SampleTransform,
-        batch_transform: BatchTransform, device: str,
+        dataset: Dataset, device: str,
         *args: ArgT,
+        sample_transform: Transform,
+        batch_stackform: Stackform, batch_transform: Transform,
         num_samplers: int, qmax_samples: int,
         num_batchers: int, qmax_batches: int,
         qmax_remotes: int,
@@ -102,13 +104,15 @@ class Batch(abc.ABC):
         - self
         - dataset
             Dataset.
+        - device
+            Device.
+        - *args
         - sample_transform
             Sample transform.
+        - batch_stackform
+            Batch stackform.
         - batch_transform
-            Batch transform
-        - device
-            Target device.
-        - *args
+            Batch transform.
         - num_samplers
             Number of sampling process.
         - qmax_samples
@@ -136,9 +140,10 @@ class Batch(abc.ABC):
 
         # Save necessary attributes.
         self.dataset = dataset
-        self.sample_transform = sample_transform
-        self.batch_transform = batch_transform
         self.device = device
+        self.sample_transform = sample_transform
+        self.batch_stackform = batch_stackform
+        self.batch_transform = batch_transform
         self.num_samplers = num_samplers
         self.qmax_samples = qmax_samples
         self.num_batchers = num_batchers
@@ -207,7 +212,7 @@ class Batch(abc.ABC):
         # ANNOTATE VARIABLES
         # /
         self.schedules: queue.Queue[List[int]]
-        self.caches: queue.Queue[Dict[str, List[torch.Tensor]]]
+        self.caches: queue.Queue[Dict[str, torch.Tensor]]
 
         # Set schedule tracer.
         self.schedule_max = 0
@@ -220,19 +225,14 @@ class Batch(abc.ABC):
         # Define loading thread.
         self.thread = threading.Thread(
             target=Transfering(
-                pid="0", inputs=self.schedules, outputs=self.caches,
-                xargs=(
-                    self.dataset, self.sample_transform, self.batch_transform,
-                    self.device,
-                ),
-                xkargs=dict(
-                    num_samplers=self.num_samplers,
-                    qmax_samples=self.qmax_samples,
-                    num_batchers=self.num_batchers,
-                    qmax_batches=self.qmax_batches,
-                ),
+                self.dataset, self.device,
+                self.schedules, self.caches,
+                sample_transform=self.sample_transform,
+                batch_stackform=self.batch_stackform,
+                batch_transform=self.batch_transform,
+                num_samplers=self.num_samplers, qmax_samples=self.qmax_samples,
+                num_batchers=self.num_batchers, qmax_batches=self.qmax_batches,
             ),
-            args=(), kwargs={},
         )
         self.thread.start()
 
@@ -340,7 +340,7 @@ class Batch(abc.ABC):
         self: Batch,
         *args: ArgT,
         **kargs: KArgT,
-    ) -> MultiReturn[bool, Dict[str, List[torch.Tensor]]]:
+    ) -> MultiReturn[bool, Dict[str, torch.Tensor]]:
         """
         Fetch batched object from memory.
 

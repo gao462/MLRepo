@@ -29,70 +29,44 @@ else:
 from pytorch.logging import debug, info1, info2, focus, warning, error
 
 # Import dependencies.
-from pytorch.transforms.transform import SampleTransform
-from pytorch.transforms.transform import BatchTransform
+from pytorch.datasets.generate import GenerateDataset
 
 
 # =============================================================================
 # *****************************************************************************
 # -----------------------------------------------------------------------------
-# << Transform Collection Objects >>
-# Transforms that are collections of transforms.
+# << Dataset Objects >>
+# A dataset generating random data.
 # -----------------------------------------------------------------------------
 # *****************************************************************************
 # =============================================================================
 
 
-class SampleTransformSeq(SampleTransform):
+class VectorDataset(GenerateDataset):
     r"""
-    A sequence of data transform processing on sample level.
+    Dataset generating random vectors..
     """
-    def __init__(
-        self: SampleTransformSeq,
-        transforms: List[SampleTransform],
+    def configure(
+        self: VectorDataset,
+        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         *args: ArgT,
         **kargs: KArgT,
     ) -> None:
         r"""
-        Initialize.
+        Configure dataset.
 
         Args
         ----
         - self
+        - xargs
+            Extra arguments to specific configuration.
+        - xkargs
+            Extra keyword arguments to specific configuration.
         - *args
         - **kargs
 
         Returns
         -------
-
-        """
-        # \
-        # ANNOTATE VARIABLES
-        # \
-        # Save necessary attributes.
-        self.TRANSFORMS: Const = transforms
-
-    def __call__(
-        self: SampleTransformSeq,
-        raw: Dict[str, torch.Tensor],
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> Dict[str, torch.Tensor]:
-        r"""
-        Call as function.
-
-        Args
-        ----
-        - self
-        - raw
-            Raw data before processing.
-        - *args
-        - **kargs
-
-        Returns
-        -------
-        - processed
-            Processed data.
 
         """
         # \
@@ -100,25 +74,19 @@ class SampleTransformSeq(SampleTransform):
         # \
         ...
 
-        # Process in order.
-        processed = raw
-        for transform in self.TRANSFORMS:
-            processed = transform(processed)
-        return processed
+        # Save necessary attributes.
+        self.rng = xargs[0]
+        self.num_samples = xkargs["num_samples"]
+        self.num_inputs = xkargs["num_inputs"]
+        self.num_outputs = xkargs["num_outputs"]
 
-
-class BatchTransformSeq(BatchTransform):
-    r"""
-    A sequence of data transform processing on batch level.
-    """
-    def __init__(
-        self: BatchTransformSeq,
-        transforms: List[BatchTransform],
+    def generate(
+        self: VectorDataset,
         *args: ArgT,
         **kargs: KArgT,
     ) -> None:
         r"""
-        Initialize.
+        Generate dataset memory.
 
         Args
         ----
@@ -128,35 +96,6 @@ class BatchTransformSeq(BatchTransform):
 
         Returns
         -------
-
-        """
-        # \
-        # ANNOTATE VARIABLES
-        # \
-        # Save necessary attributes.
-        self.TRANSFORMS: Const = transforms
-
-    def __call__(
-        self: BatchTransformSeq,
-        raw: Dict[str, List[torch.Tensor]],
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> Dict[str, List[torch.Tensor]]:
-        r"""
-        Call as function.
-
-        Args
-        ----
-        - self
-        - raw
-            Raw data before processing.
-        - *args
-        - **kargs
-
-        Returns
-        -------
-        - processed
-            Processed data.
 
         """
         # \
@@ -164,8 +103,100 @@ class BatchTransformSeq(BatchTransform):
         # \
         ...
 
-        # Process in order.
-        processed = raw
-        for transform in self.TRANSFORMS:
-            processed = transform(processed)
-        return processed
+        # Generate a list of vectors to memory.
+        for _ in range(self.num_samples):
+            input = getattr(torch, "zeros")(
+                self.num_inputs, dtype=self.DTYPE,
+            )
+            input.uniform_(-1, 1, generator=self.rng)
+            target = getattr(torch, "zeros")(
+                self.num_outputs, dtype=self.DTYPE,
+            )
+            target.uniform_(-1, 1, generator=self.rng)
+            self.memory.append({"input": input, "target": target})
+
+    def relative(
+        self: VectorDataset,
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> str:
+        r"""
+        Relative path to dataset.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+        - relative
+            Relative path.
+
+        """
+        # \
+        # ANNOTATE VARIABLES
+        # \
+        ...
+
+        # Waste data does not need caching.
+        return "vector"
+
+    def aggregate(
+        self: VectorDataset,
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> List[Dict[str, torch.Tensor]]:
+        r"""
+        Aggregate dataset memory into a single object.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+        - obj
+            Single object.
+
+        """
+        # \
+        # ANNOTATE VARIABLES
+        # \
+        ...
+
+        # Create a null object.
+        obj = self.memory
+        return obj
+
+    def segregate(
+        self: VectorDataset,
+        obj: List[Dict[str, torch.Tensor]],
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> None:
+        r"""
+        Segregate a single object into dataset memory.
+
+        Args
+        ----
+        - self
+        - obj
+            Single object.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # \
+        # ANNOTATE VARIABLES
+        # \
+        ...
+
+        # Create a null object.
+        self.memory = obj

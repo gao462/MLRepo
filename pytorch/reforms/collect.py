@@ -29,30 +29,26 @@ else:
 from pytorch.logging import debug, info1, info2, focus, warning, error
 
 # Import dependencies.
-from pytorch.transforms.transform import BatchTransform
+from pytorch.reforms.transform import Transform
 
 
 # =============================================================================
 # *****************************************************************************
 # -----------------------------------------------------------------------------
-# << Transform Stacking Objects >>
-# Transforms that stacking a batch of tensors with the same keyword into a
-# single tensor with the same keyword.
-# It is still a list to list operation.
-# It should compress a list of N dicts of K-dim tensors into a list of 1 dict
-# of (K+1)-dim tensors.
-# The first dimension is extended as batch dimension.
+# << Transform Collection Objects >>
+# Transforms that are collections of transforms.
 # -----------------------------------------------------------------------------
 # *****************************************************************************
 # =============================================================================
 
 
-class StackBatchTransform(BatchTransform):
+class TransformSeq(Transform):
     r"""
-    Data transform processing stacking tensors together in a tensor.
+    A sequence of data transform processing on sample level.
     """
     def __init__(
-        self: StackBatchTransform,
+        self: TransformSeq,
+        transforms: List[Transform],
         *args: ArgT,
         **kargs: KArgT,
     ) -> None:
@@ -72,17 +68,15 @@ class StackBatchTransform(BatchTransform):
         # \
         # ANNOTATE VARIABLES
         # \
-        ...
+        # Save necessary attributes.
+        self.TRANSFORMS: Const = transforms
 
-        # Nothing is required.
-        pass
-
-    def call(
-        self: StackBatchTransform,
-        raw: Dict[str, List[torch.Tensor]],
+    def __call__(
+        self: TransformSeq,
+        raw: Dict[str, torch.Tensor],
         *args: ArgT,
         **kargs: KArgT,
-    ) -> Dict[str, List[torch.Tensor]]:
+    ) -> Dict[str, torch.Tensor]:
         r"""
         Call as function.
 
@@ -105,6 +99,8 @@ class StackBatchTransform(BatchTransform):
         # \
         ...
 
-        # Concatenate given keywords.
-        processed = {key: [torch.stack(val)] for key, val in raw.items()}
+        # Process in order.
+        processed = raw
+        for transform in self.TRANSFORMS:
+            processed = transform(processed)
         return processed
