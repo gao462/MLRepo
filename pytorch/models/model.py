@@ -57,6 +57,11 @@ class GradModel(abc.ABC):
     r"""
     Virtual class for gradient supporting model.
     """
+    # \
+    # ANNOTATE VARIABLES
+    # \
+    main: str
+
     def __init__(
         self: GradModel,
         root: str,
@@ -98,304 +103,21 @@ class GradModel(abc.ABC):
         self.ROOT: Const = root
         self.DTYPE: Const = getattr(torch, dtype)
         self.IOKEYS: Const = iokeys
-        self.WORKFLOW: Const = self.workflow_string_eles()
 
-    def workflow_string_eles(
-        self: GradModel,
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> List[List[Tuple[str, str, str]]]:
-        r"""
-        Get string elements of workflow defined by IO keys.
-
-        Args
-        ----
-        - self
-        - *args
-        - **kargs
-
-        Returns
-        -------
-        - string_eles.
-            A list of string elements.
-            Each line should have three elements: section name, input key name
-            and output key name.
-            Some of them can be empty for padding.
-            Output lines are grouped by section name.
-
-        """
-        # \
-        # ANNOTATE VARIABLES
-        # \
-        workflow_eles: List[List[Tuple[str, str, str]]]
-        section_eles: List[Tuple[str, str, str]]
-
-        # Output each defined flow.
-        workflow_eles = []
-        for i, (section, (inkeys, outkeys)) in enumerate(self.IOKEYS.items()):
-            # Allocate section buffer.
-            section_eles = []
-
-            # Print a flow section to the buffer.
-            for j in range(max(len(inkeys), len(outkeys))):
-                # Pad for insufficient keys.
-                inkey = inkeys[j] if (j < len(inkeys)) else ""
-                outkey = outkeys[j] if (j < len(outkeys)) else ""
-
-                # Output the key flow.
-                if (j == 0):
-                    section_eles.append((section, inkey, outkey))
-                else:
-                    section_eles.append(("", inkey, outkey))
-            workflow_eles.append(section_eles)
-        return workflow_eles
-
-    def set(
-        self: GradModel,
-        *args: ArgT,
-        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
-        **kargs: KArgT,
-    ) -> None:
-        r"""
-        Settle down and register model parameters and sub models.
-
-        Args
-        ----
-        - self
-        - *args
-        - **kargs
-
-        Returns
-        -------
-
-        It will automatically scan model attributes after configuration.
-        Then, it will register scanned `torch.nn.module.Parameter` objects as
-        parameters, and scanned `Model` objects as sub models.
-        """
-        # \
-        # ANNOTATE VARIABLES
-        # \
-        ...
-
-        # Configure model with given extra arguments.
-        self.configure(xargs, xkargs)
-
-        # Output workflow to logging.
-        if (self.SUB):
-            pass
-        else:
-            _, name, _ = str(type(self)).split("\'")
-            debug("Workflow of \"{:s}\":", name)
-            self.workflow_logging()
-
-        # Scan over model attributes by now.
-        self.parameter = Parameter()
-        for key, val in vars(self).items():
-            if (isinstance(val, torch.nn.parameter.Parameter)):
-                self.parameter.registar_parameter(key, val)
-            elif (isinstance(val, GradModel)):
-                if (val.SUB):
-                    self.parameter.registar_submodel(key, val.parameter)
-                else:
-                    error(
-                        "Register a non-sub model \"{:s}\"as a sub model.",
-                        val.__class__.__name__,
-                    )
-                    raise RuntimeError
-            else:
+        # Ensure IO keywords.
+        for key in self.IOKEYS:
+            if (key.split("_")[0] == self.main.lower()):
                 pass
-
-        # Construct purified function.
-        self.forward = self.set_forward()
-        if (self.SUB):
-            pass
-        else:
-            self.train_loss_func = self.set_train_loss_func()
-            self.eval_loss_func = self.set_eval_loss_func()
-
-    def workflow_logging(
-        self: GradModel,
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> None:
-        r"""
-        Output workflow defined by IO keys to logging.
-
-        Args
-        ----
-        - self
-        - *args
-        - **kargs
-
-        Returns
-        -------
-
-        """
-        # \
-        # ANNOTATE VARIABLES
-        # \
-        subflows: Dict[str, List[List[Tuple[str, str, str]]]]
-
-        # Get sub models.
-        subflows = {}
-        for key, val in vars(self).items():
-            if (isinstance(val, GradModel)):
-                subflows[key] = val.WORKFLOW
             else:
-                pass
-
-        # Get the output length first.
-        max_sub = len("Submodel")
-        max_sec = len("Section")
-        max_in = len("Input")
-        max_out = len("Output")
-        for subname in list(subflows.keys()):
-            max_sub = max(max_sub, len(subname))
-        for submodel in list(subflows.values()) + [self.WORKFLOW]:
-            for grouped in submodel:
-                for section, inkey, outkey in grouped:
-                    max_sec = max(max_sec, len(section))
-                    max_in = max(max_in, len(inkey))
-                    max_out = max(max_out, len(outkey))
-
-        # Output title.
-        debug(
-            "\"={:s}={:s}==={:s}====={:s}=\".",
-            "=" * max_sub, "=" * max_sec, "=" * max_in, "=" * max_out,
-        )
-        debug(
-            "\" {:s} {:s} | {:s} ==> {:s} \".",
-            "Submodel".rjust(max_sub), "Section".rjust(max_sec),
-            "Input".rjust(max_in), "Output".ljust(max_out),
-        )
-        debug(
-            "\"={:s}={:s}=+={:s}====={:s}=\".",
-            "=" * max_sub, "=" * max_sec, "=" * max_in, "=" * max_out,
-        )
-
-        # Output sub models.
-        for i, (subname, submodel) in enumerate(subflows.items()):
-            # Output each defined flow.
-            for j, grouped in enumerate(submodel):
-                # Output subname only at the beginning.
-                if (j == 0):
-                    pass
-                else:
-                    subname = ""
-
-                # Output focusing section head.
-                section, inkey, outkey = grouped[0]
-                debug(
-                    "\" {:s} {:s} | \033[34m{:s}\033[0m ==>" \
-                    " \033[32m{:s}\033[0m \".",
-                    subname.rjust(max_sub), section.rjust(max_sec),
-                    inkey.rjust(max_in), outkey.ljust(max_out),
+                error(
+                    "{:s} IO flow requires section name in the form of" \
+                    " \"{:s}(_{{name}})*\", but get \"{:s}\".",
+                    self.main, self.main.lower(), key,
                 )
-
-                # Output remaining focusing section.
-                for section, inkey, outkey in grouped[1:]:
-                    debug(
-                        "\" {:s} {:s} | \033[34m{:s}\033[0m" \
-                        "     \033[32m{:s}\033[0m \".",
-                        subname.rjust(max_sub), section.rjust(max_sec),
-                        inkey.rjust(max_in), outkey.ljust(max_out),
-                    )
-
-            # Output bar break.
-            debug(
-                "\"-{:s}-{:s}-+-{:s}-----{:s}-\".",
-                "-" * max_sub, "-" * max_sec, "-" * max_in, "-" * max_out,
-            )
-
-        # Output each defined flow.
-        for i, grouped in enumerate(self.WORKFLOW):
-            # Output focusing section head.
-            section, inkey, outkey = grouped[0]
-            debug(
-                "\" {:s} {:s} | \033[34;1m{:s}\033[0m ==>" \
-                " \033[32;1m{:s}\033[0m \".",
-                "".rjust(max_sub), section.rjust(max_sec),
-                inkey.rjust(max_in), outkey.ljust(max_out),
-            )
-
-            # Output remaining focusing section.
-            for section, inkey, outkey in grouped[1:]:
-                debug(
-                    "\" {:s} | \033[34;1m{:s}\033[0m" \
-                    "     \033[32;1m{:s}\033[0m \".",
-                    "".rjust(max_sub), section.rjust(max_sec),
-                    inkey.rjust(max_in), outkey.ljust(max_out),
-                )
-
-        # Output bar break.
-        debug(
-            "\"={:s}={:s}==={:s}====={:s}=\".",
-            "=" * max_sub, "=" * max_sec, "=" * max_in, "=" * max_out,
-        )
+                raise RuntimeError
 
     @abc.abstractmethod
-    def configure(
-        self: GradModel,
-        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> None:
-        r"""
-        Configure model.
-
-        Args
-        ----
-        - self
-        - xargs
-            Extra arguments to specific configuration.
-        - xkargs
-            Extra keyword arguments to specific configuration.
-        - *args
-        - **kargs
-
-        Returns
-        -------
-
-        """
-        # \
-        # VIRTUAL
-        # \
-        ...
-
-    @abc.abstractmethod
-    def initialize(
-        self: GradModel,
-        rng: torch._C.Generator,
-        *args: ArgT,
-        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
-        **kargs: KArgT,
-    ) -> None:
-        r"""
-        Initialize model parameters and sub models.
-
-        Args
-        ----
-        - self
-        - rng
-            Random number generator.
-        - *args
-        - xargs
-            Extra arguments to specific initialization.
-        - xkargs
-            Extra keyword arguments to specific initialization.
-        - **kargs
-
-        Returns
-        -------
-
-        """
-        # \
-        # VIRTUAL
-        # \
-        ...
-
-    @abc.abstractmethod
-    def set_forward(
+    def __forward__(
         self: GradModel,
         *args: ArgT,
         **kargs: KArgT,
@@ -458,83 +180,128 @@ class GradModel(abc.ABC):
         return f
 
     @abc.abstractmethod
-    def null_input(
+    def __nullin__(
         self: GradModel,
-        batch_size: Union[int, None],
-        device: str,
         *args: ArgT,
         **kargs: KArgT,
-    ) -> Dict[str, torch.Tensor]:
+    ) -> NullFunction:
         r"""
         Generate null input.
 
         Args
         ----
         - self
-        - batch_size
-            Batch size.
-            If it is None, return not-in-batch version.
-        - device
-            Device.
         - *kargs
         - **kargs
 
         Returns
         -------
-        - input
-            Null input.
+        - null
+            Null input generation function.
 
         After setup, the null input to a model is fixed.
         This is helpful to understand the expectation of input.
         This is also useful when the default model output is required, for
         example, this is the sub model of RNN H-to-H model at the first time
         step.
+        It has batch size 1 for robustness.
         """
         # /
         # VIRTUAL
         # /
         ...
 
+        def null(
+            device: str,
+            *args: ArgT,
+            **kargs: KArgT,
+        ) -> Dict[str, torch.Tensor]:
+            r"""
+            Generate null input on device.
+
+            Args
+            ----
+            - device
+                Device.
+            - *args
+            - **kargs
+
+            Returns
+            -------
+            - output
+                Output.
+
+            """
+            # /
+            # VIRTUAL
+            # /
+            ...
+
+        # Return the function.
+        return null
+
     @abc.abstractmethod
-    def null_output(
+    def __nullout__(
         self: GradModel,
-        batch_size: Union[int, None],
-        device: str,
         *args: ArgT,
         **kargs: KArgT,
-    ) -> Dict[str, torch.Tensor]:
+    ) -> NullFunction:
         r"""
         Generate null output.
 
         Args
         ----
         - self
-        - batch_size
-            Batch size.
-            If it is None, return not-in-batch version.
-        - device
-            Device.
         - *kargs
         - **kargs
 
         Returns
         -------
-        - input
-            Null input.
+        - null
+            Null output generation function.
 
         After setup, the null output to a model is fixed.
         This is helpful to understand the expectation of output.
         This is also useful when the default model output is required, for
         example, this is the sub model of RNN H-to-H model at the first time
         step.
-        Null output does not have batch dimension.
+        It has batch size 1 for robustness.
         """
         # /
         # VIRTUAL
         # /
         ...
 
-    def set_train_loss_func(
+        def null(
+            device: str,
+            *args: ArgT,
+            **kargs: KArgT,
+        ) -> Dict[str, torch.Tensor]:
+            r"""
+            Generate null output on device.
+
+            Args
+            ----
+            - device
+                Device.
+            - *args
+            - **kargs
+
+            Returns
+            -------
+            - output
+                Output.
+
+            """
+            # /
+            # VIRTUAL
+            # /
+            ...
+
+        # Return the function.
+        return null
+
+    def __train__(
         self: GradModel,
         *args: ArgT,
         **kargs: KArgT,
@@ -553,16 +320,23 @@ class GradModel(abc.ABC):
         - function
             Forward function.
 
+        Some models may be used as sub models of other models, thus their loss
+        functions will be undefined, thus this generation is not abstract, and
+        will return a NotImplementedError virtual function by default.
+
         It must of defined a function $f$ by form:
         $$
         l = f(\theta, y, \hat{y})
         $$
         where $\theta$ is parameter, $y$ is output, and $\hat{y}$ is target.
+
+        It also accepts parameters for parametric loss functions, for example,
+        softmax replacements.
         """
         # \
-        # VIRTUAL
+        # ANNOTATE VARIABLES
         # \
-        raise NotImplementedError
+        ...
 
         def f(
             parameter: Parameter,
@@ -594,12 +368,12 @@ class GradModel(abc.ABC):
             # /
             # VIRTUAL
             # /
-            ...
+            raise NotImplementedError
 
         # Return the function.
         return f
 
-    def set_eval_loss_func(
+    def __evaluate__(
         self: GradModel,
         *args: ArgT,
         **kargs: KArgT,
@@ -623,11 +397,14 @@ class GradModel(abc.ABC):
         l = f(\theta, y, \hat{y})
         $$
         where $\theta$ is parameter, $y$ is output, and $\hat{y}$ is target.
+
+        It also accepts parameters for parametric loss functions, for example,
+        softmax replacements.
         """
-        # /
-        # VIRTUAL
-        # /
-        raise NotImplementedError
+        # \
+        # ANNOTATE VARIABLES
+        # \
+        ...
 
         def f(
             parameter: Parameter,
@@ -659,10 +436,352 @@ class GradModel(abc.ABC):
             # /
             # VIRTUAL
             # /
-            ...
+            raise NotImplementedError
 
         # Return the function.
-        return function
+        return f
+
+    @abc.abstractmethod
+    def __initialize__(
+        self: GradModel,
+        rng: torch._C.Generator,
+        *args: ArgT,
+        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
+        **kargs: KArgT,
+    ) -> None:
+        r"""
+        Initialize model parameters and sub models.
+
+        Args
+        ----
+        - self
+        - rng
+            Random number generator.
+        - *args
+        - xargs
+            Extra arguments to specific initialization.
+        - xkargs
+            Extra keyword arguments to specific initialization.
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # /
+        # VIRTUAL
+        # /
+        ...
+
+    def set(
+        self: GradModel,
+        *args: ArgT,
+        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
+        **kargs: KArgT,
+    ) -> GradModel:
+        r"""
+        Settle down and register model parameters and sub models.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+        - model
+            Return model itself.
+            It is useful when creation and setup are done in the same time.
+
+        It will automatically scan model attributes after configuration.
+        Then, it will register scanned `torch.nn.module.Parameter` objects as
+        parameters, and scanned `Model` objects as sub models.
+        """
+        # \
+        # ANNOTATE VARIABLES
+        # \
+        ...
+
+        # Configure model with given extra arguments.
+        self.configure(xargs, xkargs)
+
+        # Output workflow to logging.
+        self.workflow = self.workflow_diffuse()
+        _, self.fullname, _ = str(type(self)).split("\'")
+        if (self.SUB):
+            debug(
+                "Workflow of SUB \"\033[35m{:s}\033[0m\" is hidden.",
+                self.fullname,
+            )
+        else:
+            debug(
+                "Workflow of MAIN \"\033[35;1m{:s}\033[0m\":",
+                self.fullname,
+            )
+            self.workflow_logging()
+
+        # Scan over model attributes by now.
+        self.parameter = Parameter()
+        for key, val in vars(self).items():
+            if (isinstance(val, torch.nn.parameter.Parameter)):
+                self.parameter.registar_parameter(key, val)
+            elif (isinstance(val, GradModel)):
+                if (val.SUB):
+                    self.parameter.registar_submodel(key, val.parameter)
+                else:
+                    error(
+                        "Register a non-sub model \"{:s}\"as a sub model.",
+                        val.__class__.__name__,
+                    )
+                    raise RuntimeError
+            else:
+                pass
+
+        # Construct purified function.
+        self.forward = self.__forward__()
+        self.nullin = self.__nullin__()
+        self.nullout = self.__nullout__()
+        self.train = self.__train__()
+        self.evaluate = self.__evaluate__()
+        return self
+
+    def workflow_diffuse(
+        self: GradModel,
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> Dict[str, List[List[Tuple[str, str, str]]]]:
+        r"""
+        Diffuse workflow defined by sub models and IO keys.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+        - flows.
+            Work flows of each sub model.
+            The model itself is defined as sub model "".
+            Work flow is a list of lists of section, input key and output key
+            items.
+            Same section name is aggregated in the same list.
+
+        """
+        # \
+        # ANNOTATE VARIABLES
+        # \
+        flows: Dict[str, List[List[Tuple[str, str, str]]]]
+
+        # Get sub model flows.
+        flows = {}
+        for key, val in vars(self).items():
+            if (isinstance(val, GradModel)):
+                for sub, grouped in val.workflow.items():
+                    if (sub == ""):
+                        flows[key] = grouped
+                    else:
+                        flows[key + "." + sub] = grouped
+            else:
+                pass
+
+        # Output each defined flow.
+        flows[""] = []
+        for i, (section, (inkeys, outkeys)) in enumerate(self.IOKEYS.items()):
+            # Allocate section buffer.
+            flows[""].append([])
+
+            # Print a flow section to the buffer.
+            for j in range(max(len(inkeys), len(outkeys))):
+                # Pad for insufficient keys.
+                inkey = inkeys[j] if (j < len(inkeys)) else ""
+                outkey = outkeys[j] if (j < len(outkeys)) else ""
+
+                # Output the key flow.
+                if (j == 0):
+                    flows[""][-1].append((section, inkey, outkey))
+                else:
+                    flows[""][-1].append(("", inkey, outkey))
+        return flows
+
+    def workflow_logging(
+        self: GradModel,
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> None:
+        r"""
+        Output workflow defined by IO keys to logging.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # \
+        # ANNOTATE VARIABLES
+        # \
+        subflows: Dict[str, List[List[Tuple[str, str, str]]]]
+
+        # Get the output length first.
+        max_sub = len("Submodel")
+        max_sec = len("Section")
+        max_in = len("Input")
+        max_out = len("Output")
+        for subname, submodel in self.workflow.items():
+            max_sub = max(max_sub, len(subname))
+            for grouped in submodel:
+                for section, inkey, outkey in grouped:
+                    max_sec = max(max_sec, len(section))
+                    max_in = max(max_in, len(inkey))
+                    max_out = max(max_out, len(outkey))
+
+        # Output title.
+        debug(
+            "\"={:s}={:s}==={:s}====={:s}=\".",
+            "=" * max_sub, "=" * max_sec, "=" * max_in, "=" * max_out,
+        )
+        debug(
+            "\" {:s} {:s} | {:s} ==> {:s} \".",
+            "Submodel".rjust(max_sub), "Section".rjust(max_sec),
+            "Input".rjust(max_in), "Output".ljust(max_out),
+        )
+        debug(
+            "\"={:s}={:s}=+={:s}====={:s}=\".",
+            "=" * max_sub, "=" * max_sec, "=" * max_in, "=" * max_out,
+        )
+
+        # Output sub models.
+        for i, (subname, submodel) in enumerate(self.workflow.items()):
+            # Hightlight the main model.
+            if (subname == ""):
+                highlight = ";1"
+            else:
+                highlight = ""
+
+            # Output each defined flow.
+            for j, grouped in enumerate(submodel):
+                # Output subname only at the beginning.
+                if (j == 0):
+                    pass
+                else:
+                    subname = ""
+
+                # Output focusing section head.
+                section, inkey, outkey = grouped[0]
+                debug(
+                    "\" {:s} {:s} | \033[34{highlight:s}m{:s}\033[0m ==>" \
+                    " \033[32{highlight:s}m{:s}\033[0m \".",
+                    subname.rjust(max_sub), section.rjust(max_sec),
+                    inkey.rjust(max_in), outkey.ljust(max_out),
+                    highlight=highlight,
+                )
+
+                # Output remaining focusing section.
+                for section, inkey, outkey in grouped[1:]:
+                    debug(
+                        "\" {:s} {:s} | \033[34{highlight:s}m{:s}\033[0m" \
+                        "     \033[32{highlight:s}m{:s}\033[0m \".",
+                        subname.rjust(max_sub), section.rjust(max_sec),
+                        inkey.rjust(max_in), outkey.ljust(max_out),
+                        highlight=highlight,
+                    )
+
+            # Output bar break.
+            if (i == len(self.workflow) - 1):
+                debug(
+                    "\"={:s}={:s}==={:s}====={:s}=\".",
+                    "=" * max_sub, "=" * max_sec, "=" * max_in, "=" * max_out,
+                )
+            else:
+                debug(
+                    "\"-{:s}-{:s}-+-{:s}-----{:s}-\".",
+                    "-" * max_sub, "-" * max_sec, "-" * max_in, "-" * max_out,
+                )
+
+    @abc.abstractmethod
+    def configure(
+        self: GradModel,
+        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> None:
+        r"""
+        Configure model.
+
+        Args
+        ----
+        - self
+        - xargs
+            Extra arguments to specific configuration.
+        - xkargs
+            Extra keyword arguments to specific configuration.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # \
+        # VIRTUAL
+        # \
+        ...
+
+    def initialize(
+        self: GradModel,
+        rng: torch._C.Generator,
+        *args: ArgT,
+        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
+        **kargs: KArgT,
+    ) -> GradModel:
+        r"""
+        Initialize model parameters and sub models.
+
+        Args
+        ----
+        - self
+        - rng
+            Random number generator.
+        - *args
+        - xargs
+            Extra arguments to specific initialization.
+        - xkargs
+            Extra keyword arguments to specific initialization.
+        - **kargs
+
+        Returns
+        -------
+        - model
+            Return model itself.
+            It is useful when creation, setup and initialization are done in
+            the same time.
+
+        """
+        # \
+        # ANNOTATE VARIABLES
+        # \
+        ...
+
+        # Dive into real initialization.
+        self.__initialize__(rng, xargs=xargs, xkargs=xkargs)
+
+        # Output initialized parameters
+        if (self.SUB):
+            pass
+        else:
+            info1(
+                "Initialize {:d} parameters for MAIN" \
+                " \"\033[35;1m{:s}\033[0m\".",
+                self.parameter.num(), self.fullname,
+            )
+        return self
 
     def training(
         self: GradModel,
@@ -696,9 +815,7 @@ class GradModel(abc.ABC):
         # Get output and training loss.
         self.batch = batch
         self.output = self.forward(self.parameter, self.batch)
-        self.loss = self.train_loss_func(
-            self.parameter, self.output, self.batch,
-        )
+        self.loss = self.train(self.parameter, self.output, self.batch)
 
         # Utilize autograd.
         getattr(self.loss, "backward")()
@@ -736,9 +853,7 @@ class GradModel(abc.ABC):
         # Get output and training loss.
         self.batch = batch
         self.output = self.forward(self.parameter, self.batch)
-        self.loss = self.train_loss_func(
-            self.parameter, self.output, self.batch,
-        )
+        self.loss = self.evaluate(self.parameter, self.output, self.batch)
         return self.loss
 
 
@@ -999,6 +1114,39 @@ class ForwardFunction(Protocol):
             Parameter.
         - input
             input.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+        - output
+            Output.
+
+        """
+        # \
+        # VIRTUAL
+        # \
+        ...
+
+
+class NullFunction(Protocol):
+    r"""
+    Null IO generation function type.
+    """
+    def __call__(
+        self: NullFunction,
+        device: str,
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> Dict[str, torch.Tensor]:
+        r"""
+        Call as function.
+
+        Args
+        ----
+        - self
+        - device
+            Device
         - *args
         - **kargs
 

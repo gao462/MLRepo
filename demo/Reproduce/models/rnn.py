@@ -47,41 +47,7 @@ class RepRNN(RNN):
     r"""
     Reproduced RNN.
     """
-    def decode(
-        self: RepRNN,
-        batch: Dict[str, torch.Tensor],
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> MultiReturn[
-        Dict[str, torch.Tensor],
-        Dict[str, torch.Tensor],
-    ]:
-        r"""
-        Split input and target from batch.
-
-        Args
-        ----
-        - self
-        - *args
-        - **kargs
-
-        Returns
-        -------
-        - input
-            Input.
-        - target
-            Target.
-
-        """
-        # /
-        # ANNOTATE VARIABLES
-        # /
-        ...
-
-        # Fetch directly
-        return {"input": batch["input"]}, {"target": batch["target"]}
-
-    def set_train_loss_func(
+    def __train__(
         self: RepRNN,
         *args: ArgT,
         **kargs: KArgT,
@@ -114,7 +80,7 @@ class RepRNN(RNN):
         # return the function.
         return NaiveDistLoss((["output"], ["target"]))
 
-    def set_eval_loss_func(
+    def __evaluate__(
         self: RepRNN,
         *args: ArgT,
         **kargs: KArgT,
@@ -152,41 +118,7 @@ class TarRNN(__RNN__):
     r"""
     Target RNN.
     """
-    def decode(
-        self: TarRNN,
-        batch: Dict[str, torch.Tensor],
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> MultiReturn[
-        Dict[str, torch.Tensor],
-        Dict[str, torch.Tensor],
-    ]:
-        r"""
-        Split input and target from batch.
-
-        Args
-        ----
-        - self
-        - *args
-        - **kargs
-
-        Returns
-        -------
-        - input
-            Input.
-        - target
-            Target.
-
-        """
-        # /
-        # ANNOTATE VARIABLES
-        # /
-        ...
-
-        # Fetch directly
-        return {"input": batch["input"]}, {"target": batch["target"]}
-
-    def set_train_loss_func(
+    def __train__(
         self: TarRNN,
         *args: ArgT,
         **kargs: KArgT,
@@ -219,7 +151,7 @@ class TarRNN(__RNN__):
         # return the function.
         return NaiveDistLoss((["output"], ["target"]))
 
-    def set_eval_loss_func(
+    def __evaluate__(
         self: TarRNN,
         *args: ArgT,
         **kargs: KArgT,

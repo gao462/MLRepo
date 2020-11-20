@@ -111,7 +111,7 @@ UNIT: Const = 4
 # ANNOTATE VARIABLES
 # \
 # Define message regex.
-NUMBER: Const = r"(0|[1-9][0-9]*)"
+NUMBER: Const = r"(0|[1-9][0-9]*)(\.[0-9]+)?"
 UNIT_INITIAL: Const = r"([A-Z][A-Za-z]*|{:s})".format(NUMBER)
 UNIT_INSIDE: Const = r"([a-z]+|{:s}|{:s})".format(UNIT_INITIAL, NUMBER)
 INITIAL: Const = r"({:s}(-{:s})*)".format(UNIT_INITIAL, UNIT_INSIDE)

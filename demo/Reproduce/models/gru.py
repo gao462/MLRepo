@@ -30,25 +30,25 @@ from pytorch.logging import debug, info1, info2, focus, warning, error
 
 # Import dependencies.
 from pytorch.models.model import LossFunction
-from pytorch.models.linear import Linear, __Linear__
+from pytorch.models.seq.gru import GRU, __GRU__
 from demo.Reproduce.models.naive import NaiveDistLoss
 
 
 # =============================================================================
 # *****************************************************************************
 # -----------------------------------------------------------------------------
-# << Linear Gradient Model Naive Distribution >>
+# << GRU Gradient Model Naive Distribution >>
 # -----------------------------------------------------------------------------
 # *****************************************************************************
 # =============================================================================
 
 
-class RepLinear(Linear):
+class RepGRU(GRU):
     r"""
-    Reproduced Linear.
+    Reproduced GRU.
     """
     def __train__(
-        self: RepLinear,
+        self: RepGRU,
         *args: ArgT,
         **kargs: KArgT,
     ) -> LossFunction:
@@ -81,7 +81,7 @@ class RepLinear(Linear):
         return NaiveDistLoss((["output"], ["target"]))
 
     def __evaluate__(
-        self: RepLinear,
+        self: RepGRU,
         *args: ArgT,
         **kargs: KArgT,
     ) -> LossFunction:
@@ -114,12 +114,12 @@ class RepLinear(Linear):
         return NaiveDistLoss((["output"], ["target"]))
 
 
-class TarLinear(__Linear__):
+class TarGRU(__GRU__):
     r"""
-    Target Linear.
+    Target RNN.
     """
     def __train__(
-        self: TarLinear,
+        self: TarGRU,
         *args: ArgT,
         **kargs: KArgT,
     ) -> LossFunction:
@@ -152,7 +152,7 @@ class TarLinear(__Linear__):
         return NaiveDistLoss((["output"], ["target"]))
 
     def __evaluate__(
-        self: TarLinear,
+        self: TarGRU,
         *args: ArgT,
         **kargs: KArgT,
     ) -> LossFunction:

@@ -57,7 +57,6 @@ class BackwardBenchmark(object):
             Tuple[str, List[Tuple[int, int]]],
             Tuple[str, List[Tuple[int, int]]],
         ]],
-        tol: float,
         *args: ArgT,
         iokeys: Dict[str, Tuple[List[str], List[str]]],
         set_xargs: Tuple[Naive, ...], set_xkargs: Dict[str, Naive],
@@ -78,8 +77,6 @@ class BackwardBenchmark(object):
             Targeting class.
         - checkon
             Check backward result on given parameter name and tensor slice.
-        - tol
-            Tolerance.
         - *args
         - iokeys
             Model IO flow.
@@ -102,6 +99,9 @@ class BackwardBenchmark(object):
         # /
         ...
 
+        # Tolerance is defined by benchmark.
+        tol = 1e-6
+
         # Get randomness
         seed = 47
         rng = getattr(torch, "Generator")()
@@ -114,10 +114,15 @@ class BackwardBenchmark(object):
             "../FastModel/Reproduce",
             sub=False, dtype="float32",
             iokeys=iokeys,
+        ).set(
+            xargs=set_xargs, xkargs=set_xkargs,
+        ).initialize(
+            rng, xargs=ini_xargs, xkargs=ini_xkargs,
         )
-        repmod.set(xargs=set_xargs, xkargs=set_xkargs)
-        repmod.initialize(rng, xargs=ini_xargs, xkargs=ini_xkargs)
-        info1("Reproduced models are ready.")
+        info1(
+            "Reproduced model \"\033[35;1m{:s}\033[0m\" is ready.",
+            repmod.fullname,
+        )
 
         # Get target model.
         rng.set_state(rngmem)
@@ -125,10 +130,15 @@ class BackwardBenchmark(object):
             "../FastModel/Reproduce",
             sub=False, dtype="float32",
             iokeys=iokeys,
+        ).set(
+            xargs=set_xargs, xkargs=set_xkargs,
+        ).initialize(
+            rng, xargs=ini_xargs, xkargs=ini_xkargs,
         )
-        tarmod.set(xargs=set_xargs, xkargs=set_xkargs)
-        tarmod.initialize(rng, xargs=ini_xargs, xkargs=ini_xkargs)
-        info1("Targeting models are ready.")
+        info1(
+            "Targeting model \"\033[35;1m{:s}\033[0m\" is ready.",
+            tarmod.fullname,
+        )
 
         # Get a full batch.
         info1("Batching is running.")
@@ -149,15 +159,16 @@ class BackwardBenchmark(object):
         tarmod.training(batch)
         info2("Targeting models are terminated.")
 
-        # Check gradients.
+        # Check gradients and report.
         for (repname, repslices), (tarname, tarslices) in checkon:
             repgrad = self.fetch(repmod.parameter, repname, repslices)
             targrad = self.fetch(tarmod.parameter, tarname, tarslices)
-            if (((repgrad - targrad).abs() < tol).all()):
+            error = (repgrad - targrad).abs().max().item()
+            if (error < tol):
                 focus(
                     "Reproduced gradient \"{:s}[{:s}]\"" \
                     " \"\033[32;1mFITS\033[0m\" targeting gradient" \
-                    " \"{:s}[{:s}]\".",
+                    " \"{:s}[{:s}]\" ({:.6f}).",
                     repname,
                     ", ".join([
                         "{:d}:{:d}".format(start, end)
@@ -168,12 +179,13 @@ class BackwardBenchmark(object):
                         "{:d}:{:d}".format(start, end)
                         for start, end in tarslices
                     ]),
+                    error,
                 )
             else:
                 warning(
                     "Reproduced gradient \"{:s}[{:s}]\"" \
                     " \"\033[31;1mDOES NOT FIT\033[0m\" targeting gradient" \
-                    " \"{:s}[{:s}]\".",
+                    " \"{:s}[{:s}]\" ({:.6f}).",
                     repname,
                     ", ".join([
                         "{:d}:{:d}".format(start, end)
@@ -184,6 +196,7 @@ class BackwardBenchmark(object):
                         "{:d}:{:d}".format(start, end)
                         for start, end in tarslices
                     ]),
+                    error,
                 )
 
     def fetch(

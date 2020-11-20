@@ -96,7 +96,7 @@ def main(
         ),
     )
     rngmem = rng.get_state()
-    info1("Datasets are ready.")
+    info1("Dataset is ready.")
 
     # Get a batching
     bat = ConstShuffleBatch()
@@ -112,7 +112,7 @@ def main(
             batch_size=batch_size, tail=False,
         ),
     )
-    info1("Batchings are ready.")
+    info1("Batching is ready.")
 
     # Create and run the benchmark.
     BackwardBenchmark(
@@ -127,20 +127,16 @@ def main(
                 ("bias", [(0, 5)]),
             ),
         ],
-        1e-8,
         iokeys=dict(
             linear=(["input"], ["output"]),
         ),
         set_xargs=(),
         set_xkargs=dict(
-            num_inputs=num_inputs,
-            num_outputs=num_outputs,
-            no_bias=False,
+            num_inputs=num_inputs, num_outputs=num_outputs, no_bias=False,
         ),
         ini_xargs=(),
         ini_xkargs=dict(
-            activation="relu",
-            negative_slope=0,
+            activation="relu", negative_slope=0,
         ),
     )
 
