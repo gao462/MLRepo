@@ -54,6 +54,33 @@ class Linear(GradModel):
     # Define main flow name.
     main = "linear"
 
+    def __parse__(
+        self: Linear,
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> None:
+        r"""
+        Parse computation IO keys.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # /
+        # ANNOTATE VARIABLES
+        # /
+        self.ky_input: str
+        self.ky_output: str
+
+        # Fetch main input and output.
+        (self.ky_input,), (self.ky_output,) = self.IOKEYS[self.main]
+
     def __forward__(
         self: Linear,
         *args: ArgT,
@@ -83,10 +110,6 @@ class Linear(GradModel):
         # ANNOTATE VARIABLES
         # /
         ...
-
-        # Fetch all things to local level.
-        (inkey,), (outkey,) = self.IOKEYS["linear"]
-        no_bias = self.no_bias
 
         def f(
             parameter: Parameter,
@@ -120,12 +143,12 @@ class Linear(GradModel):
             # Apply matrix multiplication and bias.
             output = {}
             tensor = getattr(torch, "matmul")(
-                input[inkey], parameter["weight"].t(),
+                input[self.ky_input], parameter["weight"].t(),
             )
-            if (no_bias):
-                output[outkey] = tensor
+            if (self.no_bias):
+                output[self.ky_output] = tensor
             else:
-                output[outkey] = tensor + parameter["bias"]
+                output[self.ky_output] = tensor + parameter["bias"]
             return output
 
         # Return the function.
@@ -162,11 +185,6 @@ class Linear(GradModel):
         # /
         ...
 
-        # Fetch all things to local level.
-        (inkey,), _ = self.IOKEYS["linear"]
-        num_inputs = self.num_inputs
-        dtype = self.DTYPE
-
         def null(
             device: str,
             *args: ArgT,
@@ -195,8 +213,8 @@ class Linear(GradModel):
 
             # return all-zero.
             return {
-                inkey: getattr(torch, "zeros")(
-                    1, num_inputs, dtype=dtype, device=device,
+                self.ky_input: getattr(torch, "zeros")(
+                    1, self.num_inputs, dtype=self.DTYPE, device=device,
                 ),
             }
 
@@ -234,11 +252,6 @@ class Linear(GradModel):
         # /
         ...
 
-        # Fetch all things to local level.
-        _, (outkey,) = self.IOKEYS["linear"]
-        num_outputs = self.num_outputs
-        dtype = self.DTYPE
-
         def null(
             device: str,
             *args: ArgT,
@@ -267,8 +280,8 @@ class Linear(GradModel):
 
             # return all-zero.
             return {
-                outkey: getattr(torch, "zeros")(
-                    1, num_outputs, dtype=dtype, device=device,
+                self.ky_output: getattr(torch, "zeros")(
+                    1, self.num_outputs, dtype=self.DTYPE, device=device,
                 ),
             }
 
@@ -456,10 +469,6 @@ class __Linear__(Linear):
         # /
         ...
 
-        # Fetch all things to local level.
-        (inkey,), (outkey,) = self.IOKEYS["linear"]
-        pytorch = self.pytorch
-
         def f(
             parameter: Parameter,
             input: Dict[str, torch.Tensor],
@@ -491,7 +500,7 @@ class __Linear__(Linear):
 
             # Apply matrix multiplication and bias.
             output = {}
-            output[outkey] = pytorch.forward(input[inkey])
+            output[self.ky_output] = self.pytorch.forward(input[self.ky_input])
             return output
 
         # Return the function.

@@ -63,6 +63,57 @@ class GRU(GradModel):
     # Define main flow name.
     main = "gru"
 
+    def __parse__(
+        self: GRU,
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> None:
+        r"""
+        Parse computation IO keys.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # /
+        # ANNOTATE VARIABLES
+        # /
+        self.ky_reset_i: str
+        self.ky_reset_h: str
+        self.ky_reset_out: str
+        self.ky_update_i: str
+        self.ky_update_h: str
+        self.ky_update_out: str
+        self.ky_cell_i: str
+        self.ky_cell_h: str
+        self.ky_cell_out: str
+        self.ky_aggin: str
+        self.ky_aggout: str
+        self.ky_output: str
+
+        # Fetch main input and output.
+        (self.ky_reset_i, self.ky_reset_h), (self.ky_reset_out,) = (
+            self.IOKEYS["{:s}_reset_agg".format(self.main)]
+        )
+        (self.ky_update_i, self.ky_update_h), (self.ky_update_out,) = (
+            self.IOKEYS["{:s}_update_agg".format(self.main)]
+        )
+        (
+            (self.ky_cell_i, self.ky_reset_out, self.ky_cell_h),
+            (self.ky_cell_out,),
+        ) = self.IOKEYS["{:s}_cell_agg".format(self.main)]
+        (
+            (self.ky_update_out, self.ky_aggin, self.ky_cell_out),
+            (self.ky_aggout,),
+        ) = self.IOKEYS["{:s}_aggregate".format(self.main)]
+        (self.ky_aggout,), (self.ky_output,) = self.IOKEYS[self.main]
+
     def __forward__(
         self: GRU,
         *args: ArgT,
@@ -106,30 +157,6 @@ class GRU(GradModel):
         # /
         ...
 
-        # Fetch all things to local level.
-        (reset_ikey, reset_hkey), (reset_outkey,) = (
-            self.IOKEYS["gru_reset_agg"]
-        )
-        (update_ikey, update_hkey), (update_outkey,) = (
-            self.IOKEYS["gru_update_agg"]
-        )
-        (cell_ikey, cell_rkey, cell_hkey), (cell_outkey,) = (
-            self.IOKEYS["gru_cell_agg"]
-        )
-        (agg_gtkey, agg_inkey, agg_clkey), (agg_outkey,) = (
-            self.IOKEYS["gru_aggregate"]
-        )
-        (inkey,), (outkey,) = self.IOKEYS["gru"]
-        hnullout = self.cell_hsub.nullout
-        reset_iforward = self.reset_isub.forward
-        reset_hforward = self.reset_hsub.forward
-        update_iforward = self.update_isub.forward
-        update_hforward = self.update_hsub.forward
-        cell_iforward = self.cell_isub.forward
-        cell_hforward = self.cell_hsub.forward
-        gate_transform = getattr(torch, "sigmoid")
-        cell_transform = getattr(torch, "tanh")
-
         def f(
             parameter: Parameter,
             input: Dict[str, torch.Tensor],
@@ -168,9 +195,9 @@ class GRU(GradModel):
             # Get essential recurrent transient buffer and expand batch
             # dimension by batch size.
             transient = {}
-            tensor = hnullout(device)[cell_hkey]
+            tensor = self.cell_hsub.nullout(device)[self.ky_cell_h]
             shape = list(tensor.size())[1:]
-            transient[agg_outkey] = tensor.expand(batch_size, *shape)
+            transient[self.ky_aggout] = tensor.expand(batch_size, *shape)
 
             # Compute directly.
             for t in range(sample_length):
@@ -179,48 +206,50 @@ class GRU(GradModel):
                     transient[key] = val[t]
 
                 # Get reset gate.
-                reset = {}
-                ibuf = reset_iforward(
+                ibuf = self.reset_isub.forward(
                     parameter.sub("reset_isub"), transient,
                 )
-                hbuf = reset_hforward(
+                hbuf = self.reset_hsub.forward(
                     parameter.sub("reset_hsub"), transient,
                 )
-                reset[reset_outkey] = gate_transform(
-                    ibuf[reset_ikey] + hbuf[reset_hkey],
+                transient[self.ky_reset_out] = getattr(torch, "sigmoid")(
+                    ibuf[self.ky_reset_i] + hbuf[self.ky_reset_h],
                 )
 
                 # Get update gate.
-                update = {}
-                ibuf = update_iforward(
+                ibuf = self.update_isub.forward(
                     parameter.sub("update_isub"), transient,
                 )
-                hbuf = update_hforward(
+                hbuf = self.update_hsub.forward(
                     parameter.sub("update_hsub"), transient,
                 )
-                update[update_outkey] = gate_transform(
-                    ibuf[update_ikey] + hbuf[update_hkey],
+                transient[self.ky_update_out] = getattr(torch, "sigmoid")(
+                    ibuf[self.ky_update_i] + hbuf[self.ky_update_h],
                 )
 
                 # Get cell state with projected hidden state.
-                cell = {}
-                ibuf = cell_iforward(
+                ibuf = self.cell_isub.forward(
                     parameter.sub("cell_isub"), transient,
                 )
-                hbuf = cell_hforward(
+                hbuf = self.cell_hsub.forward(
                     parameter.sub("cell_hsub"), transient,
                 )
-                cell[cell_outkey] = cell_transform(
-                    ibuf[cell_ikey] + reset[cell_rkey] * hbuf[cell_hkey],
+                transient[self.ky_cell_out] = getattr(torch, "tanh")(
+                    ibuf[self.ky_cell_i] +
+                    transient[self.ky_reset_out] * hbuf[self.ky_cell_h],
                 )
 
                 # Get final weighted summation.
-                transient[agg_outkey] = (
-                    update[agg_gtkey] * transient[agg_inkey] +
-                    (1 - update[agg_gtkey]) * cell[agg_clkey]
+                transient[self.ky_aggout] = (
+                    transient[self.ky_update_out] * transient[
+                        self.ky_aggin
+                    ] +
+                    (1 - transient[self.ky_update_out]) * transient[
+                        self.ky_cell_out
+                    ]
                 )
             output = {}
-            output[outkey] = transient[inkey]
+            output[self.ky_output] = transient[self.ky_aggout]
             return output
 
         # Return the function.
@@ -259,10 +288,6 @@ class GRU(GradModel):
         # /
         ...
 
-        # Fetch all things to local level.
-        inullin = self.cell_isub.nullin
-        hnullin = self.cell_hsub.nullin
-
         def null(
             device: str,
             *args: ArgT,
@@ -290,15 +315,15 @@ class GRU(GradModel):
             ...
 
             # Get sub model inputs.
-            inull = inullin(device)
-            hnull = hnullin(device)
+            ibuf = self.cell_isub.nullin(device)
+            hbuf = self.cell_hsub.nullin(device)
 
             # Merge sub model inputs and extend with sequence dimension at the
             # beginning.
             output = {}
-            for key, val in inull.items():
+            for key, val in ibuf.items():
                 output[key] = val.unsqueeze(0)
-            for key, val in hnull.items():
+            for key, val in hbuf.items():
                 output[key] = val.unsqueeze(0)
             return output
 
@@ -338,10 +363,6 @@ class GRU(GradModel):
         # /
         ...
 
-        # Fetch all things to local level.
-        (inkey,), (outkey,) = self.IOKEYS["gru"]
-        hnullout = self.cell_hsub.nullout
-
         def null(
             device: str,
             *args: ArgT,
@@ -369,11 +390,11 @@ class GRU(GradModel):
             ...
 
             # Get sub model outputs.
-            hnull = hnullout(device)
+            hbuf = self.cell_hsub.nullout(device)
 
             # Output is just hidden model output with extra sequence dimension.
             output = {}
-            output[outkey] = hnull[inkey].unsqueeze(0)
+            output[self.ky_output] = hbuf[self.ky_cell_h].unsqueeze(0)
             return output
 
         # Return the function.
@@ -527,18 +548,6 @@ class __GRU__(GRU):
         # /
         ...
 
-        # Fetch all things to local level.
-        (cell_ikey, cell_rkey, cell_hkey), (cell_outkey,) = (
-            self.IOKEYS["gru_cell_agg"]
-        )
-        (agg_gtkey, agg_inkey, agg_clkey), (agg_outkey,) = (
-            self.IOKEYS["gru_aggregate"]
-        )
-        (inkey,), (outkey,) = self.IOKEYS["gru"]
-        hnullout = self.cell_hsub.nullout
-        i_inkey = self.i_inkey
-        pytorch = self.pytorch
-
         def f(
             parameter: Parameter,
             input: Dict[str, torch.Tensor],
@@ -576,16 +585,16 @@ class __GRU__(GRU):
 
             # Get essential recurrent transient buffer and expand batch
             # dimension by batch size.
-            tensor = hnullout(device)[cell_hkey]
+            tensor = self.cell_hsub.nullout(device)[self.ky_cell_h]
             shape = list(tensor.size())[1:]
             transient = tensor.expand(batch_size, *shape)
 
             # Compute directly.
             for t in range(sample_length):
-                raw = input[i_inkey][t]
-                transient = pytorch.forward(raw, transient)
+                raw = input[self.ky_input_i][t]
+                transient = self.pytorch.forward(raw, transient)
             output = {}
-            output[outkey] = transient
+            output[self.ky_output] = transient
             return output
 
         # Return the function.
@@ -646,8 +655,7 @@ class __GRU__(GRU):
         self.cell_hsub = xkargs["cell_hsub"]
 
         # Pre-fetch IO direction only for linear form.
-        (self.i_inkey,), (_,) = self.cell_isub.IOKEYS["linear"]
-        (self.h_inkey,), (_,) = self.cell_hsub.IOKEYS["linear"]
+        (self.ky_input_i,), (_,) = self.cell_isub.IOKEYS["linear"]
 
     def __initialize__(
         self: __GRU__,

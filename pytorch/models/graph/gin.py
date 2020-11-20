@@ -33,6 +33,7 @@ from pytorch.logging import debug, info1, info2, focus, warning, error
 # Import dependencies.
 from pytorch.models.model import GradModel
 from pytorch.models.model import Parameter, ForwardFunction, NullFunction
+from pytorch.models.graph.update import Update
 from pytorch.models.linear import Linear
 from pytorch.models.graph.msgpass import MessagePass
 from pytorch.models.graph.message import ConcatMessage
@@ -50,7 +51,7 @@ from pytorch.models.graph.aggregate import SumNeighborAgg
 # =============================================================================
 
 
-class GINUpdate(GradModel):
+class GINUpdate(Update):
     r"""
     GIN update.
     """
@@ -87,12 +88,6 @@ class GINUpdate(GradModel):
         # /
         ...
 
-        # Fetch all things to local level.
-        (vexkey, aggkey), (outkey,) = self.IOKEYS["gin_update"]
-        forward1 = self.linear1.forward
-        forward2 = self.linear2.forward
-        relu = getattr(torch.nn.functional, "relu")
-
         def f(
             parameter: Parameter,
             input: Dict[str, torch.Tensor],
@@ -124,13 +119,20 @@ class GINUpdate(GradModel):
 
             # Get epsilon scaled update.
             eps = 0
-            tensor = (1 + eps) * input[vexkey] + input[aggkey]
+            tensor = (1 + eps) * input[self.ky_input_v] + input[self.ky_agg]
 
             # Transfer it by dual linear
-            output = {outkey: tensor}
-            output = forward1(parameter.sub("linear1"), output)
-            output[outkey] = relu(output[outkey])
-            output = forward2(parameter.sub("linear2"), output)
+            transient = {self.ky_output: tensor}
+            transient = self.linear1.forward(
+                parameter.sub("linear1"), transient,
+            )
+            transient[self.ky_output] = getattr(torch.nn.functional, "relu")(
+                transient[self.ky_output],
+            )
+            transient = self.linear2.forward(
+                parameter.sub("linear2"), transient,
+            )
+            output = {self.ky_output: transient[self.ky_output]}
             return output
 
         # Return the function.
@@ -167,10 +169,6 @@ class GINUpdate(GradModel):
         # /
         ...
 
-        # Fetch all things to local level.
-        (dstkey, aggkey), (outkey,) = self.IOKEYS["gin_update"]
-        nullin = self.linear1.nullin
-
         def null(
             device: str,
             *args: ArgT,
@@ -198,10 +196,10 @@ class GINUpdate(GradModel):
             ...
 
             # Get linear inputs applied on destination and aggregation.
-            return dict(
-                dstkey=nullin(device)[outkey],
-                aggkey=nullin(device)[outkey],
-            )
+            return {
+                self.ky_input_v: self.linear1.nullin(device)[self.ky_output],
+                self.ky_agg: self.linear1.nullin(device)[self.ky_output],
+            }
 
         # Return the function.
         return null
@@ -237,9 +235,6 @@ class GINUpdate(GradModel):
         # /
         ...
 
-        # Fetch all things to local level.
-        nullout = self.linear2.nullout
-
         def null(
             device: str,
             *args: ArgT,
@@ -268,7 +263,7 @@ class GINUpdate(GradModel):
 
 
             # Get linear input directly.
-            return nullout(device)
+            return self.linear2.nullout(device)
 
         # Return the function.
         return null
@@ -475,9 +470,6 @@ class GIN(MessagePass):
         # /
         ...
 
-        # Fetch all things to local level.
-        nullout = self.update.nullout
-
         def null(
             device: str,
             *args: ArgT,
@@ -505,7 +497,7 @@ class GIN(MessagePass):
             ...
 
             # Get linear input directly.
-            return nullout(device)
+            return self.update.nullout(device)
 
         # Return the function.
         return null
@@ -541,29 +533,28 @@ class GIN(MessagePass):
         # Save necessary attributes.
         self.num_inputs = xkargs["num_inputs"]
         self.num_outputs = xkargs["num_outputs"]
-        self.keep = xkargs["keep"]
 
-        # Get IO section names
-        msg = self.main + "_msg"
-        agg = self.main + "_agg"
-
-        # Create dual linear layers.
+        # Create message layers.
         self.message = ConcatMessage(
             self.ROOT,
             sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
-                concat_msg=self.IOKEYS[msg],
+                concat_msg=self.IOKEYS["{:s}_msg".format(self.main)],
             )
-        ).set(xargs=(), xkargs=dict(keep=self.keep))
+        ).set(xargs=(), xkargs=dict())
+
+        # Create aggregation layers.
         self.aggregate = SumNeighborAgg(
             self.ROOT,
             sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
-                sum_neighbor_agg=self.IOKEYS[agg],
+                sum_neighbor_agg=self.IOKEYS["{:s}_agg".format(self.main)],
             )
         ).set(xargs=(), xkargs=dict())
+
+        # Create update layers.
         self.update = GINUpdate(
             self.ROOT,
             sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
-                gin_update=self.IOKEYS["gin"],
+                gin_update=self.IOKEYS[self.main],
             )
         ).set(
             xargs=(),
@@ -645,11 +636,6 @@ class __GIN__(GIN):
         # /
         ...
 
-        # Fetch all things to local level.
-        (vexkey, adjkey, lnkkey), _ = self.IOKEYS["gin_graph"]
-        _, (outkey,) = self.IOKEYS["gin"]
-        pytorch = self.pytorch
-
         def f(
             parameter: Parameter,
             input: Dict[str, torch.Tensor],
@@ -681,7 +667,9 @@ class __GIN__(GIN):
 
             # Compute directly.
             output = {}
-            output[outkey] = pytorch.forward(input[vexkey], input[adjkey])
+            output[self.ky_output] = self.pytorch.forward(
+                input[self.ky_input_v], input[self.ky_adj],
+            )
             return output
 
         # Return the function.
@@ -718,7 +706,6 @@ class __GIN__(GIN):
         # Save necessary attributes.
         self.num_inputs = xkargs["num_inputs"]
         self.num_outputs = xkargs["num_outputs"]
-        self.keep = xkargs["keep"]
 
         # Allocate parameters.
         self.pytorch = GINConv(
@@ -742,25 +729,27 @@ class __GIN__(GIN):
         self.bias1 = self.pytorch.nn[0].bias
         self.bias2 = self.pytorch.nn[2].bias
 
-        # Allocate as reproduced version temporarily.
-        msg = self.main + "_msg"
-        agg = self.main + "_agg"
+        # Create message layers temporarily.
         self.message = ConcatMessage(
             self.ROOT,
             sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
-                concat_msg=self.IOKEYS[msg],
+                concat_msg=self.IOKEYS["{:s}_msg".format(self.main)],
             )
-        ).set(xargs=(), xkargs=dict(keep=self.keep))
+        ).set(xargs=(), xkargs=dict())
+
+        # Create aggregation layers temporarily.
         self.aggregate = SumNeighborAgg(
             self.ROOT,
             sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
-                sum_neighbor_agg=self.IOKEYS[agg],
+                sum_neighbor_agg=self.IOKEYS["{:s}_agg".format(self.main)],
             )
         ).set(xargs=(), xkargs=dict())
+
+        # Create update layers temporarily.
         self.update = GINUpdate(
             self.ROOT,
             sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
-                gin_update=self.IOKEYS["gin"],
+                gin_update=self.IOKEYS[self.main],
             )
         ).set(
             xargs=(),

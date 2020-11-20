@@ -57,6 +57,37 @@ class NeighborAgg(GradModel):
     # Define main flow name.
     main = "neighbor_agg"
 
+    def __parse__(
+        self: NeighborAgg,
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> None:
+        r"""
+        Parse computation IO keys.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # /
+        # ANNOTATE VARIABLES
+        # /
+        self.ky_input_v: str
+        self.ky_msg: str
+        self.ky_adj: str
+        self.ky_output: str
+
+        # Fetch main input and output.
+        (self.ky_input_v, self.ky_msg, self.ky_adj), (self.ky_output,) = (
+            self.IOKEYS[self.main]
+        )
+
     def __nullin__(
         self: NeighborAgg,
         *args: ArgT,
@@ -286,10 +317,6 @@ class SumNeighborAgg(NeighborAgg):
         # /
         ...
 
-        # Fetch all things to local level.
-        (msgkey, adjkey, vexkey), (outkey,) = self.IOKEYS["sum_neighbor_agg"]
-        zeros_like = getattr(torch, "zeros_like")
-
         def f(
             parameter: Parameter,
             input: Dict[str, torch.Tensor],
@@ -320,16 +347,16 @@ class SumNeighborAgg(NeighborAgg):
             output: Dict[str, torch.Tensor]
 
             # Split input into exact graph tensors.
-            msg_tensor = input[msgkey]
-            adj_tensor = input[adjkey]
-            vex_tensor = zeros_like(input[vexkey])
+            msg_tensor = input[self.ky_msg]
+            adj_tensor = input[self.ky_adj]
+            agg_tensor = getattr(torch, "zeros_like")(input[self.ky_input_v])
             num_edges, num_msg_inputs = msg_tensor.size()
 
             # Allocate output directly.
             add_indices = adj_tensor[1].view(num_edges, 1)
             add_indices = add_indices.expand(num_edges, num_msg_inputs)
-            vex_tensor.scatter_add_(0, add_indices, msg_tensor)
-            output = {outkey: vex_tensor}
+            agg_tensor.scatter_add_(0, add_indices, msg_tensor)
+            output = {self.ky_output: agg_tensor}
             return output
 
         # Return the function.

@@ -148,15 +148,15 @@ def main(
                 [],
             ),
             gin_msg=(
-                ["node_input_dst", "edge_input", "node_input_src"],
-                ["gin_msg"],
+                ["node_input.src"],
+                ["msg"],
             ),
             gin_agg=(
-                ["gin_msg", "adj_input", "node_input"],
-                ["gin_agg"],
+                ["node_input", "msg", "adj_input"],
+                ["agg"],
             ),
             gin=(
-                ["node_input", "gin_agg"],
+                ["node_input", "agg"],
                 ["node_output"],
             ),
         ),

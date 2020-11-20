@@ -59,6 +59,33 @@ class ConcatMessage(GradModel):
     # Define main flow name.
     main = "concat_msg"
 
+    def __parse__(
+        self: ConcatMessage,
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> None:
+        r"""
+        Parse computation IO keys.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # /
+        # ANNOTATE VARIABLES
+        # /
+        self.ky_inputs: List[str]
+        self.ky_output: str
+
+        # Fetch main input and output.
+        self.ky_inputs, (self.ky_output,) = self.IOKEYS[self.main]
+
     def __forward__(
         self: ConcatMessage,
         *args: ArgT,
@@ -88,23 +115,6 @@ class ConcatMessage(GradModel):
         # ANNOTATE VARIABLES
         # /
         ...
-
-        # Fetch all things to local level.
-        inkeys, (outkey,) = self.IOKEYS["concat_msg"]
-        catkeys = []
-        for key in inkeys:
-            if (self.keep[key]):
-                catkeys.append(key)
-            else:
-                pass
-        concat = getattr(torch, "cat")
-
-        # Ensure safety.
-        if (len(catkeys) == 0):
-            error("No feature is used for concatenation.")
-            raise RuntimeError
-        else:
-            pass
 
         def f(
             parameter: Parameter,
@@ -138,9 +148,9 @@ class ConcatMessage(GradModel):
 
             # Take keeping tensors into buffer and concatenate.
             buf = []
-            for key in catkeys:
+            for key in self.ky_inputs:
                 buf.append(input[key])
-            output = {outkey: concat(buf, dim=1)}
+            output = {self.ky_output: getattr(torch, "cat")(buf, dim=1)}
             return output
 
         # Return the function.
@@ -298,10 +308,10 @@ class ConcatMessage(GradModel):
         # \
         # ANNOTATE VARIABLES
         # \
-        self.keep: Dict[str, bool]
+        ...
 
-        # Save necessary attributes.
-        self.keep = xkargs["keep"]
+        # Concatenation is a naive function requiring nothing.
+        pass
 
     def __initialize__(
         self: ConcatMessage,

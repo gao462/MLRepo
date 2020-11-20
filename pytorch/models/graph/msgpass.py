@@ -64,6 +64,59 @@ class MessagePass(GradModel):
     # Define main flow name.
     main = "msgpass"
 
+    def __parse__(
+        self: MessagePass,
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> None:
+        r"""
+        Parse computation IO keys.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # /
+        # ANNOTATE VARIABLES
+        # /
+        self.ky_input_v: str
+        self.ky_adj: str
+        self.ky_input_e: str
+        self.ky_input_src: str
+        self.ky_input_dst: str
+        self.ky_msg_inputs: List[str]
+        self.ky_msg: str
+        self.ky_agg: str
+        self.ky_output: str
+
+        # Fetch main input and output.
+        (self.ky_input_v, self.ky_adj, self.ky_input_e), ky_input = (
+            self.IOKEYS["{:s}_graph".format(self.main)]
+        )
+        self.ky_input_src = "{:s}.src".format(self.ky_input_v)
+        self.ky_input_dst = "{:s}.dst".format(self.ky_input_v)
+        self.ky_msg_inputs, (self.ky_msg,) = (
+            self.IOKEYS["{:s}_msg".format(self.main)]
+        )
+        (self.ky_input_v, self.ky_msg, self.ky_adj), (self.ky_agg,) = (
+            self.IOKEYS["{:s}_agg".format(self.main)]
+        )
+        (self.ky_input_v, self.ky_agg), (self.ky_output,) = (
+            self.IOKEYS[self.main]
+        )
+
+        # Warn useless output flow.
+        if (len(ky_input) == 0):
+            pass
+        else:
+            warning("Message passing graph flow requires no output.")
+
     def __forward__(
         self: MessagePass,
         *args: ArgT,
@@ -93,21 +146,6 @@ class MessagePass(GradModel):
         # ANNOTATE VARIABLES
         # /
         ...
-
-        # Fetch all things to local level.
-        (vexkey, adjkey, lnkkey), _ = (
-            self.IOKEYS["{:s}_graph".format(self.main)]
-        )
-        (msg_dstkey, msg_lnkkey, msg_srckey), (msg_outkey,) = (
-            self.IOKEYS["{:s}_msg".format(self.main)]
-        )
-        (agg_msgkey, agg_adjkey, agg_vexkey), (agg_outkey,) = (
-            self.IOKEYS["{:s}_agg".format(self.main)]
-        )
-        (vexkey, aggkey), (outkey,) = self.IOKEYS[self.main]
-        msg_forward = self.message.forward
-        agg_forward = self.aggregate.forward
-        update_forward = self.update.forward
 
         def f(
             parameter: Parameter,
@@ -139,32 +177,32 @@ class MessagePass(GradModel):
             output: Dict[str, torch.Tensor]
 
             # Split input into exact graph info.
-            adj_buf = input[adjkey]
-            src_buf = input[vexkey][adj_buf[0]]
-            dst_buf = input[vexkey][adj_buf[1]]
-            lnk_buf = input[lnkkey]
+            transient = {}
+            transient[self.ky_input_v] = input[self.ky_input_v]
+            transient[self.ky_adj] = input[self.ky_adj]
+            transient[self.ky_input_e] = input[self.ky_input_e]
+            transient[self.ky_input_src] = transient[self.ky_input_v][
+                transient[self.ky_adj][0]
+            ]
+            transient[self.ky_input_dst] = transient[self.ky_input_v][
+                transient[self.ky_adj][1]
+            ]
 
             # Collect message for each edge.
-            msg_buf = msg_forward(parameter.sub("message"), {
-                msg_dstkey: dst_buf,
-                msg_lnkkey: lnk_buf,
-                msg_srckey: src_buf,
-            })
+            transient[self.ky_msg] = self.message.forward(
+                parameter.sub("message"), transient,
+            )[self.ky_msg]
 
             # Aggregate collected message for each node.
-            agg_buf = agg_forward(parameter.sub("aggregate"), {
-                agg_msgkey: msg_buf[agg_msgkey],
-                agg_adjkey: adj_buf,
-                agg_vexkey: input[agg_vexkey],
-            })
+            transient[self.ky_agg] = self.aggregate.forward(
+                parameter.sub("aggregate"), transient,
+            )[self.ky_agg]
 
             # Compute directly.
             output = {}
-            update_buf = update_forward(parameter.sub("update"), {
-                vexkey: input[vexkey],
-                aggkey: agg_buf[aggkey],
-            })
-            output[outkey] = update_buf[outkey]
+            output[self.ky_output] = self.update.forward(
+                parameter.sub("update"), transient,
+            )[self.ky_output]
             return output
 
         # Return the function.
@@ -297,7 +335,7 @@ class MessagePass(GradModel):
             ...
 
             # return all-zero.
-            raise NotImplementedError
+            return self.update.nullout(device)
 
         # Return the function.
         return null
@@ -331,9 +369,6 @@ class MessagePass(GradModel):
         self.message: GradModel
         self.aggregate: GradModel
         self.update: GradModel
-
-        # Save necessary attributes.
-        ...
 
         # Get models for message, aggregation and update.
         self.message = xkargs["message"]

@@ -64,6 +64,38 @@ class RNN(GradModel):
     # Define main flow name.
     main = "rnn"
 
+    def __parse__(
+        self: RNN,
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> None:
+        r"""
+        Parse computation IO keys.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # /
+        # ANNOTATE VARIABLES
+        # /
+        self.ky_aggin_i: str
+        self.ky_aggin_h: str
+        self.ky_aggout: str
+        self.ky_output: str
+
+        # Fetch main input and output.
+        (self.ky_aggin_i, self.ky_aggin_h), (self.ky_aggout,) = (
+            self.IOKEYS["{:s}_aggregate".format(self.main)]
+        )
+        (self.ky_aggout,), (self.ky_output,) = self.IOKEYS[self.main]
+
     def __forward__(
         self: RNN,
         *args: ArgT,
@@ -111,14 +143,6 @@ class RNN(GradModel):
         # /
         ...
 
-        # Fetch all things to local level.
-        (agg_ikey, agg_hkey), (agg_outkey,) = self.IOKEYS["rnn_aggregate"]
-        (inkey,), (outkey,) = self.IOKEYS["rnn"]
-        hnullout = self.hsub.nullout
-        iforward = self.isub.forward
-        hforward = self.hsub.forward
-        transform = self.transform
-
         def f(
             parameter: Parameter,
             input: Dict[str, torch.Tensor],
@@ -157,21 +181,21 @@ class RNN(GradModel):
             # Get essential recurrent transient buffer and expand batch
             # dimension by batch size.
             transient = {}
-            tensor = hnullout(device)[agg_hkey]
+            tensor = self.hsub.nullout(device)[self.ky_aggin_h]
             shape = list(tensor.size())[1:]
-            transient[agg_outkey] = tensor.expand(batch_size, *shape)
+            transient[self.ky_aggout] = tensor.expand(batch_size, *shape)
 
             # Compute directly.
             for t in range(sample_length):
                 for key, val in input.items():
                     transient[key] = val[t]
-                ibuf = iforward(parameter.sub("isub"), transient)
-                hbuf = hforward(parameter.sub("hsub"), transient)
-                transient[agg_outkey] = transform(
-                    ibuf[agg_ikey] + hbuf[agg_hkey],
+                ibuf = self.isub.forward(parameter.sub("isub"), transient)
+                hbuf = self.hsub.forward(parameter.sub("hsub"), transient)
+                transient[self.ky_aggout] = self.transform(
+                    ibuf[self.ky_aggin_i] + hbuf[self.ky_aggin_h],
                 )
             output = {}
-            output[outkey] = transient[inkey]
+            output[self.ky_output] = transient[self.ky_aggout]
             return output
 
         # Return the function.
@@ -210,10 +234,6 @@ class RNN(GradModel):
         # /
         ...
 
-        # Fetch all things to local level.
-        inullin = self.isub.nullin
-        hnullin = self.hsub.nullin
-
         def null(
             device: str,
             *args: ArgT,
@@ -241,15 +261,15 @@ class RNN(GradModel):
             ...
 
             # Get sub model inputs.
-            inull = inullin(device)
-            hnull = hnullin(device)
+            ibuf = self.isub.nullin(device)
+            hbuf = self.hsub.nullin(device)
 
             # Merge sub model inputs and extend with sequence dimension at the
             # beginning.
             output = {}
-            for key, val in inull.items():
+            for key, val in ibuf.items():
                 output[key] = val.unsqueeze(0)
-            for key, val in hnull.items():
+            for key, val in hbuf.items():
                 output[key] = val.unsqueeze(0)
             return output
 
@@ -289,10 +309,6 @@ class RNN(GradModel):
         # /
         ...
 
-        # Fetch all things to local level.
-        (inkey,), (outkey,) = self.IOKEYS["rnn"]
-        hnullout = self.hsub.nullout
-
         def null(
             device: str,
             *args: ArgT,
@@ -320,11 +336,11 @@ class RNN(GradModel):
             ...
 
             # Get sub model outputs.
-            hnull = hnullout(device)
+            hbuf = self.hsub.nullout(device)
 
             # Output is just hidden model output with extra sequence dimension.
             output = {}
-            output[outkey] = hnull[inkey].unsqueeze(0)
+            output[self.ky_output] = hbuf[self.ky_aggin_h].unsqueeze(0)
             return output
 
         # Return the function.
@@ -455,13 +471,6 @@ class __RNN__(RNN):
         # /
         ...
 
-        # Fetch all things to local level.
-        (_, agg_hkey), (_,) = self.IOKEYS["rnn_aggregate"]
-        _, (outkey,) = self.IOKEYS["rnn"]
-        hnullout = self.hsub.nullout
-        i_inkey = self.i_inkey
-        pytorch = self.pytorch
-
         def f(
             parameter: Parameter,
             input: Dict[str, torch.Tensor],
@@ -499,16 +508,16 @@ class __RNN__(RNN):
 
             # Get essential recurrent transient buffer and expand batch
             # dimension by batch size.
-            tensor = hnullout(device)[agg_hkey]
+            tensor = self.hsub.nullout(device)[self.ky_aggin_h]
             shape = list(tensor.size())[1:]
             transient = tensor.expand(batch_size, *shape)
 
             # Compute directly.
             for t in range(sample_length):
-                raw = input[i_inkey][t]
-                transient = pytorch.forward(raw, transient)
+                raw = input[self.ky_input_i][t]
+                transient = self.pytorch.forward(raw, transient)
             output = {}
-            output[outkey] = transient
+            output[self.ky_output] = transient
             return output
 
         # Return the function.
@@ -566,8 +575,7 @@ class __RNN__(RNN):
         self.hsub = xkargs["hsub"]
 
         # Pre-fetch IO direction only for linear form.
-        (self.i_inkey,), (_,) = self.isub.IOKEYS["linear"]
-        (self.h_inkey,), (_,) = self.hsub.IOKEYS["linear"]
+        (self.ky_input_i,), (_,) = self.isub.IOKEYS["linear"]
 
     def __initialize__(
         self: __RNN__,
