@@ -508,7 +508,7 @@ class __RNN__(RNN):
 
             # Get essential recurrent transient buffer and expand batch
             # dimension by batch size.
-            tensor = self.hsub.nullout(device)[self.ky_aggin_h]
+            tensor = self.hsub_nullout(device)[self.ky_aggin_h]
             shape = list(tensor.size())[1:]
             transient = tensor.expand(batch_size, *shape)
 
@@ -554,11 +554,13 @@ class __RNN__(RNN):
         self.bias_ih: torch.nn.parameter.Parameter
         self.bias_hh: torch.nn.parameter.Parameter
 
+        # Super.
+        RNN.configure(self, xargs, xkargs)
+
         # Save necessary attributes.
         self.num_inputs = xkargs["num_inputs"]
         self.num_outputs = xkargs["num_outputs"]
         self.no_bias = xkargs["no_bias"]
-        self.transform_name = xkargs["transform"]
 
         # Allocate parameters.
         self.pytorch = torch.nn.RNNCell(
@@ -574,8 +576,11 @@ class __RNN__(RNN):
         self.isub = xkargs["isub"]
         self.hsub = xkargs["hsub"]
 
-        # Pre-fetch IO direction only for linear form.
+        # Pre-fetch IO direction for consistency.
         (self.ky_input_i,), (_,) = self.isub.IOKEYS["linear"]
+
+        # Pre-fetch null function for consistency.
+        self.hsub_nullout = self.hsub.nullout
 
     def __initialize__(
         self: __RNN__,
@@ -608,21 +613,20 @@ class __RNN__(RNN):
         # /
         ...
 
-        # Simulate linear units.
-        self.isub = cast(Linear, self.isub)
-        self.hsub = cast(Linear, self.hsub)
-        self.isub.initialize(rng, xargs=xargs, xkargs=xkargs)
-        self.hsub.initialize(rng, xargs=xargs, xkargs=xkargs)
+        # Super.
+        RNN.__initialize__(self, rng, xargs=xargs, xkargs=xkargs)
 
         # Copy data to correct place.
-        self.weight_ih.data.copy_(self.isub.weight.data)
-        self.weight_hh.data.copy_(self.hsub.weight.data)
+        self.weight_ih.data.copy_(cast(Linear, self.isub).weight.data)
+        self.weight_hh.data.copy_(cast(Linear, self.hsub).weight.data)
         if (self.no_bias):
             pass
         else:
-            self.bias_ih.data.copy_(self.isub.bias.data)
-            self.bias_hh.data.copy_(self.hsub.bias.data)
+            self.bias_ih.data.copy_(cast(Linear, self.isub).bias.data)
+            self.bias_hh.data.copy_(cast(Linear, self.hsub).bias.data)
 
         # Remove from registration.
         del self.parameter.submodels["isub"]
         del self.parameter.submodels["hsub"]
+        del self.isub
+        del self.hsub

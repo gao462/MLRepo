@@ -585,7 +585,7 @@ class __GRU__(GRU):
 
             # Get essential recurrent transient buffer and expand batch
             # dimension by batch size.
-            tensor = self.cell_hsub.nullout(device)[self.ky_cell_h]
+            tensor = self.cell_hsub_nullout(device)[self.ky_cell_h]
             shape = list(tensor.size())[1:]
             transient = tensor.expand(batch_size, *shape)
 
@@ -631,6 +631,9 @@ class __GRU__(GRU):
         self.bias_ih: torch.nn.parameter.Parameter
         self.bias_hh: torch.nn.parameter.Parameter
 
+        # Super.
+        GRU.configure(self, xargs, xkargs)
+
         # Save necessary attributes.
         self.num_inputs = xkargs["num_inputs"]
         self.num_outputs = xkargs["num_outputs"]
@@ -654,8 +657,11 @@ class __GRU__(GRU):
         self.cell_isub = xkargs["cell_isub"]
         self.cell_hsub = xkargs["cell_hsub"]
 
-        # Pre-fetch IO direction only for linear form.
+        # Pre-fetch IO direction for consistency.
         (self.ky_input_i,), (_,) = self.cell_isub.IOKEYS["linear"]
+
+        # Pre-fetch null function for consistency.
+        self.cell_hsub_nullout = self.cell_hsub.nullout
 
     def __initialize__(
         self: __GRU__,
@@ -688,58 +694,29 @@ class __GRU__(GRU):
         # /
         ...
 
-        # Simulate linear units.
-        self.reset_isub = cast(Linear, self.reset_isub)
-        self.reset_hsub = cast(Linear, self.reset_hsub)
-        self.update_isub = cast(Linear, self.update_isub)
-        self.update_hsub = cast(Linear, self.update_hsub)
-        self.cell_isub = cast(Linear, self.cell_isub)
-        self.cell_hsub = cast(Linear, self.cell_hsub)
-        self.reset_isub.initialize(
-            rng,
-            xargs=xkargs["gate"]["xargs"], xkargs=xkargs["gate"]["xkargs"],
-        )
-        self.reset_hsub.initialize(
-            rng,
-            xargs=xkargs["gate"]["xargs"], xkargs=xkargs["gate"]["xkargs"],
-        )
-        self.update_isub.initialize(
-            rng,
-            xargs=xkargs["gate"]["xargs"], xkargs=xkargs["gate"]["xkargs"],
-        )
-        self.update_hsub.initialize(
-            rng,
-            xargs=xkargs["gate"]["xargs"], xkargs=xkargs["gate"]["xkargs"],
-        )
-        self.cell_isub.initialize(
-            rng,
-            xargs=xkargs["cell"]["xargs"], xkargs=xkargs["cell"]["xkargs"],
-        )
-        self.cell_hsub.initialize(
-            rng,
-            xargs=xkargs["cell"]["xargs"], xkargs=xkargs["cell"]["xkargs"],
-        )
+        # Super.
+        GRU.__initialize__(self, rng, xargs=xargs, xkargs=xkargs)
 
         # Merge matrices to fit PyTorch.
         weight_ih = getattr(torch, "cat")([
-            self.reset_isub.weight.data,
-            self.update_isub.weight.data,
-            self.cell_isub.weight.data,
+            cast(Linear, self.reset_isub).weight.data,
+            cast(Linear, self.update_isub).weight.data,
+            cast(Linear, self.cell_isub).weight.data,
         ], dim=0)
         weight_hh = getattr(torch, "cat")([
-            self.reset_hsub.weight.data,
-            self.update_hsub.weight.data,
-            self.cell_hsub.weight.data,
+            cast(Linear, self.reset_hsub).weight.data,
+            cast(Linear, self.update_hsub).weight.data,
+            cast(Linear, self.cell_hsub).weight.data,
         ], dim=0)
         bias_ih = getattr(torch, "cat")([
-            self.reset_isub.bias.data,
-            self.update_isub.bias.data,
-            self.cell_isub.bias.data,
+            cast(Linear, self.reset_isub).bias.data,
+            cast(Linear, self.update_isub).bias.data,
+            cast(Linear, self.cell_isub).bias.data,
         ], dim=0)
         bias_hh = getattr(torch, "cat")([
-            self.reset_hsub.bias.data,
-            self.update_hsub.bias.data,
-            self.cell_hsub.bias.data,
+            cast(Linear, self.reset_hsub).bias.data,
+            cast(Linear, self.update_hsub).bias.data,
+            cast(Linear, self.cell_hsub).bias.data,
         ], dim=0)
 
         # Copy data to correct place.
@@ -758,3 +735,9 @@ class __GRU__(GRU):
         del self.parameter.submodels["update_hsub"]
         del self.parameter.submodels["cell_isub"]
         del self.parameter.submodels["cell_hsub"]
+        del self.reset_isub
+        del self.reset_hsub
+        del self.update_isub
+        del self.update_hsub
+        del self.cell_isub
+        del self.cell_hsub

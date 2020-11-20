@@ -38,24 +38,22 @@ from pytorch.models.model import Parameter, ForwardFunction, NullFunction
 # =============================================================================
 # *****************************************************************************
 # -----------------------------------------------------------------------------
-# << Linear Gradient Model >>
-# The linear gradient model.
-# The model forward function $f$ must be constructed with linear matrix
-# operations, such as matrix multiplication, element-wise addition.
+# << Collection of Gradient Model >>
+# The collection of gradient models working as a gradient model.
 # -----------------------------------------------------------------------------
 # *****************************************************************************
 # =============================================================================
 
 
-class Linear(GradModel):
+class GradModelSeq(GradModel):
     r"""
-    Linear.
+    A sequence of gradient models.
     """
     # Define main flow name.
-    main = "linear"
+    main = "seq"
 
     def __parse__(
-        self: Linear,
+        self: GradModelSeq,
         *args: ArgT,
         **kargs: KArgT,
     ) -> None:
@@ -75,14 +73,13 @@ class Linear(GradModel):
         # /
         # ANNOTATE VARIABLES
         # /
-        self.ky_input: str
-        self.ky_output: str
+        ...
 
-        # Fetch main input and output.
-        (self.ky_input,), (self.ky_output,) = self.IOKEYS[self.main]
+        # Collection is just a wrapped without IO flow.
+        pass
 
     def __forward__(
-        self: Linear,
+        self: GradModelSeq,
         *args: ArgT,
         **kargs: KArgT,
     ) -> ForwardFunction:
@@ -141,21 +138,19 @@ class Linear(GradModel):
             output: Dict[str, torch.Tensor]
 
             # Apply matrix multiplication and bias.
-            output = {}
-            tensor = getattr(torch, "matmul")(
-                input[self.ky_input], parameter["weight"].t(),
-            )
-            if (self.no_bias):
-                output[self.ky_output] = tensor
-            else:
-                output[self.ky_output] = tensor + parameter["bias"]
+            transient = input
+            for i, model in enumerate(self.models):
+                transient = model.forward(
+                    parameter.sub("{:d}".format(i)), transient,
+                )
+            output = transient
             return output
 
         # Return the function.
         return f
 
     def __nullin__(
-        self: Linear,
+        self: GradModelSeq,
         *args: ArgT,
         **kargs: KArgT,
     ) -> NullFunction:
@@ -212,17 +207,13 @@ class Linear(GradModel):
             ...
 
             # return all-zero.
-            return {
-                self.ky_input: getattr(torch, "zeros")(
-                    1, self.num_inputs, dtype=self.DTYPE, device=device,
-                ),
-            }
+            return self.models[0].nullin(device)
 
         # Return the function.
         return null
 
     def __nullout__(
-        self: Linear,
+        self: GradModelSeq,
         *args: ArgT,
         **kargs: KArgT,
     ) -> NullFunction:
@@ -279,17 +270,13 @@ class Linear(GradModel):
             ...
 
             # return all-zero.
-            return {
-                self.ky_output: getattr(torch, "zeros")(
-                    1, self.num_outputs, dtype=self.DTYPE, device=device,
-                ),
-            }
+            return self.models[-1].nullout(device)
 
         # Return the function.
         return null
 
     def configure(
-        self: Linear,
+        self: GradModelSeq,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         *args: ArgT,
         **kargs: KArgT,
@@ -314,30 +301,55 @@ class Linear(GradModel):
         # \
         # ANNOTATE VARIABLES
         # \
-        self.weight: torch.nn.parameter.Parameter
-        self.bias: torch.nn.parameter.Parameter
-        self.num_inputs: int
-        self.num_outputs: int
-        self.no_bias: bool
+        self.models: List[GradModel]
 
         # Save necessary attributes.
-        self.num_inputs = xkargs["num_inputs"]
-        self.num_outputs = xkargs["num_outputs"]
-        self.no_bias = xkargs["no_bias"]
+        self.models = []
+        for model in xargs:
+            self.models.append(model)
 
-        # Allocate parameters.
-        self.weight = torch.nn.parameter.Parameter(getattr(torch, "zeros")(
-            self.num_outputs, self.num_inputs, dtype=self.DTYPE,
-        ))
-        if (self.no_bias):
-            pass
-        else:
-            self.bias = torch.nn.parameter.Parameter(getattr(torch, "zeros")(
-                self.num_outputs, dtype=self.DTYPE,
-            ))
+    def workflow_diffuse(
+        self: GradModelSeq,
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> Dict[str, List[List[Tuple[str, str, str]]]]:
+        r"""
+        Diffuse workflow defined by sub models and IO keys.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+        - flows.
+            Work flows of each sub model.
+            The model itself is defined as sub model "".
+            Work flow is a list of lists of section, input key and output key
+            items.
+            Same section name is aggregated in the same list.
+
+        """
+        # \
+        # ANNOTATE VARIABLES
+        # \
+        flows: Dict[str, List[List[Tuple[str, str, str]]]]
+
+        # Get sub model flows.
+        flows = {}
+        for i, val in enumerate(self.models):
+            key = "{:d}".format(i)
+            for sub, grouped in val.workflow.items():
+                if (sub == ""):
+                    flows[key] = grouped
+                else:
+                    flows[key + "." + sub] = grouped
+        return flows
 
     def __initialize__(
-        self: Linear,
+        self: GradModelSeq,
         rng: torch._C.Generator,
         *args: ArgT,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
@@ -369,81 +381,18 @@ class Linear(GradModel):
         ...
 
         # Initialize weight.
-        gain = Linear.activation_gain(
-            name=xkargs["activation"], negative_slope=xkargs["negative_slope"],
-        )
-        std = gain / math.sqrt(self.num_inputs)
-        bound = math.sqrt(3) * std
-        self.weight.data.uniform_(-bound, bound, generator=rng)
+        for i, ini in enumerate(xargs):
+            self.models[i].initialize(
+                rng, xargs=ini["xargs"], xkargs=ini["xkargs"],
+            )
 
-        # Initialize bias if necessary.
-        if (self.no_bias):
-            pass
-        else:
-            bound = 1 / math.sqrt(self.num_inputs)
-            self.bias.data.uniform_(-bound, bound, generator=rng)
-
-    @staticmethod
-    def activation_gain(
-        *args: ArgT,
-        name: str, negative_slope: float,
-        **kargs: KArgT,
-    ) -> float:
-        r"""
-        Activation gain for initialization.
-
-        Args
-        ----
-        - *args
-        - name
-            Activation name.
-            "null" for no activation or convolution.
-            "sigmoid" for Sigmoid activation.
-            "tanh" for Tanh activation.
-            "relu" for Relu activation.
-            "leaky_relu" for Leaky ReLU activation.
-        - negative_slope
-            Negative slope for Leaky ReLU activation.
-            Use 0 if activation is not Leaky ReLU.
-        - **kargs
-
-        Returns
-        -------
-        - gain
-            Gain.
-
-        It is directly duplicated from PyTorch default.
-        """
-        # /
-        # ANNOTATE VARIABLES
-        # /
-        ...
-
-        # Get gain.
-        if (name == "sigmoid"):
-            return 1.0
-        elif (name == "tanh"):
-            return 5.0 / 3.0
-        elif (name == "relu"):
-            return math.sqrt(2.0)
-        elif (name == "leaky_relu"):
-            return math.sqrt(2.0 / (1.0 + negative_slope ** 2))
-        else:
-            error("Activcation \"{:s}\" has no gain definition.", name)
-            raise RuntimeError
-
-
-class __Linear__(Linear):
-    r"""
-    PyTorch Linear.
-    """
-    def __forward__(
-        self: __Linear__,
+    def __len__(
+        self: GradModelSeq,
         *args: ArgT,
         **kargs: KArgT,
-    ) -> ForwardFunction:
+    ) -> int:
         r"""
-        Set forward function.
+        Get length.
 
         Args
         ----
@@ -453,75 +402,56 @@ class __Linear__(Linear):
 
         Returns
         -------
-        - function
-            Forward function.
 
-        It must of defined a function $f$ by form:
-
-        $$
-        y = f(\theta, x)
-        $$
-
-        where $y$ is output, $\theta$ is parameter and $x$ is input.
         """
-        # /
+        # \
         # ANNOTATE VARIABLES
-        # /
+        # \
         ...
 
-        def f(
-            parameter: Parameter,
-            input: Dict[str, torch.Tensor],
-            *args: ArgT,
-            **kargs: KArgT,
-        ) -> Dict[str, torch.Tensor]:
-            r"""
-            Forward a batch input.
+        # Get memory length.
+        return len(self.models)
 
-            Args
-            ----
-            - parameter
-                Parameter.
-            - input
-                Input.
-            - *args
-            - **kargs
+    def __getitem__(
+        self: GradModelSeq,
+        i: int,
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> GradModel:
+        r"""
+        Get length.
 
-            Returns
-            -------
-            - output
-                Output.
+        Args
+        ----
+        - self
+        - i
+            Index.
+        - *args
+        - **kargs
 
-            """
-            # /
-            # ANNOTATE VARIABLES
-            # /
-            output: Dict[str, torch.Tensor]
+        Returns
+        -------
 
-            # Apply matrix multiplication and bias.
-            output = {}
-            output[self.ky_output] = self.pytorch.forward(input[self.ky_input])
-            return output
+        """
+        # \
+        # ANNOTATE VARIABLES
+        # \
+        ...
 
-        # Return the function.
-        return f
+        # Get item from saved models.
+        return self.models[i]
 
-    def configure(
-        self: __Linear__,
-        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
+    def register(
+        self: GradModelSeq,
         *args: ArgT,
         **kargs: KArgT,
     ) -> None:
         r"""
-        Configure model.
+        Register parameters and sub models.
 
         Args
         ----
         - self
-        - xargs
-            Extra arguments to specific configuration.
-        - xkargs
-            Extra keyword arguments to specific configuration.
         - *args
         - **kargs
 
@@ -529,19 +459,16 @@ class __Linear__(Linear):
         -------
 
         """
-        # \
+        # /
         # ANNOTATE VARIABLES
-        # \
-        self.weight: torch.nn.parameter.Parameter
-        self.bias: torch.nn.parameter.Parameter
+        # /
+        ...
 
         # Super.
-        Linear.configure(self, xargs, xkargs)
+        GradModel.register(self)
 
-        # Allocate parameters.
-        self.pytorch = torch.nn.Linear(
-            in_features=self.num_inputs, out_features=self.num_outputs,
-            bias=not self.no_bias,
-        )
-        self.weight = getattr(self.pytorch, "weight")
-        self.bias = getattr(self.pytorch, "bias")
+        # Manually register the model list.
+        for i, model in enumerate(self.models):
+            self.parameter.registar_submodel(
+                "{:d}".format(i), model.parameter,
+            )

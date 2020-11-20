@@ -552,22 +552,8 @@ class GradModel(abc.ABC):
             )
             self.workflow_logging()
 
-        # Scan over model attributes by now.
-        self.parameter = Parameter()
-        for key, val in vars(self).items():
-            if (isinstance(val, torch.nn.parameter.Parameter)):
-                self.parameter.registar_parameter(key, val)
-            elif (isinstance(val, GradModel)):
-                if (val.SUB):
-                    self.parameter.registar_submodel(key, val.parameter)
-                else:
-                    error(
-                        "Register a non-sub model \"{:s}\"as a sub model.",
-                        val.__class__.__name__,
-                    )
-                    raise RuntimeError
-            else:
-                pass
+        # Scan over model attributes by now and register them.
+        self.register()
 
         # Construct purified function.
         self.forward = self.__forward__()
@@ -696,6 +682,17 @@ class GradModel(abc.ABC):
             else:
                 highlight = ""
 
+            # Defined no-self-flow need special logging.
+            if (subname == "" and len(submodel) == 0):
+                debug(
+                    "\" {:s} {:s} | {:s} --- {:s} \".",
+                    subname.rjust(max_sub), "".rjust(max_sec),
+                    "-".rjust(max_in), "-".ljust(max_out),
+                    highlight=highlight,
+                )
+            else:
+                pass
+
             # Output each defined flow.
             for j, grouped in enumerate(submodel):
                 # Output subname only at the beginning.
@@ -706,13 +703,22 @@ class GradModel(abc.ABC):
 
                 # Output focusing section head.
                 section, inkey, outkey = grouped[0]
-                debug(
-                    "\" {:s} {:s} | \033[34{highlight:s}m{:s}\033[0m ==>" \
-                    " \033[32{highlight:s}m{:s}\033[0m \".",
-                    subname.rjust(max_sub), section.rjust(max_sec),
-                    inkey.rjust(max_in), outkey.ljust(max_out),
-                    highlight=highlight,
-                )
+                if (len(inkey) == 0 or len(outkey) == 0):
+                    debug(
+                        "\" {:s} {:s} | \033[34{highlight:s}m{:s}\033[0m" \
+                        "     \033[32{highlight:s}m{:s}\033[0m \".",
+                        subname.rjust(max_sub), section.rjust(max_sec),
+                        inkey.rjust(max_in), outkey.ljust(max_out),
+                        highlight=highlight,
+                    )
+                else:
+                    debug(
+                        "\" {:s} {:s} | \033[34{highlight:s}m{:s}\033[0m ==>" \
+                        " \033[32{highlight:s}m{:s}\033[0m \".",
+                        subname.rjust(max_sub), section.rjust(max_sec),
+                        inkey.rjust(max_in), outkey.ljust(max_out),
+                        highlight=highlight,
+                    )
 
                 # Output remaining focusing section.
                 for section, inkey, outkey in grouped[1:]:
@@ -745,6 +751,41 @@ class GradModel(abc.ABC):
                     "\"-{:s}-{:s}-+-{:s}-----{:s}-\".",
                     "-" * max_sub, "-" * max_sec, "-" * max_in, "-" * max_out,
                 )
+
+    def register(
+        self: GradModel,
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> None:
+        r"""
+        Register parameters and sub models.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # Scan attribtues for parameters and sub models.
+        self.parameter = Parameter()
+        for key, val in vars(self).items():
+            if (isinstance(val, torch.nn.parameter.Parameter)):
+                self.parameter.registar_parameter(key, val)
+            elif (isinstance(val, GradModel)):
+                if (val.SUB):
+                    self.parameter.registar_submodel(key, val.parameter)
+                else:
+                    error(
+                        "Register a non-sub model \"{:s}\" as a sub model.",
+                        val.__class__.__name__,
+                    )
+                    raise RuntimeError
+            else:
+                pass
 
     @abc.abstractmethod
     def configure(
