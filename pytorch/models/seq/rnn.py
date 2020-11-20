@@ -594,7 +594,6 @@ class __RNN__(RNN):
         Returns
         -------
 
-        Use Kaiming Uniform as PyTorch default.
         """
         # /
         # ANNOTATE VARIABLES

@@ -674,7 +674,6 @@ class __GRU__(GRU):
         Returns
         -------
 
-        Use Kaiming Uniform as PyTorch default.
         """
         # /
         # ANNOTATE VARIABLES

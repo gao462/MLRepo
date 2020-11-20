@@ -30,25 +30,25 @@ from pytorch.logging import debug, info1, info2, focus, warning, error
 
 # Import dependencies.
 from pytorch.models.model import LossFunction
-from pytorch.models.seq.gru import GRU, __GRU__
+from pytorch.models.graph.gin import GIN, __GIN__
 from demo.Reproduce.models.naive import NaiveDistLoss
 
 
 # =============================================================================
 # *****************************************************************************
 # -----------------------------------------------------------------------------
-# << GRU Gradient Model Naive Distribution >>
+# << GIN Gradient Model Naive Distribution >>
 # -----------------------------------------------------------------------------
 # *****************************************************************************
 # =============================================================================
 
 
-class RepGRU(GRU):
+class RepGIN(GIN):
     r"""
-    Reproduced GRU.
+    Reproduced RNN.
     """
     def __train__(
-        self: RepGRU,
+        self: RepGIN,
         *args: ArgT,
         **kargs: KArgT,
     ) -> LossFunction:
@@ -78,10 +78,10 @@ class RepGRU(GRU):
         ...
 
         # return the function.
-        return NaiveDistLoss((["output"], ["target"]))
+        return NaiveDistLoss((["node_output"], ["node_target"]))
 
     def __evaluate__(
-        self: RepGRU,
+        self: RepGIN,
         *args: ArgT,
         **kargs: KArgT,
     ) -> LossFunction:
@@ -111,15 +111,15 @@ class RepGRU(GRU):
         ...
 
         # Return the function.
-        return NaiveDistLoss((["output"], ["target"]))
+        return NaiveDistLoss((["node_output"], ["node_target"]))
 
 
-class TarGRU(__GRU__):
+class TarGIN(__GIN__):
     r"""
-    Target GRU.
+    Target GIN.
     """
     def __train__(
-        self: TarGRU,
+        self: TarGIN,
         *args: ArgT,
         **kargs: KArgT,
     ) -> LossFunction:
@@ -149,10 +149,10 @@ class TarGRU(__GRU__):
         ...
 
         # return the function.
-        return NaiveDistLoss((["output"], ["target"]))
+        return NaiveDistLoss((["node_output"], ["node_target"]))
 
     def __evaluate__(
-        self: TarGRU,
+        self: TarGIN,
         *args: ArgT,
         **kargs: KArgT,
     ) -> LossFunction:
@@ -182,4 +182,4 @@ class TarGRU(__GRU__):
         ...
 
         # Return the function.
-        return NaiveDistLoss((["output"], ["target"]))
+        return NaiveDistLoss((["node_output"], ["node_target"]))

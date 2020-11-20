@@ -101,20 +101,24 @@ class GradModel(abc.ABC):
         # Save necessary attributes.
         self.SUB: Const = sub
         self.ROOT: Const = root
+        self.DTYPE_NAME: Const = dtype
         self.DTYPE: Const = getattr(torch, dtype)
         self.IOKEYS: Const = iokeys
 
         # Ensure IO keywords.
+        main_items = self.main.lower().split("_")
         for key in self.IOKEYS:
-            if (key.split("_")[0] == self.main.lower()):
-                pass
-            else:
-                error(
-                    "{:s} IO flow requires section name in the form of" \
-                    " \"{:s}(_{{name}})*\", but get \"{:s}\".",
-                    self.main, self.main.lower(), key,
-                )
-                raise RuntimeError
+            key_items = key.split("_")
+            for i in range(len(main_items)):
+                if (key_items[i] == main_items[i]):
+                    pass
+                else:
+                    error(
+                        "{:s} IO flow requires section name in the form of" \
+                        " \"{:s}(_{{name}})*\", but get \"{:s}\".",
+                        self.main, self.main.lower(), key,
+                    )
+                    raise RuntimeError
 
     @abc.abstractmethod
     def __forward__(
@@ -688,7 +692,7 @@ class GradModel(abc.ABC):
                     debug(
                         "\" {:s} {:s} | \033[34{highlight:s}m{:s}\033[0m" \
                         "     \033[32{highlight:s}m{:s}\033[0m \".",
-                        subname.rjust(max_sub), section.rjust(max_sec),
+                        "".rjust(max_sub), section.rjust(max_sec),
                         inkey.rjust(max_in), outkey.ljust(max_out),
                         highlight=highlight,
                     )

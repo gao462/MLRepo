@@ -119,6 +119,13 @@ class ConstShuffleBatch(Batch):
         num_batches = len(self.dataset) // self.batch_size
         num_completes = num_batches * self.batch_size
 
+        # Check empty batch corner case in case for wrong batch size.
+        if (num_batches == 0):
+            error("Get empty batching schedule.")
+            raise RuntimeError
+        else:
+            pass
+
         # Get a random schedule.
         indices = getattr(torch, "randperm")(
             len(self.dataset), generator=self.rng,

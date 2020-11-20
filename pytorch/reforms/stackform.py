@@ -253,3 +253,103 @@ class SeqStackform(Stackform):
             for key, val in buf.items()
         }
         return processed
+
+
+class GraphStackform(Stackform):
+    r"""
+    Graph data transform stacking.
+    """
+    def __init__(
+        self: GraphStackform,
+        keys: List[str],
+        *args: ArgT,
+        vertex: str, adjacency: str,
+        **kargs: KArgT,
+    ) -> None:
+        r"""
+        Initialize.
+
+        Args
+        ----
+        - self
+        - keys
+            A list of keys to be stacked.
+        - *args
+        - vertex
+            Key of one vertex features.
+            It is used to detect number of nodes.
+        - adjacency
+            Key of adjacency list.
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # \
+        # ANNOTATE VARIABLES
+        # \
+        # Save necessary attributes.
+        self.KEYS: Const = keys
+        self.VEX: Const = vertex
+        self.ADJ: Const = adjacency
+
+    def __call__(
+        self: GraphStackform,
+        raw: List[Dict[str, torch.Tensor]],
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> Dict[str, torch.Tensor]:
+        r"""
+        Call as function.
+
+        Args
+        ----
+        - self
+        - raw
+            Raw data before processing.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+        - processed
+            Processed data.
+
+        """
+        # \
+        # ANNOTATE VARIABLES
+        # \
+        buf: Dict[str, List[torch.Tensor]]
+
+        # Allocate a buffer and fill it.
+        buf = {key: [] for key in self.KEYS}
+        buf[self.ADJ] = []
+        node_cnt = 0
+        edge_cnt = 0
+        node_break_points = [node_cnt]
+        edge_break_points = [edge_cnt]
+        for sample in raw:
+            for key in self.KEYS:
+                buf[key].append(sample[key])
+            buf[self.ADJ].append(sample[self.ADJ] + node_cnt)
+            num_nodes = len(sample[self.VEX])
+            num_edges = len(sample[self.ADJ])
+            node_cnt += num_nodes
+            edge_cnt += num_edges
+            node_break_points.append(node_cnt)
+            edge_break_points.append(edge_cnt)
+        node_breaks = torch.LongTensor(node_break_points)
+        edge_breaks = torch.LongTensor(edge_break_points)
+
+        # Stack directly.
+        processed = {
+            key: getattr(torch, "cat")(val, dim=0)
+            for key, val in buf.items()
+        }
+        processed["$node.breaks"] = node_breaks
+        processed["$edge.breaks"] = edge_breaks
+
+        # Ensure adjacency list is transposed.
+        processed[self.ADJ] = processed[self.ADJ].t()
+        return processed
