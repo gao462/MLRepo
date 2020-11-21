@@ -75,7 +75,6 @@ class SeqDataset(GenerateDataset):
         ...
 
         # Save necessary attributes.
-        self.rng = xargs[0]
         self.num_samples = xkargs["num_samples"]
         self.sample_length = xkargs["sample_length"]
         self.num_inputs = xkargs["num_inputs"]

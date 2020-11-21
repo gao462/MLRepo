@@ -109,6 +109,81 @@ class Stackform(object):
         ...
 
 
+class NotStackform(Stackform):
+    r"""
+    Data transform stacking by unravel the only sample.
+    """
+    def __init__(
+        self: NotStackform,
+        keys: List[str],
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> None:
+        r"""
+        Initialize.
+
+        Args
+        ----
+        - self
+        - keys
+            A list of keys to be stacked.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # \
+        # ANNOTATE VARIABLES
+        # \
+        # Save necessary attributes.
+        self.KEYS: Const = keys
+
+    def __call__(
+        self: NotStackform,
+        raw: List[Dict[str, torch.Tensor]],
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> Dict[str, torch.Tensor]:
+        r"""
+        Call as function.
+
+        Args
+        ----
+        - self
+        - raw
+            Raw data before processing.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+        - processed
+            Processed data.
+
+        """
+        # \
+        # ANNOTATE VARIABLES
+        # \
+        buf: Dict[str, List[torch.Tensor]]
+
+        # This only works for batch size 1.
+        if (len(raw) == 1):
+            pass
+        else:
+            error("Not-batching can only unravel batch size 1.")
+            raise RuntimeError
+
+        # Get output directly.
+        sample = raw[0]
+        processed = {
+            key: sample[key]
+            for key in self.KEYS
+        }
+        return processed
+
+
 class NaiveStackform(Stackform):
     r"""
     Naive data transform stacking.

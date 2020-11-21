@@ -142,8 +142,8 @@ class BackwardBenchmark(object):
 
         # Get a full batch.
         info1("Batching is running.")
-        bat.refresh(xargs=(), xkargs={})
-        signal, batch = bat.next()
+        bat.refresh(rngmem, xargs=(), xkargs={})
+        signal, batch = bat.next(False)
         if (signal):
             pass
         else:

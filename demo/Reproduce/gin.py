@@ -91,7 +91,8 @@ def main(
         dtype="float32",
     )
     dat.set(
-        xargs=(rng,),
+        rng,
+        xargs=(),
         xkargs=dict(
             min_nodes=min_nodes, max_nodes=max_nodes,
             num_node_inputs=num_node_inputs, num_edge_inputs=num_edge_inputs,
@@ -105,7 +106,7 @@ def main(
     # Get a batching
     bat = ConstShuffleBatch()
     bat.set(
-        dat, "cpu",
+        dat, "cpu", rng,
         sample_transform=IdentityTransform(),
         batch_stackform=GraphStackform(
             ["node_input", "edge_input", "node_target"],
@@ -115,7 +116,7 @@ def main(
         num_samplers=4, qmax_samples=4,
         num_batchers=1, qmax_batches=2,
         qmax_remotes=2,
-        xargs=(rng,), xkargs=dict(
+        xargs=(), xkargs=dict(
             batch_size=max_nodes - min_nodes, tail=False,
         ),
     )

@@ -306,7 +306,7 @@ class RepLinearSeq(GradModel):
         linear1 = Linear(
             self.ROOT,
             sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
-                linear=(["input"], ["input1"]),
+                linear=(["input"], ["input.1"]),
             ),
         ).set(
             xargs=(),
@@ -318,7 +318,7 @@ class RepLinearSeq(GradModel):
         linear2 = Linear(
             self.ROOT,
             sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
-                linear=(["input1"], ["output"]),
+                linear=(["input.1"], ["output"]),
             ),
         ).set(
             xargs=(),

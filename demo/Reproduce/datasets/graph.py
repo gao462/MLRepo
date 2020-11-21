@@ -77,7 +77,6 @@ class GraphDataset(GenerateDataset):
         ...
 
         # Save necessary attributes.
-        self.rng = xargs[0]
         self.min_nodes = xkargs["min_nodes"]
         self.max_nodes = xkargs["max_nodes"]
         self.num_node_inputs = xkargs["num_node_inputs"]
@@ -170,7 +169,7 @@ class GraphDataset(GenerateDataset):
         # ANNOTATE VARIABLES
         # \
         adj_input: torch.LongTensor
-        edge_input: Union[torch.Tensor, None]
+        edge_input: torch.Tensor
 
         # Generate all low-high edges.
         node_indices = list(range(num_nodes))
@@ -201,7 +200,6 @@ class GraphDataset(GenerateDataset):
         edge_input = getattr(torch, "zeros")(
             len(adj_input), max(1, num_edge_inputs), dtype=self.DTYPE,
         )
-        edge_input = cast(torch.Tensor, edge_input)
         edge_input.uniform_(-1, 1, generator=rng)
 
         # Assign node targetfeatures.

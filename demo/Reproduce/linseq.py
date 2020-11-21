@@ -89,7 +89,8 @@ def main(
         dtype="float32",
     )
     dat.set(
-        xargs=(rng,),
+        rng,
+        xargs=(),
         xkargs=dict(
             num_samples=num_batches * batch_size,
             num_inputs=num_inputs, num_outputs=num_outputs,
@@ -101,14 +102,14 @@ def main(
     # Get a batching
     bat = ConstShuffleBatch()
     bat.set(
-        dat, "cpu",
+        dat, "cpu", rng,
         sample_transform=IdentityTransform(),
         batch_stackform=NaiveStackform(["input", "target"]),
         batch_transform=IdentityTransform(),
         num_samplers=4, qmax_samples=4,
         num_batchers=1, qmax_batches=2,
         qmax_remotes=2,
-        xargs=(rng,), xkargs=dict(
+        xargs=(), xkargs=dict(
             batch_size=batch_size, tail=False,
         ),
     )

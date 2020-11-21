@@ -75,7 +75,6 @@ class VectorDataset(GenerateDataset):
         ...
 
         # Save necessary attributes.
-        self.rng = xargs[0]
         self.num_samples = xkargs["num_samples"]
         self.num_inputs = xkargs["num_inputs"]
         self.num_outputs = xkargs["num_outputs"]

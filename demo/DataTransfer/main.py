@@ -86,7 +86,8 @@ def main(
         dtype="float32",
     )
     dat.set(
-        xargs=(rng,),
+        rng,
+        xargs=(),
         xkargs=dict(
             num_samples=num_batches * batch_size,
             sample_size=128,

@@ -81,7 +81,6 @@ class ConstShuffleBatch(Batch):
         ...
 
         # Get batch size.
-        self.rng = xargs[0]
         self.batch_size = xkargs["batch_size"]
         self.tail = xkargs["tail"]
 

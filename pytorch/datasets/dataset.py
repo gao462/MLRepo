@@ -154,16 +154,19 @@ class Dataset(object):
 
     def set(
         self: Dataset,
+        rng: torch._C.Generator,
         *args: ArgT,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         **kargs: KArgT,
-    ) -> None:
+    ) -> Dataset:
         r"""
         Settle down dataset by given configuration.
 
         Args
         ----
         - self
+        - rng
+            Random number generator.
         - *args
         - xargs
             Extra arguments to specific configuration.
@@ -173,12 +176,18 @@ class Dataset(object):
 
         Returns
         -------
+        - dataset
+            Return dataset itself.
+            It is useful when creation and setup are done in the same time.
 
         """
         # \
         # ANNOTATE VARIABLES
         # \
         ...
+
+        # Save necessary attribtues.
+        self.rng = rng
 
         # Configure dataset with extra arguments.
         self.configure(xargs, xkargs)
@@ -202,6 +211,7 @@ class Dataset(object):
         else:
             error("\"{:s}\" is not cached in dataset.", relative)
             raise RuntimeError
+        return self
 
     @abc.abstractmethod
     def configure(

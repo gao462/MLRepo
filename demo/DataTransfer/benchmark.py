@@ -121,25 +121,24 @@ class TransferBenchmark(object):
                 )
 
                 # Create batching.
-                rng.set_state(rngmem)
                 bat = batcls()
                 bat.set(
-                    dat, "cuda:0",
+                    dat, "cuda:0", rng,
                     sample_transform=sample_transform,
                     batch_stackform=batch_stackform,
                     batch_transform=batch_transform,
                     num_samplers=num_samplers, qmax_samples=4,
                     num_batchers=num_batchers, qmax_batches=4,
                     qmax_remotes=qmax_remotes,
-                    xargs=(rng,) + xargs, xkargs=xkargs,
+                    xargs=xargs, xkargs=xkargs,
                 )
-                bat.refresh(xargs=(), xkargs={})
+                bat.refresh(rngmem, xargs=(), xkargs={})
 
                 # Traverse an epoch and estimate time cost.
                 start = time.time()
                 while (True):
                     # Fetch a batch.
-                    signal, batch = bat.next()
+                    signal, batch = bat.next(False)
 
                     # Process fetched batch.
                     debug("\"\033[34;1mCompute\033[0m\".")

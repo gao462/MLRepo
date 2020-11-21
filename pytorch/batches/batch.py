@@ -86,7 +86,7 @@ class Batch(abc.ABC):
     """
     def set(
         self: Batch,
-        dataset: Dataset, device: str,
+        dataset: Dataset, device: str, rng: torch._C.Generator,
         *args: ArgT,
         sample_transform: Transform,
         batch_stackform: Stackform, batch_transform: Transform,
@@ -141,6 +141,7 @@ class Batch(abc.ABC):
         # Save necessary attributes.
         self.dataset = dataset
         self.device = device
+        self.rng = rng
         self.sample_transform = sample_transform
         self.batch_stackform = batch_stackform
         self.batch_transform = batch_transform
@@ -191,6 +192,7 @@ class Batch(abc.ABC):
 
     def refresh(
         self: Batch,
+        rngmem: torch.Tensor,
         *args: ArgT,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         **kargs: KArgT,
@@ -201,7 +203,13 @@ class Batch(abc.ABC):
         Args
         ----
         - self
+        - rngmem
+            Random number generator memory to update.
         - *args
+        - xargs
+            Extra arguments to refresh batching status.
+        - xkargs
+            Extra keyword arguments to refresh batching status.
         - **kargs
 
         Returns
@@ -213,6 +221,9 @@ class Batch(abc.ABC):
         # /
         self.schedules: queue.Queue[List[int]]
         self.caches: queue.Queue[Dict[str, torch.Tensor]]
+
+        # Update randomness.
+        self.rng.set_state(rngmem)
 
         # Set schedule tracer.
         self.schedule_max = 0
@@ -256,9 +267,9 @@ class Batch(abc.ABC):
         ----
         - self
         - xargs
-            Extra arguments to specific configuration.
+            Extra arguments to refresh batching status.
         - xkargs
-            Extra keyword arguments to specific configuration.
+            Extra keyword arguments to refresh batching status.
         - *args
         - **kargs
 
@@ -275,6 +286,7 @@ class Batch(abc.ABC):
 
     def update(
         self: Batch,
+        rngmem: torch.Tensor,
         *args: ArgT,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         **kargs: KArgT,
@@ -285,7 +297,13 @@ class Batch(abc.ABC):
         Args
         ----
         - self
+        - rngmem
+            Random number generator memory to update.
         - *args
+        - xargs
+            Extra arguments to update batching status.
+        - xkargs
+            Extra keyword arguments to update batching status.
         - **kargs
 
         Returns
@@ -298,6 +316,9 @@ class Batch(abc.ABC):
         # ANNOTATE VARIABLES
         # /
         ...
+
+        # Update randomness.
+        self.rng.set_state(rngmem)
 
         # Update schedule chunks.
         chunks = self.update_schedule(xargs, xkargs)
@@ -319,9 +340,9 @@ class Batch(abc.ABC):
         ----
         - self
         - xargs
-            Extra arguments to specific configuration.
+            Extra arguments to update batching status.
         - xkargs
-            Extra keyword arguments to specific configuration.
+            Extra keyword arguments to update batching status.
         - *args
         - **kargs
 
@@ -338,6 +359,7 @@ class Batch(abc.ABC):
 
     def next(
         self: Batch,
+        stop: bool,
         *args: ArgT,
         **kargs: KArgT,
     ) -> MultiReturn[bool, Dict[str, torch.Tensor]]:
@@ -347,6 +369,9 @@ class Batch(abc.ABC):
         Args
         ----
         - self
+        - stop
+            Force the batching to stop regardless of schedule.
+            It stops by fetching all remaining batches without returning them.
         - *args
         - **kargs
 
@@ -375,6 +400,11 @@ class Batch(abc.ABC):
 
         # Fetch a batch.
         batch = self.caches.get()
+
+        # Force to fetch all remaing things.
+        while (self.schedule_ptr < self.schedule_max):
+            self.schedule_ptr += 1
+            self.caches.get()
 
         # Shutdown thread if necessary.
         if (self.schedule_ptr == self.schedule_max):

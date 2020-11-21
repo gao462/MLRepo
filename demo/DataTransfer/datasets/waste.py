@@ -75,7 +75,6 @@ class WasteDataset(GenerateDataset):
         ...
 
         # Save necessary attributes.
-        self.rng = xargs[0]
         self.num_samples = xkargs["num_samples"]
         self.sample_size = xkargs["sample_size"]
 
