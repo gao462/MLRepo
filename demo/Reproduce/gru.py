@@ -54,7 +54,7 @@ from demo.Reproduce.benchmark import BackwardBenchmark
 def main(
     *args: ArgT,
     **kargs: KArgT,
-) -> None:
+) -> bool:
     r"""
     Main branch.
 
@@ -65,6 +65,8 @@ def main(
 
     Returns
     -------
+    - flag
+        If True, the benchwork is accepted.
 
     """
     # /
@@ -156,7 +158,7 @@ def main(
         linear_hhs[section] = cast(Linear, hh)
 
     # Create and run the benchmark.
-    BackwardBenchmark(
+    benchmark = BackwardBenchmark(
         bat, RepGRU, TarGRU,
         [
             (
@@ -241,6 +243,7 @@ def main(
             ),
         },
     )
+    return benchmark.accept
 
 
 # Main branch.

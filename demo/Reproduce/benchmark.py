@@ -97,7 +97,7 @@ class BackwardBenchmark(object):
         # /
         # ANNOTATE VARIABLES
         # /
-        ...
+        self.accept = True
 
         # Tolerance is defined by benchmark.
         tol = 1e-6
@@ -201,6 +201,7 @@ class BackwardBenchmark(object):
                     ]),
                     error,
                 )
+                self.accept = False
 
     def fetch(
         self: BackwardBenchmark,

@@ -80,11 +80,18 @@ class ConcatMessage(GradModel):
         # /
         # ANNOTATE VARIABLES
         # /
-        self.ky_inputs: List[str]
+        self.ky_input_dst: str
+        self.ky_input_e: str
+        self.ky_input_src: str
         self.ky_output: str
+        self.ky_inputs: List[str]
 
         # Fetch main input and output.
-        self.ky_inputs, (self.ky_output,) = self.IOKEYS[self.main]
+        (
+            (self.ky_input_dst, self.ky_input_e, self.ky_input_src),
+            (self.ky_output,),
+        ) = self.IOKEYS[self.main]
+        self.ky_inputs = []
 
     def __forward__(
         self: ConcatMessage,
@@ -310,8 +317,26 @@ class ConcatMessage(GradModel):
         # \
         ...
 
-        # Concatenation is a naive function requiring nothing.
-        pass
+        # Take keeping keys.
+        if (xkargs["keep"]["node_input_dst"]):
+            self.ky_inputs.append(self.ky_input_dst)
+        else:
+            pass
+        if (xkargs["keep"]["edge_input"]):
+            self.ky_inputs.append(self.ky_input_e)
+        else:
+            pass
+        if (xkargs["keep"]["node_input_src"]):
+            self.ky_inputs.append(self.ky_input_src)
+        else:
+            pass
+
+        # Ensure at least one message.
+        if (len(self.ky_inputs) == 0):
+            error("Message requires at least one input key.")
+            raise RuntimeError
+        else:
+            pass
 
     def __initialize__(
         self: ConcatMessage,

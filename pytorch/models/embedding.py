@@ -38,34 +38,24 @@ from pytorch.models.model import Parameter, ForwardFunction, NullFunction
 # =============================================================================
 # *****************************************************************************
 # -----------------------------------------------------------------------------
-# << Message Passing Gradient Model >>
-# The linear gradient model.
-# The model forward function $f$ accepts a matrix of vecotr features $X$,
-# directed link set $A$ and its corresponding edge features $E$.
-#
-# The function $f$ is applied on each node that
-#
-# $$
-# m_{(i, j) \in A} = f_{\text{msg}} \left( X_{i}, E_{(i, j)}, X_{j} \right)
-# \overline{m}_{i} = f_{\text{agg}} \left( \{ m_{(i, j) \in A} \} \right)
-# y_{i} = f_{\text{update}} \left( X_{i}, \overline{m}_{i} \right)
-# $$
-#
-# The parameter part is hidden for the ease of notation.
+# << Embedding Gradient Model >>
+# The embedding gradient model.
+# The model forward function $f$ accepts an index $i$ and returns learnable
+# embedding $\theta_{i}$ for it.
 # -----------------------------------------------------------------------------
 # *****************************************************************************
 # =============================================================================
 
 
-class MessagePass(GradModel):
+class Embedding(GradModel):
     r"""
-    Message Passing.
+    Embedding.
     """
     # Define main flow name.
-    main = "msgpass"
+    main = "embedding"
 
     def __parse__(
-        self: MessagePass,
+        self: Embedding,
         *args: ArgT,
         **kargs: KArgT,
     ) -> None:
@@ -85,36 +75,14 @@ class MessagePass(GradModel):
         # /
         # ANNOTATE VARIABLES
         # /
-        self.ky_input_v: str
-        self.ky_adj: str
-        self.ky_input_e: str
-        self.ky_output_residuals: List[str]
-        self.ky_input_src: str
-        self.ky_input_dst: str
-        self.ky_msg: str
-        self.ky_agg: str
+        self.ky_input: str
         self.ky_output: str
 
         # Fetch main input and output.
-        (
-            (self.ky_input_v, self.ky_adj, self.ky_input_e),
-            self.ky_output_residuals,
-        ) = self.IOKEYS["{:s}_graph".format(self.main)]
-        self.ky_input_src = "{:s}.src".format(self.ky_input_v)
-        self.ky_input_dst = "{:s}.dst".format(self.ky_input_v)
-        (
-            (self.ky_input_dst, self.ky_input_e, self.ky_input_src),
-            (self.ky_msg,),
-        ) = self.IOKEYS["{:s}_msg".format(self.main)]
-        (self.ky_input_v, self.ky_msg, self.ky_adj), (self.ky_agg,) = (
-            self.IOKEYS["{:s}_agg".format(self.main)]
-        )
-        (self.ky_input_v, self.ky_agg), (self.ky_output,) = (
-            self.IOKEYS[self.main]
-        )
+        (self.ky_input,), (self.ky_output,) = self.IOKEYS[self.main]
 
     def __forward__(
-        self: MessagePass,
+        self: Embedding,
         *args: ArgT,
         **kargs: KArgT,
     ) -> ForwardFunction:
@@ -172,44 +140,18 @@ class MessagePass(GradModel):
             # /
             output: Dict[str, torch.Tensor]
 
-            # Split input into exact graph info.
-            transient = {}
-            transient[self.ky_input_v] = input[self.ky_input_v]
-            transient[self.ky_adj] = input[self.ky_adj]
-            transient[self.ky_input_e] = input[self.ky_input_e]
-            transient[self.ky_input_src] = transient[self.ky_input_v][
-                transient[self.ky_adj][0]
-            ]
-            transient[self.ky_input_dst] = transient[self.ky_input_v][
-                transient[self.ky_adj][1]
-            ]
-
-            # Collect message for each edge.
-            transient[self.ky_msg] = self.message.forward(
-                parameter.sub("message"), transient,
-            )[self.ky_msg]
-
-            # Aggregate collected message for each node.
-            transient[self.ky_agg] = self.aggregate.forward(
-                parameter.sub("aggregate"), transient,
-            )[self.ky_agg]
-
-            # Compute directly.
+            # Get embeddings by direct indexing.
             output = {}
-            output[self.ky_output] = self.update.forward(
-                parameter.sub("update"), transient,
-            )[self.ky_output]
-
-            # Add residual-from-input outputs.
-            for key in self.ky_output_residuals:
-                output[key] = input[key]
+            indices = input[self.ky_input]
+            indices = indices.view(len(indices))
+            output[self.ky_output] = parameter["embedding"][indices]
             return output
 
         # Return the function.
         return f
 
     def __nullin__(
-        self: MessagePass,
+        self: Embedding,
         *args: ArgT,
         **kargs: KArgT,
     ) -> NullFunction:
@@ -239,9 +181,6 @@ class MessagePass(GradModel):
         # /
         ...
 
-        # Fetch all things to local level.
-        ...
-
         def null(
             device: str,
             *args: ArgT,
@@ -269,13 +208,17 @@ class MessagePass(GradModel):
             ...
 
             # return all-zero.
-            raise NotImplementedError
+            return {
+                self.ky_input: getattr(torch, "zeros")(
+                    1, dtype=getattr(torch, "long"), device=device,
+                ),
+            }
 
         # Return the function.
         return null
 
     def __nullout__(
-        self: MessagePass,
+        self: Embedding,
         *args: ArgT,
         **kargs: KArgT,
     ) -> NullFunction:
@@ -305,9 +248,6 @@ class MessagePass(GradModel):
         # /
         ...
 
-        # Fetch all things to local level.
-        ...
-
         def null(
             device: str,
             *args: ArgT,
@@ -335,13 +275,17 @@ class MessagePass(GradModel):
             ...
 
             # return all-zero.
-            return self.update.nullout(device)
+            return {
+                self.ky_output: getattr(torch, "zeros")(
+                    1, self.num_features, dtype=self.DTYPE, device=device,
+                ),
+            }
 
         # Return the function.
         return null
 
     def configure(
-        self: MessagePass,
+        self: Embedding,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         *args: ArgT,
         **kargs: KArgT,
@@ -366,17 +310,19 @@ class MessagePass(GradModel):
         # \
         # ANNOTATE VARIABLES
         # \
-        self.message: GradModel
-        self.aggregate: GradModel
-        self.update: GradModel
+        self.embedding: torch.nn.parameter.Parameter
 
-        # Get models for message, aggregation and update.
-        self.message = xkargs["message"]
-        self.aggregate = xkargs["aggregate"]
-        self.update = xkargs["update"]
+        # Save necessary attributes.
+        self.num_embeddings = xkargs["num_embeddings"]
+        self.num_features = xkargs["num_features"]
+
+        # Allocate parameters.
+        self.embedding = torch.nn.parameter.Parameter(getattr(torch, "zeros")(
+            self.num_embeddings, self.num_features, dtype=self.DTYPE,
+        ))
 
     def __initialize__(
-        self: MessagePass,
+        self: Embedding,
         *args: ArgT,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         **kargs: KArgT,
@@ -387,6 +333,8 @@ class MessagePass(GradModel):
         Args
         ----
         - self
+        - rng
+            Random number generator.
         - *args
         - xargs
             Extra arguments to specific initialization.
@@ -397,25 +345,128 @@ class MessagePass(GradModel):
         Returns
         -------
 
+        Use normal as PyTorch default.
         """
         # /
         # ANNOTATE VARIABLES
         # /
         ...
 
-        # Initialize recursively.
-        self.message.initialize(
-            self.rng.get_state(),
-            xargs=xkargs["message"]["xargs"],
-            xkargs=xkargs["message"]["xkargs"],
+        # Initialize embedding.
+        self.embedding.data.normal_(0, 1, generator=self.rng)
+
+
+class __Embedding__(Embedding):
+    r"""
+    PyTorch embedding.
+    """
+    def __forward__(
+        self: __Embedding__,
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> ForwardFunction:
+        r"""
+        Set forward function.
+
+        Args
+        ----
+        - self
+        - *args
+        - **kargs
+
+        Returns
+        -------
+        - function
+            Forward function.
+
+        It must of defined a function $f$ by form:
+
+        $$
+        y = f(\theta, x)
+        $$
+
+        where $y$ is output, $\theta$ is parameter and $x$ is input.
+        """
+        # /
+        # ANNOTATE VARIABLES
+        # /
+        ...
+
+        def f(
+            parameter: Parameter,
+            input: Dict[str, torch.Tensor],
+            *args: ArgT,
+            **kargs: KArgT,
+        ) -> Dict[str, torch.Tensor]:
+            r"""
+            Forward a batch input.
+
+            Args
+            ----
+            - parameter
+                Parameter.
+            - input
+                Input.
+            - *args
+            - **kargs
+
+            Returns
+            -------
+            - output
+                Output.
+
+            """
+            # /
+            # ANNOTATE VARIABLES
+            # /
+            output: Dict[str, torch.Tensor]
+
+            # Apply matrix multiplication and bias.
+            output = {}
+            indices = input[self.ky_input]
+            indices = indices.view(len(indices))
+            output[self.ky_output] = self.pytorch.forward(indices)
+            return output
+
+        # Return the function.
+        return f
+
+    def configure(
+        self: __Embedding__,
+        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> None:
+        r"""
+        Configure model.
+
+        Args
+        ----
+        - self
+        - xargs
+            Extra arguments to specific configuration.
+        - xkargs
+            Extra keyword arguments to specific configuration.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # \
+        # ANNOTATE VARIABLES
+        # \
+        ...
+
+        # Super.
+        Embedding.configure(self, xargs, xkargs)
+
+        # Allocate parameters.
+        self.pytorch = torch.nn.Embedding(
+            num_embeddings=self.num_embeddings,
+            embedding_dim=self.num_features,
+            padding_idx=None, max_norm=None, norm_type=2,
+            scale_grad_by_freq=False, sparse=False,
         )
-        self.aggregate.initialize(
-            self.rng.get_state(),
-            xargs=xkargs["aggregate"]["xargs"],
-            xkargs=xkargs["aggregate"]["xkargs"],
-        )
-        self.update.initialize(
-            self.rng.get_state(),
-            xargs=xkargs["update"]["xargs"],
-            xkargs=xkargs["update"]["xkargs"],
-        )
+        self.embedding = getattr(self.pytorch, "weight")

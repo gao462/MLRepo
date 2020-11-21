@@ -53,7 +53,7 @@ from demo.Reproduce.benchmark import BackwardBenchmark
 def main(
     *args: ArgT,
     **kargs: KArgT,
-) -> None:
+) -> bool:
     r"""
     Main branch.
 
@@ -64,6 +64,8 @@ def main(
 
     Returns
     -------
+    - flag
+        If True, the benchwork is accepted.
 
     """
     # /
@@ -119,7 +121,7 @@ def main(
     info1("Batching is ready.")
 
     # Create and run the benchmark.
-    BackwardBenchmark(
+    benchmark = BackwardBenchmark(
         bat, RepLinearSeq, TarLinearSeq,
         [
             (
@@ -160,6 +162,7 @@ def main(
         ),
         ini_xkargs=dict(),
     )
+    return benchmark.accept
 
 
 # Main branch.

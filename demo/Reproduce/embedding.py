@@ -32,12 +32,11 @@ from pytorch.logging import debug, info1, info2, focus, warning, error
 # Import dependencies.
 from pytorch.logging import update_universal_logger, default_logger
 from pytorch.logging import DEBUG as LOGLV
-from demo.Reproduce.datasets.seq import SeqDataset
+from demo.Reproduce.datasets.embedding import EmbeddingDataset
 from pytorch.batches.shuffle import ConstShuffleBatch
 from pytorch.reforms.transform import IdentityTransform
-from pytorch.reforms.stackform import SeqStackform
-from demo.Reproduce.models.rnn import RepRNN, TarRNN
-from pytorch.models.linear import Linear
+from pytorch.reforms.stackform import NaiveStackform
+from demo.Reproduce.models.embedding import RepEmbedding, TarEmbedding
 from demo.Reproduce.benchmark import BackwardBenchmark
 
 
@@ -85,13 +84,12 @@ def main(
     # Generate a dataset.
     num_batches = 1
     batch_size = 4
-    sample_length = 3
-    num_inputs = 7
-    num_outputs = 5
-    dat = SeqDataset(
+    num_embeddings = 3
+    num_features = 5
+    dat = EmbeddingDataset(
         "../FastDataset/Reproduce",
         pin={
-            "sequence": None,
+            "embedding": None,
         },
         dtype="float32",
     )
@@ -100,8 +98,7 @@ def main(
         xargs=(),
         xkargs=dict(
             num_samples=num_batches * batch_size,
-            sample_length=sample_length, num_inputs=num_inputs,
-            num_outputs=num_outputs,
+            num_embeddings=num_embeddings, num_features=num_features,
         ),
     )
     info1("Dataset is ready.")
@@ -111,7 +108,7 @@ def main(
     bat.set(
         dat, "cpu",
         sample_transform=IdentityTransform(),
-        batch_stackform=SeqStackform(["input", "target"]),
+        batch_stackform=NaiveStackform(["input", "target"]),
         batch_transform=IdentityTransform(),
         num_samplers=4, qmax_samples=4,
         num_batchers=1, qmax_batches=2,
@@ -122,67 +119,24 @@ def main(
     )
     info1("Batching is ready.")
 
-    # Create I-to-H sub model.
-    linear_ih = Linear(
-        "../FastModel/Reproduce",
-        sub=True, dtype="float32",
-        iokeys={
-            "linear": (["input"], ["agg_hidden_i"]),
-        },
-    ).set(
-        xargs=(), xkargs=dict(
-            num_inputs=num_inputs, num_outputs=num_outputs, no_bias=False,
-        ),
-    )
-
-    # Create H-to-H sub model.
-    linear_hh = Linear(
-        "../FastModel/Reproduce",
-        sub=True, dtype="float32",
-        iokeys={
-            "linear": (["hidden"], ["agg_hidden_h"]),
-        },
-    ).set(
-        xargs=(), xkargs=dict(
-            num_inputs=num_outputs, num_outputs=num_outputs, no_bias=False,
-        ),
-    )
-
     # Create and run the benchmark.
     benchmark = BackwardBenchmark(
-        bat, RepRNN, TarRNN,
+        bat, RepEmbedding, TarEmbedding,
         [
             (
-                ("isub.weight", [(0, 5), (0, 7)]),
-                ("weight_ih", [(0, 5), (0, 7)]),
-            ),
-            (
-                ("isub.bias", [(0, 5)]),
-                ("bias_ih", [(0, 5)]),
-            ),
-            (
-                ("hsub.weight", [(0, 5), (0, 5)]),
-                ("weight_hh", [(0, 5), (0, 5)]),
-            ),
-            (
-                ("hsub.bias", [(0, 5)]),
-                ("bias_hh", [(0, 5)]),
+                ("embedding", [(0, 3), (0, 5)]),
+                ("embedding", [(0, 3), (0, 5)]),
             ),
         ],
         iokeys=dict(
-            rnn_aggregate=(["agg_hidden_i", "agg_hidden_h"], ["hidden"]),
-            rnn=(["hidden"], ["output"]),
+            embedding=(["input"], ["output"]),
         ),
         set_xargs=(),
         set_xkargs=dict(
-            transform="tanh",
-            isub=linear_ih, hsub=linear_hh,
-            num_inputs=num_inputs, num_outputs=num_outputs, no_bias=False,
+            num_embeddings=num_embeddings, num_features=num_features,
         ),
         ini_xargs=(),
-        ini_xkargs=dict(
-            activation="tanh", negative_slope=0,
-        ),
+        ini_xkargs=dict(),
     )
     return benchmark.accept
 

@@ -306,7 +306,7 @@ class GINUpdate(Update):
             self.ROOT,
             sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
                 linear=([key], [key]),
-            )
+            ),
         ).set(
             xargs=(),
             xkargs=dict(
@@ -318,7 +318,7 @@ class GINUpdate(Update):
             self.ROOT,
             sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
                 linear=([key], [key]),
-            )
+            ),
         ).set(
             xargs=(),
             xkargs=dict(
@@ -536,15 +536,19 @@ class GIN(MessagePass):
             self.ROOT,
             sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
                 concat_msg=self.IOKEYS["{:s}_msg".format(self.main)],
-            )
-        ).set(xargs=(), xkargs=dict())
+            ),
+        ).set(xargs=(), xkargs=dict(keep=dict(
+            node_input_dst=False,
+            edge_input=False,
+            node_input_src=True,
+        )))
 
         # Create aggregation layers.
         self.aggregate = SumNeighborAgg(
             self.ROOT,
             sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
                 sum_neighbor_agg=self.IOKEYS["{:s}_agg".format(self.main)],
-            )
+            ),
         ).set(xargs=(), xkargs=dict())
 
         # Create update layers.
@@ -552,7 +556,7 @@ class GIN(MessagePass):
             self.ROOT,
             sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
                 gin_update=self.IOKEYS[self.main],
-            )
+            ),
         ).set(
             xargs=(),
             xkargs=dict(
