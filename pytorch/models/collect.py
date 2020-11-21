@@ -350,7 +350,6 @@ class GradModelSeq(GradModel):
 
     def __initialize__(
         self: GradModelSeq,
-        rng: torch._C.Generator,
         *args: ArgT,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         **kargs: KArgT,
@@ -361,8 +360,6 @@ class GradModelSeq(GradModel):
         Args
         ----
         - self
-        - rng
-            Random number generator.
         - *args
         - xargs
             Extra arguments to specific initialization.
@@ -383,7 +380,7 @@ class GradModelSeq(GradModel):
         # Initialize weight.
         for i, ini in enumerate(xargs):
             self.models[i].initialize(
-                rng, xargs=ini["xargs"], xkargs=ini["xkargs"],
+                self.rng.get_state(), xargs=ini["xargs"], xkargs=ini["xkargs"],
             )
 
     def __len__(

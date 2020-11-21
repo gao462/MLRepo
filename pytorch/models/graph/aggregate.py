@@ -247,7 +247,6 @@ class NeighborAgg(GradModel):
 
     def __initialize__(
         self: NeighborAgg,
-        rng: torch._C.Generator,
         *args: ArgT,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         **kargs: KArgT,
@@ -258,8 +257,6 @@ class NeighborAgg(GradModel):
         Args
         ----
         - self
-        - rng
-            Random number generator.
         - *args
         - xargs
             Extra arguments to specific initialization.

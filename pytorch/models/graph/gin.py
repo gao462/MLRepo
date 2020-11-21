@@ -329,7 +329,6 @@ class GINUpdate(Update):
 
     def __initialize__(
         self: GINUpdate,
-        rng: torch._C.Generator,
         *args: ArgT,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         **kargs: KArgT,
@@ -340,8 +339,6 @@ class GINUpdate(Update):
         Args
         ----
         - self
-        - rng
-            Random number generator.
         - *args
         - xargs
             Extra arguments to specific initialization.
@@ -360,11 +357,11 @@ class GINUpdate(Update):
 
         # Initialize recursively.
         self.linear1.initialize(
-            rng,
+            self.rng.get_state(),
             xargs=xkargs["bilin"]["xargs"], xkargs=xkargs["bilin"]["xkargs"],
         )
         self.linear2.initialize(
-            rng,
+            self.rng.get_state(),
             xargs=xkargs["bilin"]["xargs"], xkargs=xkargs["bilin"]["xkargs"],
         )
 
@@ -563,42 +560,6 @@ class GIN(MessagePass):
             ),
         )
 
-    def __initialize__(
-        self: GIN,
-        rng: torch._C.Generator,
-        *args: ArgT,
-        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
-        **kargs: KArgT,
-    ) -> None:
-        r"""
-        Initialize model parameters and sub models.
-
-        Args
-        ----
-        - self
-        - rng
-            Random number generator.
-        - *args
-        - xargs
-            Extra arguments to specific initialization.
-        - xkargs
-            Extra keyword arguments to specific initialization.
-        - **kargs
-
-        Returns
-        -------
-
-        """
-        # \
-        # ANNOTATE VARIABLES
-        # \
-        ...
-
-        # Initialize recursively.
-        self.message.initialize(rng, xargs=xargs, xkargs=xkargs)
-        self.aggregate.initialize(rng, xargs=xargs, xkargs=xkargs)
-        self.update.initialize(rng, xargs=xargs, xkargs=xkargs)
-
 
 class __GIN__(GIN):
     r"""
@@ -734,7 +695,6 @@ class __GIN__(GIN):
 
     def __initialize__(
         self: __GIN__,
-        rng: torch._C.Generator,
         *args: ArgT,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         **kargs: KArgT,
@@ -745,8 +705,6 @@ class __GIN__(GIN):
         Args
         ----
         - self
-        - rng
-            Random number generator.
         - *args
         - xargs
             Extra arguments to specific initialization.
@@ -764,7 +722,7 @@ class __GIN__(GIN):
         ...
 
         # Super.
-        GIN.__initialize__(self, rng, xargs=xargs, xkargs=xkargs)
+        GIN.__initialize__(self, xargs=xargs, xkargs=xkargs)
 
         # Copy data to correct place.
         self.update = cast(GINUpdate, self.update)

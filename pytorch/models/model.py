@@ -475,7 +475,6 @@ class GradModel(abc.ABC):
     @abc.abstractmethod
     def __initialize__(
         self: GradModel,
-        rng: torch._C.Generator,
         *args: ArgT,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         **kargs: KArgT,
@@ -486,8 +485,6 @@ class GradModel(abc.ABC):
         Args
         ----
         - self
-        - rng
-            Random number generator.
         - *args
         - xargs
             Extra arguments to specific initialization.
@@ -516,6 +513,7 @@ class GradModel(abc.ABC):
         Args
         ----
         - self
+        - rng
         - *args
         - **kargs
 
@@ -533,6 +531,9 @@ class GradModel(abc.ABC):
         # ANNOTATE VARIABLES
         # \
         ...
+
+        # Save necessary attributes.
+        self.rng = getattr(torch, "Generator")()
 
         # Configure model with given extra arguments.
         self.configure(xargs, xkargs)
@@ -818,7 +819,7 @@ class GradModel(abc.ABC):
 
     def initialize(
         self: GradModel,
-        rng: torch._C.Generator,
+        rngmem: torch.Tensor,
         *args: ArgT,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         **kargs: KArgT,
@@ -830,7 +831,7 @@ class GradModel(abc.ABC):
         ----
         - self
         - rng
-            Random number generator.
+            Random number generator memory to update.
         - *args
         - xargs
             Extra arguments to specific initialization.
@@ -851,8 +852,11 @@ class GradModel(abc.ABC):
         # \
         ...
 
+        # Update random number generator memory.
+        self.rng.set_state(rngmem)
+
         # Dive into real initialization.
-        self.__initialize__(rng, xargs=xargs, xkargs=xkargs)
+        self.__initialize__(xargs=xargs, xkargs=xkargs)
 
         # Output initialized parameters
         if (self.SUB):

@@ -86,7 +86,7 @@ class Batch(abc.ABC):
     """
     def set(
         self: Batch,
-        dataset: Dataset, device: str, rng: torch._C.Generator,
+        dataset: Dataset, device: str,
         *args: ArgT,
         sample_transform: Transform,
         batch_stackform: Stackform, batch_transform: Transform,
@@ -141,7 +141,7 @@ class Batch(abc.ABC):
         # Save necessary attributes.
         self.dataset = dataset
         self.device = device
-        self.rng = rng
+        self.rng = getattr(torch, "Generator")()
         self.sample_transform = sample_transform
         self.batch_stackform = batch_stackform
         self.batch_transform = batch_transform

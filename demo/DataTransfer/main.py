@@ -75,6 +75,9 @@ def main(
     rng = getattr(torch, "Generator")()
     rng.manual_seed(47)
 
+    # Update randomness.
+    rngmem = rng.get_state()
+
     # Get dataset.
     batch_size = 16
     num_batches = 16
@@ -86,14 +89,13 @@ def main(
         dtype="float32",
     )
     dat.set(
-        rng,
+        rngmem,
         xargs=(),
         xkargs=dict(
             num_samples=num_batches * batch_size,
             sample_size=128,
         ),
     )
-    rngmem = rng.get_state()
     info1("Datasets are ready.")
 
     # Get simulation transforms.

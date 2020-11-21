@@ -76,6 +76,9 @@ def main(
     rng = getattr(torch, "Generator")()
     rng.manual_seed(47)
 
+    # Update randomness.
+    rngmem = rng.get_state()
+
     # Generate a dataset.
     min_nodes = 10
     max_nodes = 15
@@ -91,7 +94,7 @@ def main(
         dtype="float32",
     )
     dat.set(
-        rng,
+        rngmem,
         xargs=(),
         xkargs=dict(
             min_nodes=min_nodes, max_nodes=max_nodes,
@@ -100,13 +103,12 @@ def main(
             er_p=er_p,
         ),
     )
-    rngmem = rng.get_state()
     info1("Dataset is ready.")
 
     # Get a batching
     bat = ConstShuffleBatch()
     bat.set(
-        dat, "cpu", rng,
+        dat, "cpu",
         sample_transform=IdentityTransform(),
         batch_stackform=GraphStackform(
             ["node_input", "edge_input", "node_target"],
@@ -172,12 +174,13 @@ def main(
         ),
         ini_xargs=(),
         ini_xkargs=dict(
-            bilin=dict(
-                xargs=(),
-                xkargs=dict(
+            message=dict(xargs=(), xkargs=dict()),
+            aggregate=dict(xargs=(), xkargs=dict()),
+            update=dict(xargs=(), xkargs=dict(
+                bilin=dict(xargs=(), xkargs=dict(
                     activation="relu", negative_slope=0,
-                ),
-            ),
+                )),
+            )),
         ),
     )
 

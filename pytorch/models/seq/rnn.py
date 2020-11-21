@@ -386,7 +386,6 @@ class RNN(GradModel):
 
     def __initialize__(
         self: RNN,
-        rng: torch._C.Generator,
         *args: ArgT,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         **kargs: KArgT,
@@ -397,8 +396,6 @@ class RNN(GradModel):
         Args
         ----
         - self
-        - rng
-            Random number generator.
         - *args
         - xargs
             Extra arguments to specific initialization.
@@ -416,8 +413,8 @@ class RNN(GradModel):
         ...
 
         # Initialize recursively.
-        self.isub.initialize(rng, xargs=xargs, xkargs=xkargs)
-        self.hsub.initialize(rng, xargs=xargs, xkargs=xkargs)
+        self.isub.initialize(self.rng.get_state(), xargs=xargs, xkargs=xkargs)
+        self.hsub.initialize(self.rng.get_state(), xargs=xargs, xkargs=xkargs)
 
 
 class __RNN__(RNN):
@@ -584,7 +581,6 @@ class __RNN__(RNN):
 
     def __initialize__(
         self: __RNN__,
-        rng: torch._C.Generator,
         *args: ArgT,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         **kargs: KArgT,
@@ -595,8 +591,6 @@ class __RNN__(RNN):
         Args
         ----
         - self
-        - rng
-            Random number generator.
         - *args
         - xargs
             Extra arguments to specific initialization.
@@ -614,7 +608,7 @@ class __RNN__(RNN):
         ...
 
         # Super.
-        RNN.__initialize__(self, rng, xargs=xargs, xkargs=xkargs)
+        RNN.__initialize__(self, xargs=xargs, xkargs=xkargs)
 
         # Copy data to correct place.
         self.weight_ih.data.copy_(cast(Linear, self.isub).weight.data)

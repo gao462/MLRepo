@@ -78,6 +78,9 @@ def main(
     rng = getattr(torch, "Generator")()
     rng.manual_seed(47)
 
+    # Update randomness.
+    rngmem = rng.get_state()
+
     # Generate a dataset.
     num_batches = 1
     batch_size = 4
@@ -92,7 +95,7 @@ def main(
         dtype="float32",
     )
     dat.set(
-        rng,
+        rngmem,
         xargs=(),
         xkargs=dict(
             num_samples=num_batches * batch_size,
@@ -100,13 +103,12 @@ def main(
             num_outputs=num_outputs,
         ),
     )
-    rngmem = rng.get_state()
     info1("Dataset is ready.")
 
     # Get a batching
     bat = ConstShuffleBatch()
     bat.set(
-        dat, "cpu", rng,
+        dat, "cpu",
         sample_transform=IdentityTransform(),
         batch_stackform=SeqStackform(["input", "target"]),
         batch_transform=IdentityTransform(),

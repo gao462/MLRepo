@@ -106,10 +106,11 @@ class BackwardBenchmark(object):
         seed = 47
         rng = getattr(torch, "Generator")()
         rng.manual_seed(47)
+
+        # Update randomness.
         rngmem = rng.get_state()
 
         # Get reproduced model.
-        rng.set_state(rngmem)
         repmod = repcls(
             "../FastModel/Reproduce",
             sub=False, dtype="float32",
@@ -117,7 +118,7 @@ class BackwardBenchmark(object):
         ).set(
             xargs=set_xargs, xkargs=set_xkargs,
         ).initialize(
-            rng, xargs=ini_xargs, xkargs=ini_xkargs,
+            rngmem, xargs=ini_xargs, xkargs=ini_xkargs,
         )
         info1(
             "Reproduced model \"\033[35;1m{:s}\033[0m\" is ready.",
@@ -125,7 +126,6 @@ class BackwardBenchmark(object):
         )
 
         # Get target model.
-        rng.set_state(rngmem)
         tarmod = tarcls(
             "../FastModel/Reproduce",
             sub=False, dtype="float32",
@@ -133,12 +133,15 @@ class BackwardBenchmark(object):
         ).set(
             xargs=set_xargs, xkargs=set_xkargs,
         ).initialize(
-            rng, xargs=ini_xargs, xkargs=ini_xkargs,
+            rngmem, xargs=ini_xargs, xkargs=ini_xkargs,
         )
         info1(
             "Targeting model \"\033[35;1m{:s}\033[0m\" is ready.",
             tarmod.fullname,
         )
+
+        # Update randomness.
+        rngmem = rng.get_state()
 
         # Get a full batch.
         info1("Batching is running.")

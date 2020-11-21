@@ -103,6 +103,8 @@ class TransferBenchmark(object):
         seed = 47
         rng = getattr(torch, "Generator")()
         rng.manual_seed(47)
+
+        # Update randomness.
         rngmem = rng.get_state()
 
         # Collect performances and report progress.
@@ -123,7 +125,7 @@ class TransferBenchmark(object):
                 # Create batching.
                 bat = batcls()
                 bat.set(
-                    dat, "cuda:0", rng,
+                    dat, "cuda:0",
                     sample_transform=sample_transform,
                     batch_stackform=batch_stackform,
                     batch_transform=batch_transform,

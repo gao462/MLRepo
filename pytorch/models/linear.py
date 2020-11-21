@@ -338,7 +338,6 @@ class Linear(GradModel):
 
     def __initialize__(
         self: Linear,
-        rng: torch._C.Generator,
         *args: ArgT,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         **kargs: KArgT,
@@ -374,14 +373,14 @@ class Linear(GradModel):
         )
         std = gain / math.sqrt(self.num_inputs)
         bound = math.sqrt(3) * std
-        self.weight.data.uniform_(-bound, bound, generator=rng)
+        self.weight.data.uniform_(-bound, bound, generator=self.rng)
 
         # Initialize bias if necessary.
         if (self.no_bias):
             pass
         else:
             bound = 1 / math.sqrt(self.num_inputs)
-            self.bias.data.uniform_(-bound, bound, generator=rng)
+            self.bias.data.uniform_(-bound, bound, generator=self.rng)
 
     @staticmethod
     def activation_gain(

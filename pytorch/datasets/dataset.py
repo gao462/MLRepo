@@ -154,7 +154,7 @@ class Dataset(object):
 
     def set(
         self: Dataset,
-        rng: torch._C.Generator,
+        rngmem: torch.Tensor,
         *args: ArgT,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         **kargs: KArgT,
@@ -165,8 +165,8 @@ class Dataset(object):
         Args
         ----
         - self
-        - rng
-            Random number generator.
+        - rngmem
+            Random number generator memory to update.
         - *args
         - xargs
             Extra arguments to specific configuration.
@@ -187,7 +187,8 @@ class Dataset(object):
         ...
 
         # Save necessary attribtues.
-        self.rng = rng
+        self.rng = getattr(torch, "Generator")()
+        self.rng.set_state(rngmem)
 
         # Configure dataset with extra arguments.
         self.configure(xargs, xkargs)

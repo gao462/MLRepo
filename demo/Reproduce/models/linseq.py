@@ -339,7 +339,6 @@ class RepLinearSeq(GradModel):
 
     def __initialize__(
         self: RepLinearSeq,
-        rng: torch._C.Generator,
         *args: ArgT,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         **kargs: KArgT,
@@ -350,8 +349,6 @@ class RepLinearSeq(GradModel):
         Args
         ----
         - self
-        - rng
-            Random number generator.
         - *args
         - xargs
             Extra arguments to specific initialization.
@@ -369,7 +366,7 @@ class RepLinearSeq(GradModel):
         ...
 
         # Initialize sequence.
-        self.seq.initialize(rng, xargs=xargs, xkargs=xkargs)
+        self.seq.initialize(self.rng.get_state(), xargs=xargs, xkargs=xkargs)
 
     def __train__(
         self: RepLinearSeq,
@@ -558,7 +555,6 @@ class TarLinearSeq(RepLinearSeq):
 
     def __initialize__(
         self: TarLinearSeq,
-        rng: torch._C.Generator,
         *args: ArgT,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         **kargs: KArgT,
@@ -569,8 +565,6 @@ class TarLinearSeq(RepLinearSeq):
         Args
         ----
         - self
-        - rng
-            Random number generator.
         - *args
         - xargs
             Extra arguments to specific initialization.
@@ -588,7 +582,7 @@ class TarLinearSeq(RepLinearSeq):
         ...
 
         # Super.
-        RepLinearSeq.__initialize__(self, rng, xargs=xargs, xkargs=xkargs)
+        RepLinearSeq.__initialize__(self, xargs=xargs, xkargs=xkargs)
 
         # Copy data.
         self.weight1.data.copy_(cast(Linear, self.seq[0]).weight.data)

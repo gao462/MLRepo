@@ -445,7 +445,6 @@ class GRU(GradModel):
 
     def __initialize__(
         self: GRU,
-        rng: torch._C.Generator,
         *args: ArgT,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         **kargs: KArgT,
@@ -456,8 +455,6 @@ class GRU(GradModel):
         Args
         ----
         - self
-        - rng
-            Random number generator.
         - *args
         - xargs
             Extra arguments to specific initialization.
@@ -476,27 +473,27 @@ class GRU(GradModel):
 
         # Initialize recursively.
         self.reset_isub.initialize(
-            rng,
+            self.rng.get_state(),
             xargs=xkargs["gate"]["xargs"], xkargs=xkargs["gate"]["xkargs"],
         )
         self.reset_hsub.initialize(
-            rng,
+            self.rng.get_state(),
             xargs=xkargs["gate"]["xargs"], xkargs=xkargs["gate"]["xkargs"],
         )
         self.update_isub.initialize(
-            rng,
+            self.rng.get_state(),
             xargs=xkargs["gate"]["xargs"], xkargs=xkargs["gate"]["xkargs"],
         )
         self.update_hsub.initialize(
-            rng,
+            self.rng.get_state(),
             xargs=xkargs["gate"]["xargs"], xkargs=xkargs["gate"]["xkargs"],
         )
         self.cell_isub.initialize(
-            rng,
+            self.rng.get_state(),
             xargs=xkargs["cell"]["xargs"], xkargs=xkargs["cell"]["xkargs"],
         )
         self.cell_hsub.initialize(
-            rng,
+            self.rng.get_state(),
             xargs=xkargs["cell"]["xargs"], xkargs=xkargs["cell"]["xkargs"],
         )
 
@@ -665,7 +662,6 @@ class __GRU__(GRU):
 
     def __initialize__(
         self: __GRU__,
-        rng: torch._C.Generator,
         *args: ArgT,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         **kargs: KArgT,
@@ -676,8 +672,6 @@ class __GRU__(GRU):
         Args
         ----
         - self
-        - rng
-            Random number generator.
         - *args
         - xargs
             Extra arguments to specific initialization.
@@ -695,7 +689,7 @@ class __GRU__(GRU):
         ...
 
         # Super.
-        GRU.__initialize__(self, rng, xargs=xargs, xkargs=xkargs)
+        GRU.__initialize__(self, xargs=xargs, xkargs=xkargs)
 
         # Merge matrices to fit PyTorch.
         weight_ih = getattr(torch, "cat")([

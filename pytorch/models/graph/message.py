@@ -315,7 +315,6 @@ class ConcatMessage(GradModel):
 
     def __initialize__(
         self: ConcatMessage,
-        rng: torch._C.Generator,
         *args: ArgT,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         **kargs: KArgT,
@@ -326,8 +325,6 @@ class ConcatMessage(GradModel):
         Args
         ----
         - self
-        - rng
-            Random number generator.
         - *args
         - xargs
             Extra arguments to specific initialization.

@@ -377,7 +377,6 @@ class MessagePass(GradModel):
 
     def __initialize__(
         self: MessagePass,
-        rng: torch._C.Generator,
         *args: ArgT,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         **kargs: KArgT,
@@ -388,8 +387,6 @@ class MessagePass(GradModel):
         Args
         ----
         - self
-        - rng
-            Random number generator.
         - *args
         - xargs
             Extra arguments to specific initialization.
@@ -408,17 +405,17 @@ class MessagePass(GradModel):
 
         # Initialize recursively.
         self.message.initialize(
-            rng,
+            self.rng.get_state(),
             xargs=xkargs["message"]["xargs"],
             xkargs=xkargs["message"]["xkargs"],
         )
         self.aggregate.initialize(
-            rng,
+            self.rng.get_state(),
             xargs=xkargs["aggregate"]["xargs"],
             xkargs=xkargs["aggregate"]["xkargs"],
         )
         self.update.initialize(
-            rng,
+            self.rng.get_state(),
             xargs=xkargs["update"]["xargs"],
             xkargs=xkargs["update"]["xkargs"],
         )
