@@ -47,7 +47,7 @@ class NaiveDistLoss(object):
     """
     def __init__(
         self: NaiveDistLoss,
-        iokeys: Tuple[List[str], List[str]],
+        keys: Tuple[List[str], List[str]],
         *args: ArgT,
         **kargs: KArgT,
     ) -> None:
@@ -69,8 +69,10 @@ class NaiveDistLoss(object):
         # \
         # ANNOTATE VARIABLES
         # \
+        ...
+
         # Save necessary attributes.
-        self.IOKEYS: Const = iokeys
+        (self.ky_output,), (self.ky_target,) = keys
 
     def __call__(
         self: NaiveDistLoss,
@@ -104,10 +106,88 @@ class NaiveDistLoss(object):
         # /
         # ANNOTATE VARIABLES
         # /
-        loss: torch.Tensor
+        ...
 
         # Get MSE.
-        (inkey,), (outkey,) = self.IOKEYS
-        return ((output[inkey] - target[outkey]) ** 2).sum()
+        return ((output[self.ky_output] - target[self.ky_target]) ** 2).sum()
+
+
+class NaiveSeqDistLoss(object):
+    r"""
+    Naive sequence distribution loss function.
+    """
+    def __init__(
+        self: NaiveSeqDistLoss,
+        dynamic_keys: Tuple[List[str], List[str]],
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> None:
+        r"""
+        Initialize.
+
+        Args
+        ----
+        - self
+        - dynamic_keys
+            Keys to compute dynamic loss.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # \
+        # ANNOTATE VARIABLES
+        # \
+        ...
+
+        # Save necessary attributes.
+        (self.ky_dynout,), (self.ky_dyntar,) = dynamic_keys
+
+    def __call__(
+        self: NaiveSeqDistLoss,
+        parameter: Parameter,
+        output: Dict[str, torch.Tensor],
+        target: Dict[str, torch.Tensor],
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> torch.Tensor:
+        r"""
+        Call as function.
+
+        Args
+        ----
+        - self
+        - parameter
+            Parameter.
+        - output
+            Output.
+        - target
+            Target.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+        - loss
+            Evaluating loss.
+
+        """
+        # /
+        # ANNOTATE VARIABLES
+        # /
+        buf: List[torch.Tensor]
+
+        # Get static MSE.
+        sample_length = int(target["$batch_length"].item())
+        buf = []
+        for t in range(sample_length):
+            buf.append(((
+                output["{:s}.{:d}".format(self.ky_dynout, t)] -
+                target["{:s}.{:d}".format(self.ky_dyntar, t)]
+            ) ** 2).sum())
+        loss = cast(torch.Tensor, sum(buf))
+        return loss
 
 

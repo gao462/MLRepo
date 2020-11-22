@@ -31,7 +31,7 @@ from pytorch.logging import debug, info1, info2, focus, warning, error
 # Import dependencies.
 from pytorch.models.model import LossFunction
 from pytorch.models.seq.rnn import RNN, __RNN__
-from demo.Reproduce.models.naive import NaiveDistLoss
+from demo.Reproduce.models.naive import NaiveSeqDistLoss
 
 
 # =============================================================================
@@ -78,7 +78,7 @@ class RepRNN(RNN):
         ...
 
         # return the function.
-        return NaiveDistLoss((["output"], ["target"]))
+        return NaiveSeqDistLoss((["output"], ["target"]))
 
     def __evaluate__(
         self: RepRNN,
@@ -111,7 +111,7 @@ class RepRNN(RNN):
         ...
 
         # Return the function.
-        return NaiveDistLoss((["output"], ["target"]))
+        return NaiveSeqDistLoss((["output"], ["target"]))
 
 
 class TarRNN(__RNN__):
@@ -149,7 +149,7 @@ class TarRNN(__RNN__):
         ...
 
         # return the function.
-        return NaiveDistLoss((["output"], ["target"]))
+        return NaiveSeqDistLoss((["output"], ["target"]))
 
     def __evaluate__(
         self: TarRNN,
@@ -182,4 +182,4 @@ class TarRNN(__RNN__):
         ...
 
         # Return the function.
-        return NaiveDistLoss((["output"], ["target"]))
+        return NaiveSeqDistLoss((["output"], ["target"]))

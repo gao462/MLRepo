@@ -51,6 +51,7 @@ from demo.Reproduce.benchmark import BackwardBenchmark
 
 
 def main(
+    device: str,
     *args: ArgT,
     **kargs: KArgT,
 ) -> bool:
@@ -59,6 +60,8 @@ def main(
 
     Args
     ----
+    - device
+        Device.
     - *args
     - **kargs
 
@@ -107,7 +110,7 @@ def main(
     # Get a batching
     bat = ConstShuffleBatch()
     bat.set(
-        dat, "cpu",
+        dat, device,
         sample_transform=IdentityTransform(),
         batch_stackform=NaiveStackform(["input", "target"]),
         batch_transform=IdentityTransform(),
@@ -122,7 +125,7 @@ def main(
 
     # Create and run the benchmark.
     benchmark = BackwardBenchmark(
-        bat, RepLinearSeq, TarLinearSeq,
+        device, bat, RepLinearSeq, TarLinearSeq,
         [
             (
                 ("seq.0.weight", [(0, 5), (0, 7)]),
@@ -133,11 +136,11 @@ def main(
                 ("bias1", [(0, 5)]),
             ),
             (
-                ("seq.1.weight", [(0, 5), (0, 5)]),
+                ("seq.2.weight", [(0, 5), (0, 5)]),
                 ("weight2", [(0, 5), (0, 5)]),
             ),
             (
-                ("seq.1.bias", [(0, 5)]),
+                ("seq.2.bias", [(0, 5)]),
                 ("bias2", [(0, 5)]),
             ),
         ],
@@ -169,6 +172,6 @@ def main(
 if (__name__ == '__main__'):
     # Update logging status and run.
     update_universal_logger(default_logger(__file__, LOGLV))
-    main()
+    main("cuda:0")
 else:
     pass

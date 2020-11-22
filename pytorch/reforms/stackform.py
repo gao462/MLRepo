@@ -177,10 +177,7 @@ class NotStackform(Stackform):
 
         # Get output directly.
         sample = raw[0]
-        processed = {
-            key: sample[key]
-            for key in self.KEYS
-        }
+        processed = {key: sample[key] for key in self.KEYS}
         return processed
 
 
@@ -263,7 +260,8 @@ class SeqStackform(Stackform):
     """
     def __init__(
         self: SeqStackform,
-        keys: List[str],
+        static_keys: List[str],
+        dynamic_keys: List[str],
         *args: ArgT,
         **kargs: KArgT,
     ) -> None:
@@ -273,8 +271,10 @@ class SeqStackform(Stackform):
         Args
         ----
         - self
-        - keys
-            A list of keys to be stacked.
+        - static_keys
+            A list of static keys to keep.
+        - dynamic_keys
+            A list of dynamic keys to be temporally stacked.
         - *args
         - **kargs
 
@@ -286,7 +286,8 @@ class SeqStackform(Stackform):
         # ANNOTATE VARIABLES
         # \
         # Save necessary attributes.
-        self.KEYS: Const = keys
+        self.STATIC_KEYS: Const = static_keys
+        self.DYNAMIC_KEYS: Const = dynamic_keys
 
     def __call__(
         self: SeqStackform,
@@ -314,19 +315,32 @@ class SeqStackform(Stackform):
         # \
         # ANNOTATE VARIABLES
         # \
-        buf: Dict[str, List[torch.Tensor]]
+        processed: Dict[str, torch.Tensor]
+
+        # Get static things first.
+        processed = {}
+        sample = raw[0]
+        for key in self.STATIC_KEYS:
+            processed[key] = sample[key]
 
         # Allocate a buffer and fill it.
-        buf = {key: [] for key in self.KEYS}
-        for sample in raw:
-            for key in self.KEYS:
-                buf[key].append(sample[key])
-
-        # Stack directly.
-        processed = {
-            key: getattr(torch, "stack")(val, dim=1)
-            for key, val in buf.items()
-        }
+        batch_size = 0
+        for t, sample in enumerate(raw):
+            for key in self.DYNAMIC_KEYS:
+                processed["{:s}.{:d}".format(key, t)] = sample[key]
+                if (batch_size == 0):
+                    batch_size = len(sample[key])
+                elif (batch_size == len(sample[key])):
+                    pass
+                else:
+                    error(
+                        "Sequential batching has different batch size for" \
+                        " \"{:s}\".",
+                        key,
+                    )
+                    raise RuntimeError
+        processed["$batch_length"] = torch.LongTensor([len(raw)])
+        processed["$batch_size"] = torch.LongTensor([batch_size])
         return processed
 
 
@@ -336,9 +350,10 @@ class GraphStackform(Stackform):
     """
     def __init__(
         self: GraphStackform,
-        keys: List[str],
+        static_keys: List[str],
+        graphic_keys: List[str],
         *args: ArgT,
-        vertex: str, adjacency: str,
+        vertex: str, adjacency: str, t: bool,
         **kargs: KArgT,
     ) -> None:
         r"""
@@ -347,14 +362,21 @@ class GraphStackform(Stackform):
         Args
         ----
         - self
-        - keys
-            A list of keys to be stacked.
+        - static_keys
+            A list of keys to keep.
+        - graphic_keys
+            A list of keys to be graphically stacked.
         - *args
         - vertex
             Key of one vertex features.
             It is used to detect number of nodes.
         - adjacency
             Key of adjacency list.
+        - t
+            If True, tranpose the raw adjacency list.
+            The adjacency list is required to be $2 \times n$, while most of
+            the time, the raw input is $n \times 2$.
+            Thus, the transpose is required.
         - **kargs
 
         Returns
@@ -365,9 +387,11 @@ class GraphStackform(Stackform):
         # ANNOTATE VARIABLES
         # \
         # Save necessary attributes.
-        self.KEYS: Const = keys
+        self.STATIC_KEYS: Const = static_keys
+        self.GRAPHIC_KEYS: Const = graphic_keys
         self.VEX: Const = vertex
         self.ADJ: Const = adjacency
+        self.T: Const = t
 
     def __call__(
         self: GraphStackform,
@@ -398,14 +422,14 @@ class GraphStackform(Stackform):
         buf: Dict[str, List[torch.Tensor]]
 
         # Allocate a buffer and fill it.
-        buf = {key: [] for key in self.KEYS}
+        buf = {key: [] for key in self.GRAPHIC_KEYS}
         buf[self.ADJ] = []
         node_cnt = 0
         edge_cnt = 0
         node_break_points = [node_cnt]
         edge_break_points = [edge_cnt]
         for sample in raw:
-            for key in self.KEYS:
+            for key in self.GRAPHIC_KEYS:
                 buf[key].append(sample[key])
             buf[self.ADJ].append(sample[self.ADJ] + node_cnt)
             num_nodes = len(sample[self.VEX])
@@ -418,13 +442,18 @@ class GraphStackform(Stackform):
         edge_breaks = torch.LongTensor(edge_break_points)
 
         # Stack directly.
-        processed = {
-            key: getattr(torch, "cat")(val, dim=0)
-            for key, val in buf.items()
-        }
-        processed["$node.breaks"] = node_breaks
-        processed["$edge.breaks"] = edge_breaks
+        processed = {}
+        sample = raw[0]
+        for key in self.STATIC_KEYS:
+            processed[key] = sample[key]
+        for key in self.GRAPHIC_KEYS:
+            processed[key] = getattr(torch, "cat")(buf[key], dim=0)
+        processed["$node_breaks"] = node_breaks
+        processed["$edge_breaks"] = edge_breaks
 
         # Ensure adjacency list is transposed.
-        processed[self.ADJ] = processed[self.ADJ].t()
+        if (self.T):
+            processed[self.ADJ] = processed[self.ADJ].t()
+        else:
+            pass
         return processed

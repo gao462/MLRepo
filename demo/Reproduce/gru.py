@@ -52,6 +52,7 @@ from demo.Reproduce.benchmark import BackwardBenchmark
 
 
 def main(
+    device: str,
     *args: ArgT,
     **kargs: KArgT,
 ) -> bool:
@@ -60,6 +61,8 @@ def main(
 
     Args
     ----
+    - device
+        Device.
     - *args
     - **kargs
 
@@ -110,9 +113,9 @@ def main(
     # Get a batching
     bat = ConstShuffleBatch()
     bat.set(
-        dat, "cpu",
+        dat, device,
         sample_transform=IdentityTransform(),
-        batch_stackform=SeqStackform(["input", "target"]),
+        batch_stackform=SeqStackform([], ["input", "target"]),
         batch_transform=IdentityTransform(),
         num_samplers=4, qmax_samples=4,
         num_batchers=1, qmax_batches=2,
@@ -135,7 +138,7 @@ def main(
                 "linear": (["input"], ["agg_{:s}_i".format(section)]),
             },
         ).set(
-            xargs=(), xkargs=dict(
+            device, xargs=(), xkargs=dict(
                 num_inputs=num_inputs, num_outputs=num_outputs, no_bias=False,
             ),
         )
@@ -148,7 +151,7 @@ def main(
                 "linear": (["hidden"], ["agg_{:s}_h".format(section)]),
             },
         ).set(
-            xargs=(), xkargs=dict(
+            device, xargs=(), xkargs=dict(
                 num_inputs=num_outputs, num_outputs=num_outputs, no_bias=False,
             ),
         )
@@ -159,7 +162,7 @@ def main(
 
     # Create and run the benchmark.
     benchmark = BackwardBenchmark(
-        bat, RepGRU, TarGRU,
+        device, bat, RepGRU, TarGRU,
         [
             (
                 ("reset_isub.weight", [(0, 5), (0, 7)]),
@@ -211,10 +214,12 @@ def main(
             ),
         ],
         iokeys=dict(
+            gru_static=([], ["hidden"]),
+            gru_dynamic=(["input"], ["output"]),
             gru_reset_agg=(["agg_reset_i", "agg_reset_h"], ["reset"]),
             gru_update_agg=(["agg_update_i", "agg_update_h"], ["update"]),
-            gru_cell_agg=(["agg_cell_i", "reset", "agg_cell_h"], ["cell"]),
-            gru_aggregate=(["update", "hidden", "cell"], ["hidden"]),
+            gru_cell_agg=(["agg_cell_i", "agg_cell_h"], ["cell"]),
+            gru_aggregate=(["hidden", "cell"], ["hidden"]),
             gru=(["hidden"], ["output"]),
         ),
         set_xargs=(),
@@ -250,6 +255,6 @@ def main(
 if (__name__ == '__main__'):
     # Update logging status and run.
     update_universal_logger(default_logger(__file__, LOGLV))
-    main()
+    main("cuda:0")
 else:
     pass

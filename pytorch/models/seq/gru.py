@@ -34,6 +34,8 @@ from pytorch.logging import debug, info1, info2, focus, warning, error
 from pytorch.models.model import GradModel
 from pytorch.models.model import Parameter, ForwardFunction, NullFunction
 from pytorch.models.linear import Linear
+from pytorch.models.activation import Activation
+from pytorch.models.join import AddJoin, MulJoin
 
 
 # =============================================================================
@@ -84,6 +86,10 @@ class GRU(GradModel):
         # /
         # ANNOTATE VARIABLES
         # /
+        self.ky_stains: List[str]
+        self.ky_staouts: List[str]
+        self.ky_dynins: List[str]
+        self.ky_dynouts: List[str]
         self.ky_reset_i: str
         self.ky_reset_h: str
         self.ky_reset_out: str
@@ -93,25 +99,28 @@ class GRU(GradModel):
         self.ky_cell_i: str
         self.ky_cell_h: str
         self.ky_cell_out: str
-        self.ky_aggin: str
         self.ky_aggout: str
         self.ky_output: str
 
         # Fetch main input and output.
+        self.ky_stains, self.ky_staouts = (
+            self.IOKEYS["{:s}_static".format(self.main)]
+        )
+        self.ky_dynins, self.ky_dynouts = (
+            self.IOKEYS["{:s}_dynamic".format(self.main)]
+        )
         (self.ky_reset_i, self.ky_reset_h), (self.ky_reset_out,) = (
             self.IOKEYS["{:s}_reset_agg".format(self.main)]
         )
         (self.ky_update_i, self.ky_update_h), (self.ky_update_out,) = (
             self.IOKEYS["{:s}_update_agg".format(self.main)]
         )
-        (
-            (self.ky_cell_i, self.ky_reset_out, self.ky_cell_h),
-            (self.ky_cell_out,),
-        ) = self.IOKEYS["{:s}_cell_agg".format(self.main)]
-        (
-            (self.ky_update_out, self.ky_aggin, self.ky_cell_out),
-            (self.ky_aggout,),
-        ) = self.IOKEYS["{:s}_aggregate".format(self.main)]
+        (self.ky_cell_i, self.ky_cell_h), (self.ky_cell_out,) = (
+            self.IOKEYS["{:s}_cell_agg".format(self.main)]
+        )
+        (self.ky_aggout, self.ky_cell_out), (self.ky_aggout,) = (
+            self.IOKEYS["{:s}_aggregate".format(self.main)]
+        )
         (self.ky_aggout,), (self.ky_output,) = self.IOKEYS[self.main]
 
     def __forward__(
@@ -186,70 +195,113 @@ class GRU(GradModel):
             # /
             output: Dict[str, torch.Tensor]
 
+            # Keep always-pass inputs.
+            output = {}
+            for key, tensor in input.items():
+                if (key[0] == "$"):
+                    output[key] = tensor
+                else:
+                    pass
+
             # Get essential sequence info.
-            tensor = next(iter(input.values()))
-            sample_length = tensor.size(0)
-            batch_size = tensor.size(1)
-            device = tensor.device
+            sample_length = cast(int, input["$batch_length"].item())
+            batch_size = cast(int,input["$batch_size"].item())
 
             # Get essential recurrent transient buffer and expand batch
             # dimension by batch size.
             transient = {}
-            tensor = self.cell_hsub.nullout(device)[self.ky_cell_h]
+            tensor = self.cell_hsub.nullout(self.device)[self.ky_cell_h]
             shape = list(tensor.size())[1:]
             transient[self.ky_aggout] = tensor.expand(batch_size, *shape)
 
             # Compute directly.
             for t in range(sample_length):
-                # Fill in raw input of current step.
-                for key, val in input.items():
-                    transient[key] = val[t]
+                # Put current static and dynamic inputs into transient buffer.
+                for key in self.ky_stains:
+                    transient[key] = input[key]
+                for key in self.ky_dynins:
+                    transient[key] = input["{:s}.{:d}".format(key, t)]
 
-                # Get reset gate.
-                ibuf = self.reset_isub.forward(
+                # Join raw input and hidden state input for reset gate.
+                buf = {}
+                buf.update(self.reset_isub.forward(
                     parameter.sub("reset_isub"), transient,
-                )
-                hbuf = self.reset_hsub.forward(
+                ))
+                buf.update(self.reset_hsub.forward(
                     parameter.sub("reset_hsub"), transient,
-                )
-                transient[self.ky_reset_out] = getattr(torch, "sigmoid")(
-                    ibuf[self.ky_reset_i] + hbuf[self.ky_reset_h],
-                )
+                ))
+                buf.update(self.reset_join.forward(
+                    parameter.sub("reset_join"), buf,
+                ))
+                reset_tensor = self.reset_act.forward(
+                    parameter.sub("reset_act"), buf,
+                )[self.ky_reset_out]
 
-                # Get update gate.
-                ibuf = self.update_isub.forward(
+                # Join raw input and hidden state input for update gate.
+                buf = {}
+                buf.update(self.update_isub.forward(
                     parameter.sub("update_isub"), transient,
-                )
-                hbuf = self.update_hsub.forward(
+                ))
+                buf.update(self.update_hsub.forward(
                     parameter.sub("update_hsub"), transient,
-                )
-                transient[self.ky_update_out] = getattr(torch, "sigmoid")(
-                    ibuf[self.ky_update_i] + hbuf[self.ky_update_h],
-                )
+                ))
+                buf.update(self.update_join.forward(
+                    parameter.sub("update_join"), buf,
+                ))
+                update_tensor = self.update_act.forward(
+                    parameter.sub("update_act"), buf,
+                )[self.ky_update_out]
 
-                # Get cell state with projected hidden state.
-                ibuf = self.cell_isub.forward(
+                # Join raw input and hidden state input for cell state.
+                buf = {}
+                buf[self.ky_reset_out] = reset_tensor
+                buf.update(self.cell_isub.forward(
                     parameter.sub("cell_isub"), transient,
-                )
-                hbuf = self.cell_hsub.forward(
+                ))
+                buf.update(self.cell_hsub.forward(
                     parameter.sub("cell_hsub"), transient,
+                ))
+                buf.update(self.cell_join1.forward(
+                    parameter.sub("cell_join1"), buf,
+                ))
+                buf.update(self.cell_join2.forward(
+                    parameter.sub("cell_join2"), buf,
+                ))
+                cell_tensor = self.cell_act.forward(
+                    parameter.sub("cell_act"), buf,
+                )[self.ky_cell_out]
+
+                # Join previous step and hidden state.
+                buf = {}
+                buf[self.ky_aggout] = transient[self.ky_aggout]
+                buf[self.ky_update_out] = update_tensor
+                buf["{:s}.complement".format(self.ky_update_out)] = (
+                    1 - update_tensor
                 )
-                transient[self.ky_cell_out] = getattr(torch, "tanh")(
-                    ibuf[self.ky_cell_i] +
-                    transient[self.ky_reset_out] * hbuf[self.ky_cell_h],
+                buf[self.ky_cell_out] = cell_tensor
+                buf.update(self.join1.forward(
+                    parameter.sub("join1"), buf,
+                ))
+                buf.update(self.join2.forward(
+                    parameter.sub("join2"), buf,
+                ))
+                agg_tensor = self.join3.forward(
+                    parameter.sub("join3"), buf,
+                )[self.ky_aggout]
+
+                # Get dynamic output.
+                transient["{:s}.{:d}".format(self.ky_output, t)] = (
+                    transient[self.ky_aggout]
                 )
 
-                # Get final weighted summation.
-                transient[self.ky_aggout] = (
-                    transient[self.ky_update_out] * transient[
-                        self.ky_aggin
-                    ] +
-                    (1 - transient[self.ky_update_out]) * transient[
-                        self.ky_cell_out
-                    ]
-                )
-            output = {}
-            output[self.ky_output] = transient[self.ky_aggout]
+            # Fetch static and dynamic outputs.
+            for key in self.ky_staouts:
+                output[key] = transient[key]
+            for t in range(sample_length):
+                for key in self.ky_dynouts:
+                    output["{:s}.{:d}".format(key, t)] = (
+                        transient["{:s}.{:d}".format(key, t)]
+                    )
             return output
 
         # Return the function.
@@ -289,7 +341,6 @@ class GRU(GradModel):
         ...
 
         def null(
-            device: str,
             *args: ArgT,
             **kargs: KArgT,
         ) -> Dict[str, torch.Tensor]:
@@ -298,8 +349,6 @@ class GRU(GradModel):
 
             Args
             ----
-            - device
-                Device.
             - *args
             - **kargs
 
@@ -312,19 +361,12 @@ class GRU(GradModel):
             # /
             # ANNOTATE VARIABLES
             # /
-            ...
+            output: Dict[str, torch.Tensor]
 
             # Get sub model inputs.
-            ibuf = self.cell_isub.nullin(device)
-            hbuf = self.cell_hsub.nullin(device)
-
-            # Merge sub model inputs and extend with sequence dimension at the
-            # beginning.
             output = {}
-            for key, val in ibuf.items():
-                output[key] = val.unsqueeze(0)
-            for key, val in hbuf.items():
-                output[key] = val.unsqueeze(0)
+            output.update(self.cell_isub.nullin())
+            output.update(self.cell_hsub.nullin())
             return output
 
         # Return the function.
@@ -364,7 +406,6 @@ class GRU(GradModel):
         ...
 
         def null(
-            device: str,
             *args: ArgT,
             **kargs: KArgT,
         ) -> Dict[str, torch.Tensor]:
@@ -373,8 +414,6 @@ class GRU(GradModel):
 
             Args
             ----
-            - device
-                Device.
             - *args
             - **kargs
 
@@ -390,11 +429,7 @@ class GRU(GradModel):
             ...
 
             # Get sub model outputs.
-            hbuf = self.cell_hsub.nullout(device)
-
-            # Output is just hidden model output with extra sequence dimension.
-            output = {}
-            output[self.ky_output] = hbuf[self.ky_cell_h].unsqueeze(0)
+            output = self.cell_hsub.nullout()
             return output
 
         # Return the function.
@@ -426,14 +461,19 @@ class GRU(GradModel):
         # \
         # ANNOTATE VARIABLES
         # \
-        self.gate_transform: Callable[[torch.Tensor], torch.Tensor]
-        self.cell_transform: Callable[[torch.Tensor], torch.Tensor]
         self.reset_isub: GradModel
         self.reset_hsub: GradModel
         self.update_isub: GradModel
         self.update_hsub: GradModel
         self.cell_isub: GradModel
         self.cell_hsub: GradModel
+        self.reset_join: GradModel
+        self.update_join: GradModel
+        self.cell_join1: GradModel
+        self.cell_join2: GradModel
+        self.join1: GradModel
+        self.join2: GradModel
+        self.join3: GradModel
 
         # Get models for raw input and hidden state.
         self.reset_isub = xkargs["reset_isub"]
@@ -442,6 +482,123 @@ class GRU(GradModel):
         self.update_hsub = xkargs["update_hsub"]
         self.cell_isub = xkargs["cell_isub"]
         self.cell_hsub = xkargs["cell_hsub"]
+
+        # Get model reset join.
+        self.reset_join = AddJoin(
+            self.ROOT,
+            sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
+                add_join_residuals=([], []),
+                add_join=(
+                    [self.ky_reset_i, self.ky_reset_h],
+                    [self.ky_reset_out],
+                ),
+            ),
+        ).set(self.device, xargs=(), xkargs=dict())
+
+        # Get model update join.
+        self.update_join = AddJoin(
+            self.ROOT,
+            sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
+                add_join_residuals=([], []),
+                add_join=(
+                    [self.ky_update_i, self.ky_update_h],
+                    [self.ky_update_out],
+                ),
+            ),
+        ).set(self.device, xargs=(), xkargs=dict())
+
+        # Get model cell join.
+        self.cell_join1 = MulJoin(
+            self.ROOT,
+            sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
+                mul_join_residuals=([], []),
+                mul_join=(
+                    [self.ky_reset_out, self.ky_cell_h],
+                    ["{:s}.reset".format(self.ky_cell_h)],
+                ),
+            ),
+        ).set(self.device, xargs=(), xkargs=dict())
+        self.cell_join2 = AddJoin(
+            self.ROOT,
+            sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
+                add_join_residuals=([], []),
+                add_join=(
+                    [self.ky_cell_i, "{:s}.reset".format(self.ky_cell_h)],
+                    [self.ky_cell_out],
+                ),
+            ),
+        ).set(self.device, xargs=(), xkargs=dict())
+
+        # Get model join.
+        self.join1 = MulJoin(
+            self.ROOT,
+            sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
+                mul_join_residuals=([], []),
+                mul_join=(
+                    [self.ky_update_out, self.ky_aggout],
+                    ["{:s}.update".format(self.ky_aggout)],
+                ),
+            ),
+        ).set(self.device, xargs=(), xkargs=dict())
+        self.join2 = MulJoin(
+            self.ROOT,
+            sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
+                mul_join_residuals=([], []),
+                mul_join=(
+                    [
+                        "{:s}.complement".format(self.ky_update_out),
+                        self.ky_cell_out,
+                    ],
+                    ["{:s}.update".format(self.ky_cell_out)],
+                ),
+            ),
+        ).set(self.device, xargs=(), xkargs=dict())
+        self.join3 = AddJoin(
+            self.ROOT,
+            sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
+                add_join_residuals=([], []),
+                add_join=(
+                    [
+                        "{:s}.update".format(self.ky_aggout),
+                        "{:s}.update".format(self.ky_cell_out),
+                    ],
+                    [self.ky_aggout],
+                ),
+            ),
+        ).set(self.device, xargs=(), xkargs=dict())
+
+        # Get model reset activation.
+        self.reset_act = Activation(
+            self.ROOT,
+            sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
+                act_residuals=([], []),
+                act=([self.ky_reset_out], [self.ky_reset_out]),
+            ),
+        ).set(
+            self.device, xargs=(), xkargs=dict(activation="sigmoid"),
+        )
+
+        # Get model update activation.
+        self.update_act = Activation(
+            self.ROOT,
+            sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
+                act_residuals=([], []),
+                act=([self.ky_update_out], [self.ky_update_out]),
+            ),
+        ).set(
+            self.device, xargs=(), xkargs=dict(activation="sigmoid"),
+        )
+
+        # Get model reset activation.
+        self.cell_act = Activation(
+            self.ROOT,
+            sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
+                act_residuals=([], []),
+                act=([self.ky_cell_out], [self.ky_cell_out]),
+            ),
+        ).set(
+            self.device, xargs=(), xkargs=dict(activation="tanh"),
+        )
 
     def __initialize__(
         self: GRU,
@@ -574,24 +731,46 @@ class __GRU__(GRU):
             # /
             output: Dict[str, torch.Tensor]
 
+            # Keep always-pass inputs.
+            output = {}
+            for key, tensor in input.items():
+                if (key[0] == "$"):
+                    output[key] = tensor
+                else:
+                    pass
+
             # Get essential sequence info.
-            tensor = next(iter(input.values()))
-            sample_length = tensor.size(0)
-            batch_size = tensor.size(1)
-            device = tensor.device
+            sample_length = cast(int, input["$batch_length"].item())
+            batch_size = cast(int,input["$batch_size"].item())
 
             # Get essential recurrent transient buffer and expand batch
             # dimension by batch size.
-            tensor = self.cell_hsub_nullout(device)[self.ky_cell_h]
+            transient = {}
+            tensor = self.cell_hsub_nullout(self.device)[self.ky_cell_h]
             shape = list(tensor.size())[1:]
-            transient = tensor.expand(batch_size, *shape)
+            transient[self.ky_aggout] = tensor.expand(batch_size, *shape)
 
             # Compute directly.
             for t in range(sample_length):
-                raw = input[self.ky_input_i][t]
-                transient = self.pytorch.forward(raw, transient)
-            output = {}
-            output[self.ky_output] = transient
+                # Inputs are fixed.
+                transient[self.ky_aggout] = self.pytorch.forward(
+                    input["{:s}.{:d}".format(self.ky_input_i, t)],
+                    transient[self.ky_aggout],
+                )
+
+                # Get dynamic output.
+                transient["{:s}.{:d}".format(self.ky_output, t)] = (
+                    transient[self.ky_aggout]
+                )
+
+            # Fetch static and dynamic outputs.
+            for key in self.ky_staouts:
+                output[key] = transient[key]
+            for t in range(sample_length):
+                for key in self.ky_dynouts:
+                    output["{:s}.{:d}".format(key, t)] = (
+                        transient["{:s}.{:d}".format(key, t)]
+                    )
             return output
 
         # Return the function.
@@ -640,7 +819,7 @@ class __GRU__(GRU):
         self.pytorch = torch.nn.GRUCell(
             input_size=self.num_inputs, hidden_size=self.num_outputs,
             bias=not self.no_bias,
-        )
+        ).to(self.device)
         self.weight_ih = getattr(self.pytorch, "weight_ih")
         self.weight_hh = getattr(self.pytorch, "weight_hh")
         self.bias_ih = getattr(self.pytorch, "bias_ih")
@@ -729,9 +908,23 @@ class __GRU__(GRU):
         del self.parameter.submodels["update_hsub"]
         del self.parameter.submodels["cell_isub"]
         del self.parameter.submodels["cell_hsub"]
+        del self.parameter.submodels["reset_join"]
+        del self.parameter.submodels["update_join"]
+        del self.parameter.submodels["cell_join1"]
+        del self.parameter.submodels["cell_join2"]
+        del self.parameter.submodels["join1"]
+        del self.parameter.submodels["join2"]
+        del self.parameter.submodels["join3"]
         del self.reset_isub
         del self.reset_hsub
         del self.update_isub
         del self.update_hsub
         del self.cell_isub
         del self.cell_hsub
+        del self.reset_join
+        del self.update_join
+        del self.cell_join1
+        del self.cell_join2
+        del self.join1
+        del self.join2
+        del self.join3

@@ -34,6 +34,8 @@ from pytorch.logging import debug, info1, info2, focus, warning, error
 from pytorch.models.model import GradModel
 from pytorch.models.model import Parameter, ForwardFunction, NullFunction
 from pytorch.models.linear import Linear
+from pytorch.models.join import AddJoin
+from pytorch.models.activation import Activation
 
 
 # =============================================================================
@@ -85,12 +87,22 @@ class RNN(GradModel):
         # /
         # ANNOTATE VARIABLES
         # /
+        self.ky_stains: List[str]
+        self.ky_staouts: List[str]
+        self.ky_dynins: List[str]
+        self.ky_dynouts: List[str]
         self.ky_aggin_i: str
         self.ky_aggin_h: str
         self.ky_aggout: str
         self.ky_output: str
 
         # Fetch main input and output.
+        self.ky_stains, self.ky_staouts = (
+            self.IOKEYS["{:s}_static".format(self.main)]
+        )
+        self.ky_dynins, self.ky_dynouts = (
+            self.IOKEYS["{:s}_dynamic".format(self.main)]
+        )
         (self.ky_aggin_i, self.ky_aggin_h), (self.ky_aggout,) = (
             self.IOKEYS["{:s}_aggregate".format(self.main)]
         )
@@ -172,30 +184,61 @@ class RNN(GradModel):
             # /
             output: Dict[str, torch.Tensor]
 
+            # Keep always-pass inputs.
+            output = {}
+            for key, tensor in input.items():
+                if (key[0] == "$"):
+                    output[key] = tensor
+                else:
+                    pass
+
             # Get essential sequence info.
-            tensor = next(iter(input.values()))
-            sample_length = tensor.size(0)
-            batch_size = tensor.size(1)
-            device = tensor.device
+            sample_length = cast(int, input["$batch_length"].item())
+            batch_size = cast(int,input["$batch_size"].item())
 
             # Get essential recurrent transient buffer and expand batch
             # dimension by batch size.
             transient = {}
-            tensor = self.hsub.nullout(device)[self.ky_aggin_h]
+            tensor = self.hsub.nullout(self.device)[self.ky_aggin_h]
             shape = list(tensor.size())[1:]
             transient[self.ky_aggout] = tensor.expand(batch_size, *shape)
 
             # Compute directly.
             for t in range(sample_length):
-                for key, val in input.items():
-                    transient[key] = val[t]
-                ibuf = self.isub.forward(parameter.sub("isub"), transient)
-                hbuf = self.hsub.forward(parameter.sub("hsub"), transient)
-                transient[self.ky_aggout] = self.transform(
-                    ibuf[self.ky_aggin_i] + hbuf[self.ky_aggin_h],
+                # Put current static and dynamic inputs into transient buffer.
+                for key in self.ky_stains:
+                    transient[key] = input[key]
+                for key in self.ky_dynins:
+                    transient[key] = input["{:s}.{:d}".format(key, t)]
+
+                # Join raw input and hidden state input.
+                buf = {}
+                buf.update(
+                    self.isub.forward(parameter.sub("isub"), transient),
                 )
-            output = {}
-            output[self.ky_output] = transient[self.ky_aggout]
+                buf.update(
+                    self.hsub.forward(parameter.sub("hsub"), transient),
+                )
+                buf.update(
+                    self.join.forward(parameter.sub("join"), buf),
+                )
+                transient.update(
+                    self.act.forward(parameter.sub("act"), buf),
+                )
+
+                # Get dynamic output.
+                transient["{:s}.{:d}".format(self.ky_output, t)] = (
+                    transient[self.ky_aggout]
+                )
+
+            # Fetch static and dynamic outputs.
+            for key in self.ky_staouts:
+                output[key] = transient[key]
+            for t in range(sample_length):
+                for key in self.ky_dynouts:
+                    output["{:s}.{:d}".format(key, t)] = (
+                        transient["{:s}.{:d}".format(key, t)]
+                    )
             return output
 
         # Return the function.
@@ -235,7 +278,6 @@ class RNN(GradModel):
         ...
 
         def null(
-            device: str,
             *args: ArgT,
             **kargs: KArgT,
         ) -> Dict[str, torch.Tensor]:
@@ -244,8 +286,6 @@ class RNN(GradModel):
 
             Args
             ----
-            - device
-                Device.
             - *args
             - **kargs
 
@@ -261,16 +301,9 @@ class RNN(GradModel):
             ...
 
             # Get sub model inputs.
-            ibuf = self.isub.nullin(device)
-            hbuf = self.hsub.nullin(device)
-
-            # Merge sub model inputs and extend with sequence dimension at the
-            # beginning.
             output = {}
-            for key, val in ibuf.items():
-                output[key] = val.unsqueeze(0)
-            for key, val in hbuf.items():
-                output[key] = val.unsqueeze(0)
+            output.update(self.isub.nullin())
+            output.update(self.hsub.nullin())
             return output
 
         # Return the function.
@@ -310,7 +343,6 @@ class RNN(GradModel):
         ...
 
         def null(
-            device: str,
             *args: ArgT,
             **kargs: KArgT,
         ) -> Dict[str, torch.Tensor]:
@@ -319,8 +351,6 @@ class RNN(GradModel):
 
             Args
             ----
-            - device
-                Device.
             - *args
             - **kargs
 
@@ -336,11 +366,7 @@ class RNN(GradModel):
             ...
 
             # Get sub model outputs.
-            hbuf = self.hsub.nullout(device)
-
-            # Output is just hidden model output with extra sequence dimension.
-            output = {}
-            output[self.ky_output] = hbuf[self.ky_aggin_h].unsqueeze(0)
+            output = self.hsub.nullout()
             return output
 
         # Return the function.
@@ -372,17 +398,36 @@ class RNN(GradModel):
         # \
         # ANNOTATE VARIABLES
         # \
-        self.transform: Callable[[torch.Tensor], torch.Tensor]
         self.isub: GradModel
         self.hsub: GradModel
-
-        # Get model aggregation transform.
-        self.transform_name = xkargs["transform"]
-        self.transform = getattr(torch, self.transform_name)
+        self.join: GradModel
+        self.act: GradModel
 
         # Get models for raw input and hidden state.
         self.isub = xkargs["isub"]
         self.hsub = xkargs["hsub"]
+
+        # Get model aggregation transform.
+        self.transform_name = xkargs["transform"]
+        self.join = AddJoin(
+            self.ROOT,
+            sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
+                add_join_residuals=([], []),
+                add_join=(
+                    [self.ky_aggin_i, self.ky_aggin_h],
+                    [self.ky_aggout],
+                ),
+            ),
+        ).set(self.device, xargs=(), xkargs=dict())
+        self.act = Activation(
+            self.ROOT,
+            sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
+                act_residuals=([], []),
+                act=([self.ky_aggout], [self.ky_aggout]),
+            ),
+        ).set(
+            self.device, xargs=(), xkargs=dict(activation=self.transform_name),
+        )
 
     def __initialize__(
         self: RNN,
@@ -497,24 +542,46 @@ class __RNN__(RNN):
             # /
             output: Dict[str, torch.Tensor]
 
+            # Keep always-pass inputs.
+            output = {}
+            for key, tensor in input.items():
+                if (key[0] == "$"):
+                    output[key] = tensor
+                else:
+                    pass
+
             # Get essential sequence info.
-            tensor = next(iter(input.values()))
-            sample_length = tensor.size(0)
-            batch_size = tensor.size(1)
-            device = tensor.device
+            sample_length = cast(int, input["$batch_length"].item())
+            batch_size = cast(int,input["$batch_size"].item())
 
             # Get essential recurrent transient buffer and expand batch
             # dimension by batch size.
-            tensor = self.hsub_nullout(device)[self.ky_aggin_h]
+            transient = {}
+            tensor = self.hsub_nullout(self.device)[self.ky_aggin_h]
             shape = list(tensor.size())[1:]
-            transient = tensor.expand(batch_size, *shape)
+            transient[self.ky_aggout] = tensor.expand(batch_size, *shape)
 
             # Compute directly.
             for t in range(sample_length):
-                raw = input[self.ky_input_i][t]
-                transient = self.pytorch.forward(raw, transient)
-            output = {}
-            output[self.ky_output] = transient
+                # Inputs are fixed.
+                transient[self.ky_aggout] = self.pytorch.forward(
+                    input["{:s}.{:d}".format(self.ky_input_i, t)],
+                    transient[self.ky_aggout],
+                )
+
+                # Get dynamic output.
+                transient["{:s}.{:d}".format(self.ky_output, t)] = (
+                    transient[self.ky_aggout]
+                )
+
+            # Fetch static and dynamic outputs.
+            for key in self.ky_staouts:
+                output[key] = transient[key]
+            for t in range(sample_length):
+                for key in self.ky_dynouts:
+                    output["{:s}.{:d}".format(key, t)] = (
+                        transient["{:s}.{:d}".format(key, t)]
+                    )
             return output
 
         # Return the function.
@@ -563,7 +630,7 @@ class __RNN__(RNN):
         self.pytorch = torch.nn.RNNCell(
             input_size=self.num_inputs, hidden_size=self.num_outputs,
             bias=not self.no_bias, nonlinearity=self.transform_name,
-        )
+        ).to(self.device)
         self.weight_ih = getattr(self.pytorch, "weight_ih")
         self.weight_hh = getattr(self.pytorch, "weight_hh")
         self.bias_ih = getattr(self.pytorch, "bias_ih")
@@ -622,5 +689,9 @@ class __RNN__(RNN):
         # Remove from registration.
         del self.parameter.submodels["isub"]
         del self.parameter.submodels["hsub"]
+        del self.parameter.submodels["join"]
+        del self.parameter.submodels["act"]
         del self.isub
         del self.hsub
+        del self.join
+        del self.act

@@ -31,7 +31,7 @@ from pytorch.logging import debug, info1, info2, focus, warning, error
 # Import dependencies.
 from pytorch.models.model import LossFunction
 from pytorch.models.seq.gru import GRU, __GRU__
-from demo.Reproduce.models.naive import NaiveDistLoss
+from demo.Reproduce.models.naive import NaiveSeqDistLoss
 
 
 # =============================================================================
@@ -78,7 +78,7 @@ class RepGRU(GRU):
         ...
 
         # return the function.
-        return NaiveDistLoss((["output"], ["target"]))
+        return NaiveSeqDistLoss((["output"], ["target"]))
 
     def __evaluate__(
         self: RepGRU,
@@ -111,7 +111,7 @@ class RepGRU(GRU):
         ...
 
         # Return the function.
-        return NaiveDistLoss((["output"], ["target"]))
+        return NaiveSeqDistLoss((["output"], ["target"]))
 
 
 class TarGRU(__GRU__):
@@ -149,7 +149,7 @@ class TarGRU(__GRU__):
         ...
 
         # return the function.
-        return NaiveDistLoss((["output"], ["target"]))
+        return NaiveSeqDistLoss((["output"], ["target"]))
 
     def __evaluate__(
         self: TarGRU,
@@ -182,4 +182,4 @@ class TarGRU(__GRU__):
         ...
 
         # Return the function.
-        return NaiveDistLoss((["output"], ["target"]))
+        return NaiveSeqDistLoss((["output"], ["target"]))

@@ -52,6 +52,7 @@ from demo.Reproduce.benchmark import BackwardBenchmark
 
 
 def main(
+    device: str,
     *args: ArgT,
     **kargs: KArgT,
 ) -> bool:
@@ -60,6 +61,8 @@ def main(
 
     Args
     ----
+    - device
+        Device
     - *args
     - **kargs
 
@@ -109,9 +112,9 @@ def main(
     # Get a batching
     bat = ConstShuffleBatch()
     bat.set(
-        dat, "cpu",
+        dat, device,
         sample_transform=IdentityTransform(),
-        batch_stackform=SeqStackform(["input", "target"]),
+        batch_stackform=SeqStackform([], ["input", "target"]),
         batch_transform=IdentityTransform(),
         num_samplers=4, qmax_samples=4,
         num_batchers=1, qmax_batches=2,
@@ -130,6 +133,7 @@ def main(
             "linear": (["input"], ["agg_hidden_i"]),
         },
     ).set(
+        device,
         xargs=(), xkargs=dict(
             num_inputs=num_inputs, num_outputs=num_outputs, no_bias=False,
         ),
@@ -143,6 +147,7 @@ def main(
             "linear": (["hidden"], ["agg_hidden_h"]),
         },
     ).set(
+        device,
         xargs=(), xkargs=dict(
             num_inputs=num_outputs, num_outputs=num_outputs, no_bias=False,
         ),
@@ -150,7 +155,7 @@ def main(
 
     # Create and run the benchmark.
     benchmark = BackwardBenchmark(
-        bat, RepRNN, TarRNN,
+        device, bat, RepRNN, TarRNN,
         [
             (
                 ("isub.weight", [(0, 5), (0, 7)]),
@@ -170,6 +175,8 @@ def main(
             ),
         ],
         iokeys=dict(
+            rnn_static=([], ["hidden"]),
+            rnn_dynamic=(["input"], ["output"]),
             rnn_aggregate=(["agg_hidden_i", "agg_hidden_h"], ["hidden"]),
             rnn=(["hidden"], ["output"]),
         ),
@@ -191,6 +198,6 @@ def main(
 if (__name__ == '__main__'):
     # Update logging status and run.
     update_universal_logger(default_logger(__file__, LOGLV))
-    main()
+    main("cuda:0")
 else:
     pass

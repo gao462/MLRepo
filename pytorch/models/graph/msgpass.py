@@ -183,6 +183,14 @@ class MessagePass(GradModel):
             # /
             output: Dict[str, torch.Tensor]
 
+            # Keep always-pass inputs.
+            output = {}
+            for key, tensor in input.items():
+                if (key[0] == "$"):
+                    output[key] = tensor
+                else:
+                    pass
+
             # Split input into exact graph info.
             transient = {}
             transient[self.ky_input_v] = input[self.ky_input_v]
@@ -206,7 +214,6 @@ class MessagePass(GradModel):
             )[self.ky_agg]
 
             # Compute directly.
-            output = {}
             output[self.ky_output] = self.update.forward(
                 parameter.sub("update"), transient,
             )[self.ky_output]

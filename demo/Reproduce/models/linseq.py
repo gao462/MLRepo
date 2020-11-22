@@ -32,6 +32,7 @@ from pytorch.logging import debug, info1, info2, focus, warning, error
 from pytorch.models.model import GradModel, Parameter
 from pytorch.models.model import ForwardFunction, LossFunction, NullFunction
 from pytorch.models.linear import Linear
+from pytorch.models.activation import Activation
 from pytorch.models.collect import GradModelSeq
 from demo.Reproduce.models.naive import NaiveDistLoss
 
@@ -176,7 +177,6 @@ class RepLinearSeq(GradModel):
         ...
 
         def null(
-            device: str,
             *args: ArgT,
             **kargs: KArgT,
         ) -> Dict[str, torch.Tensor]:
@@ -185,8 +185,6 @@ class RepLinearSeq(GradModel):
 
             Args
             ----
-            - device
-                Device.
             - *args
             - **kargs
 
@@ -202,7 +200,7 @@ class RepLinearSeq(GradModel):
             ...
 
             # return all-zero.
-            return self.seq.nullin(device)
+            return self.seq.nullin()
 
         # Return the function.
         return null
@@ -239,7 +237,6 @@ class RepLinearSeq(GradModel):
         ...
 
         def null(
-            device: str,
             *args: ArgT,
             **kargs: KArgT,
         ) -> Dict[str, torch.Tensor]:
@@ -248,8 +245,6 @@ class RepLinearSeq(GradModel):
 
             Args
             ----
-            - device
-                Device.
             - *args
             - **kargs
 
@@ -265,7 +260,7 @@ class RepLinearSeq(GradModel):
             ...
 
             # return all-zero.
-            return self.seq.nullout(device)
+            return self.seq.nullout()
 
         # Return the function.
         return null
@@ -309,11 +304,23 @@ class RepLinearSeq(GradModel):
                 linear=(["input"], ["input.1"]),
             ),
         ).set(
+            self.device,
             xargs=(),
             xkargs=dict(
                 num_inputs=self.num_inputs, num_outputs=self.num_outputs,
                 no_bias=False,
             ),
+        )
+        activation1 = Activation(
+            self.ROOT,
+            sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
+                act_residuals=([], []),
+                act=(["input.1"], ["input.1"]),
+            ),
+        ).set(
+            self.device,
+            xargs=(),
+            xkargs=dict(activation="tanh"),
         )
         linear2 = Linear(
             self.ROOT,
@@ -321,6 +328,7 @@ class RepLinearSeq(GradModel):
                 linear=(["input.1"], ["output"]),
             ),
         ).set(
+            self.device,
             xargs=(),
             xkargs=dict(
                 num_inputs=self.num_outputs, num_outputs=self.num_outputs,
@@ -333,7 +341,8 @@ class RepLinearSeq(GradModel):
             self.ROOT,
             sub=True, dtype=self.DTYPE_NAME, iokeys={},
         ).set(
-            xargs=(linear1, linear2),
+            self.device,
+            xargs=(linear1, activation1, linear2),
             xkargs=dict(),
         ))
 
@@ -543,15 +552,16 @@ class TarLinearSeq(RepLinearSeq):
                 in_features=self.num_inputs, out_features=self.num_outputs,
                 bias=True,
             ),
+            getattr(torch.nn, "Tanh")(),
             torch.nn.Linear(
                 in_features=self.num_outputs, out_features=self.num_outputs,
                 bias=True,
             ),
-        )
+        ).to(self.device)
         self.weight1 = self.pytorch[0].weight
-        self.weight2 = self.pytorch[1].weight
+        self.weight2 = self.pytorch[2].weight
         self.bias1 = self.pytorch[0].bias
-        self.bias2 = self.pytorch[1].bias
+        self.bias2 = self.pytorch[2].bias
 
     def __initialize__(
         self: TarLinearSeq,
@@ -586,9 +596,9 @@ class TarLinearSeq(RepLinearSeq):
 
         # Copy data.
         self.weight1.data.copy_(cast(Linear, self.seq[0]).weight.data)
-        self.weight2.data.copy_(cast(Linear, self.seq[1]).weight.data)
+        self.weight2.data.copy_(cast(Linear, self.seq[2]).weight.data)
         self.bias1.data.copy_(cast(Linear, self.seq[0]).bias.data)
-        self.bias2.data.copy_(cast(Linear, self.seq[1]).bias.data)
+        self.bias2.data.copy_(cast(Linear, self.seq[2]).bias.data)
 
         # Remove from registration
         del self.parameter.submodels["seq"]

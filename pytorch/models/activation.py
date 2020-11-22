@@ -165,8 +165,15 @@ class Activation(GradModel):
             # /
             output: Dict[str, torch.Tensor]
 
-            # Do activation directly.
+            # Keep always-pass inputs.
             output = {}
+            for key, tensor in input.items():
+                if (key[0] == "$"):
+                    output[key] = tensor
+                else:
+                    pass
+
+            # Do activation directly.
             output[self.ky_output] = self.act(input[self.ky_input])
 
             # Add residual-from-input outputs.
@@ -211,7 +218,6 @@ class Activation(GradModel):
         ...
 
         def null(
-            device: str,
             *args: ArgT,
             **kargs: KArgT,
         ) -> Dict[str, torch.Tensor]:
@@ -220,8 +226,6 @@ class Activation(GradModel):
 
             Args
             ----
-            - device
-                Device.
             - *args
             - **kargs
 
@@ -274,7 +278,6 @@ class Activation(GradModel):
         ...
 
         def null(
-            device: str,
             *args: ArgT,
             **kargs: KArgT,
         ) -> Dict[str, torch.Tensor]:
@@ -283,8 +286,6 @@ class Activation(GradModel):
 
             Args
             ----
-            - device
-                Device.
             - *args
             - **kargs
 

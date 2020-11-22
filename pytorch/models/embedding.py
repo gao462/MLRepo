@@ -140,8 +140,15 @@ class Embedding(GradModel):
             # /
             output: Dict[str, torch.Tensor]
 
-            # Get embeddings by direct indexing.
+            # Keep always-pass inputs.
             output = {}
+            for key, tensor in input.items():
+                if (key[0] == "$"):
+                    output[key] = tensor
+                else:
+                    pass
+
+            # Get embeddings by direct indexing.
             indices = input[self.ky_input]
             indices = indices.view(len(indices))
             output[self.ky_output] = parameter["embedding"][indices]
@@ -182,7 +189,6 @@ class Embedding(GradModel):
         ...
 
         def null(
-            device: str,
             *args: ArgT,
             **kargs: KArgT,
         ) -> Dict[str, torch.Tensor]:
@@ -191,8 +197,6 @@ class Embedding(GradModel):
 
             Args
             ----
-            - device
-                Device.
             - *args
             - **kargs
 
@@ -210,7 +214,7 @@ class Embedding(GradModel):
             # return all-zero.
             return {
                 self.ky_input: getattr(torch, "zeros")(
-                    1, dtype=getattr(torch, "long"), device=device,
+                    1, dtype=getattr(torch, "long"), device=self.device,
                 ),
             }
 
@@ -249,7 +253,6 @@ class Embedding(GradModel):
         ...
 
         def null(
-            device: str,
             *args: ArgT,
             **kargs: KArgT,
         ) -> Dict[str, torch.Tensor]:
@@ -258,8 +261,6 @@ class Embedding(GradModel):
 
             Args
             ----
-            - device
-                Device.
             - *args
             - **kargs
 
@@ -277,7 +278,7 @@ class Embedding(GradModel):
             # return all-zero.
             return {
                 self.ky_output: getattr(torch, "zeros")(
-                    1, self.num_features, dtype=self.DTYPE, device=device,
+                    1, self.num_features, dtype=self.DTYPE, device=self.device,
                 ),
             }
 
@@ -318,7 +319,8 @@ class Embedding(GradModel):
 
         # Allocate parameters.
         self.embedding = torch.nn.parameter.Parameter(getattr(torch, "zeros")(
-            self.num_embeddings, self.num_features, dtype=self.DTYPE,
+            self.num_embeddings, self.num_features,
+            dtype=self.DTYPE, device=self.device,
         ))
 
     def __initialize__(
@@ -468,5 +470,5 @@ class __Embedding__(Embedding):
             embedding_dim=self.num_features,
             padding_idx=None, max_norm=None, norm_type=2,
             scale_grad_by_freq=False, sparse=False,
-        )
+        ).to(self.device)
         self.embedding = getattr(self.pytorch, "weight")

@@ -140,8 +140,15 @@ class Linear(GradModel):
             # /
             output: Dict[str, torch.Tensor]
 
-            # Apply matrix multiplication and bias.
+            # Keep always-pass inputs.
             output = {}
+            for key, tensor in input.items():
+                if (key[0] == "$"):
+                    output[key] = tensor
+                else:
+                    pass
+
+            # Apply matrix multiplication and bias.
             tensor = getattr(torch, "matmul")(
                 input[self.ky_input], parameter["weight"].t(),
             )
@@ -186,7 +193,6 @@ class Linear(GradModel):
         ...
 
         def null(
-            device: str,
             *args: ArgT,
             **kargs: KArgT,
         ) -> Dict[str, torch.Tensor]:
@@ -195,8 +201,6 @@ class Linear(GradModel):
 
             Args
             ----
-            - device
-                Device.
             - *args
             - **kargs
 
@@ -214,7 +218,7 @@ class Linear(GradModel):
             # return all-zero.
             return {
                 self.ky_input: getattr(torch, "zeros")(
-                    1, self.num_inputs, dtype=self.DTYPE, device=device,
+                    1, self.num_inputs, dtype=self.DTYPE, device=self.device,
                 ),
             }
 
@@ -253,7 +257,6 @@ class Linear(GradModel):
         ...
 
         def null(
-            device: str,
             *args: ArgT,
             **kargs: KArgT,
         ) -> Dict[str, torch.Tensor]:
@@ -262,8 +265,6 @@ class Linear(GradModel):
 
             Args
             ----
-            - device
-                Device.
             - *args
             - **kargs
 
@@ -281,7 +282,7 @@ class Linear(GradModel):
             # return all-zero.
             return {
                 self.ky_output: getattr(torch, "zeros")(
-                    1, self.num_outputs, dtype=self.DTYPE, device=device,
+                    1, self.num_outputs, dtype=self.DTYPE, device=self.device,
                 ),
             }
 
@@ -327,13 +328,14 @@ class Linear(GradModel):
 
         # Allocate parameters.
         self.weight = torch.nn.parameter.Parameter(getattr(torch, "zeros")(
-            self.num_outputs, self.num_inputs, dtype=self.DTYPE,
+            self.num_outputs, self.num_inputs,
+            dtype=self.DTYPE, device=self.device,
         ))
         if (self.no_bias):
             pass
         else:
             self.bias = torch.nn.parameter.Parameter(getattr(torch, "zeros")(
-                self.num_outputs, dtype=self.DTYPE,
+                self.num_outputs, dtype=self.DTYPE, device=self.device,
             ))
 
     def __initialize__(
@@ -541,6 +543,6 @@ class __Linear__(Linear):
         self.pytorch = torch.nn.Linear(
             in_features=self.num_inputs, out_features=self.num_outputs,
             bias=not self.no_bias,
-        )
+        ).to(self.device)
         self.weight = getattr(self.pytorch, "weight")
         self.bias = getattr(self.pytorch, "bias")

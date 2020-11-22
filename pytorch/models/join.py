@@ -38,22 +38,24 @@ from pytorch.models.model import Parameter, ForwardFunction, NullFunction
 # =============================================================================
 # *****************************************************************************
 # -----------------------------------------------------------------------------
-# << Collection of Gradient Model >>
-# The collection of gradient models working as a gradient model.
+# << Joining Gradient Model >>
+# The joining gradient model.
+# The model forward function $f$ is a compostion of basic algebrea that join
+# several inputs together into a single output.
 # -----------------------------------------------------------------------------
 # *****************************************************************************
 # =============================================================================
 
 
-class GradModelSeq(GradModel):
+class Join(GradModel):
     r"""
-    A sequence of gradient models.
+    Join.
     """
     # Define main flow name.
-    main = "seq"
+    main = "join"
 
     def __parse__(
-        self: GradModelSeq,
+        self: Join,
         *args: ArgT,
         **kargs: KArgT,
     ) -> None:
@@ -73,13 +75,232 @@ class GradModelSeq(GradModel):
         # /
         # ANNOTATE VARIABLES
         # /
+        self.ky_input_residuals: List[str]
+        self.ky_output_residuals: List[str]
+        self.ky_inputs: List[str]
+        self.ky_output: str
+
+        # Fetch main input and output.
+        self.ky_input_residuals, self.ky_output_residuals = (
+            self.IOKEYS["{:s}_residuals".format(self.main)]
+        )
+        self.ky_inputs, (self.ky_output,) = self.IOKEYS[self.main]
+
+        # Safety check.
+        for ky_inres, ky_outres in zip(
+            self.ky_input_residuals, self.ky_output_residuals,
+        ):
+            if (ky_outres == self.ky_output):
+                error(
+                    "Join residual output key \"{:s}\" is occupied by" \
+                    " an activated key.",
+                    self.ky_output,
+                )
+                raise RuntimeError
+            elif (ky_inres == ky_outres):
+                pass
+            else:
+                error(
+                    "Join residual keys do not match from input" \
+                    " \"{:s}\" to output \"{:s}\".",
+                    ky_inres, ky_outres,
+                )
+                raise RuntimeError
+
+    def __nullin__(
+        self: Join,
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> NullFunction:
+        r"""
+        Generate null input.
+
+        Args
+        ----
+        - self
+        - *kargs
+        - **kargs
+
+        Returns
+        -------
+        - null
+            Null input generation function.
+
+        After setup, the null input to a model is fixed.
+        This is helpful to understand the expectation of input.
+        This is also useful when the default model output is required, for
+        example, this is the sub model of RNN H-to-H model at the first time
+        step.
+        It has batch size 1 for robustness.
+        """
+        # /
+        # ANNOTATE VARIABLES
+        # /
         ...
 
-        # Collection is just a wrapped without IO flow.
+        def null(
+            *args: ArgT,
+            **kargs: KArgT,
+        ) -> Dict[str, torch.Tensor]:
+            r"""
+            Generate null input on device.
+
+            Args
+            ----
+            - *args
+            - **kargs
+
+            Returns
+            -------
+            - output
+                Output.
+
+            """
+            # /
+            # ANNOTATE VARIABLES
+            # /
+            ...
+
+            # Join works on any tensor inputs.
+            raise NotImplementedError
+
+        # Return the function.
+        return null
+
+    def __nullout__(
+        self: Join,
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> NullFunction:
+        r"""
+        Generate null output.
+
+        Args
+        ----
+        - self
+        - *kargs
+        - **kargs
+
+        Returns
+        -------
+        - null
+            Null output generation function.
+
+        After setup, the null output to a model is fixed.
+        This is helpful to understand the expectation of output.
+        This is also useful when the default model output is required, for
+        example, this is the sub model of RNN H-to-H model at the first time
+        step.
+        It has batch size 1 for robustness.
+        """
+        # /
+        # ANNOTATE VARIABLES
+        # /
+        ...
+
+        def null(
+            *args: ArgT,
+            **kargs: KArgT,
+        ) -> Dict[str, torch.Tensor]:
+            r"""
+            Generate null output on device.
+
+            Args
+            ----
+            - *args
+            - **kargs
+
+            Returns
+            -------
+            - output
+                Output.
+
+            """
+            # /
+            # ANNOTATE VARIABLES
+            # /
+            ...
+
+            # Join works on any tensor inputs.
+            raise NotImplementedError
+
+        # Return the function.
+        return null
+
+    def configure(
+        self: Join,
+        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
+        *args: ArgT,
+        **kargs: KArgT,
+    ) -> None:
+        r"""
+        Configure model.
+
+        Args
+        ----
+        - self
+        - xargs
+            Extra arguments to specific configuration.
+        - xkargs
+            Extra keyword arguments to specific configuration.
+        - *args
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # \
+        # ANNOTATE VARIABLES
+        # \
+        ...
+
+        # Join requires nothing.
         pass
 
+    def __initialize__(
+        self: Join,
+        *args: ArgT,
+        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
+        **kargs: KArgT,
+    ) -> None:
+        r"""
+        Initialize model parameters and sub models.
+
+        Args
+        ----
+        - self
+        - rng
+            Random number generator.
+        - *args
+        - xargs
+            Extra arguments to specific initialization.
+        - xkargs
+            Extra keyword arguments to specific initialization.
+        - **kargs
+
+        Returns
+        -------
+
+        """
+        # /
+        # ANNOTATE VARIABLES
+        # /
+        ...
+
+        # Join is not parametric.
+        pass
+
+
+class AddJoin(Join):
+    r"""
+    Addition (element-wise) join.
+    """
+    # Define main flow name.
+    main = "add_join"
+
     def __forward__(
-        self: GradModelSeq,
+        self: AddJoin,
         *args: ArgT,
         **kargs: KArgT,
     ) -> ForwardFunction:
@@ -137,58 +358,83 @@ class GradModelSeq(GradModel):
             # /
             output: Dict[str, torch.Tensor]
 
-            # Apply matrix multiplication and bias.
-            transient = input
-            for i, model in enumerate(self.models):
-                transient = model.forward(
-                    parameter.sub("{:d}".format(i)), transient,
-                )
-            output = transient
+            # Keep always-pass inputs.
+            output = {}
+            for key, tensor in input.items():
+                if (key[0] == "$"):
+                    output[key] = tensor
+                else:
+                    pass
+
+            # Join directly.
+            tensor = input[self.ky_inputs[0]]
+            for key in self.ky_inputs[1:]:
+                tensor += input[key]
+            output[self.ky_output] = tensor
+
+            # Add residual-from-input outputs.
+            for ky_inres, ky_outres in zip(
+                self.ky_input_residuals, self.ky_output_residuals,
+            ):
+                output[ky_outres] = input[ky_inres]
             return output
 
         # Return the function.
         return f
 
-    def __nullin__(
-        self: GradModelSeq,
+
+class MulJoin(Join):
+    r"""
+    Multiplication (element-wise) join.
+    """
+    # Define main flow name.
+    main = "mul_join"
+
+    def __forward__(
+        self: MulJoin,
         *args: ArgT,
         **kargs: KArgT,
-    ) -> NullFunction:
+    ) -> ForwardFunction:
         r"""
-        Generate null input.
+        Set forward function.
 
         Args
         ----
         - self
-        - *kargs
+        - *args
         - **kargs
 
         Returns
         -------
-        - null
-            Null input generation function.
+        - function
+            Forward function.
 
-        After setup, the null input to a model is fixed.
-        This is helpful to understand the expectation of input.
-        This is also useful when the default model output is required, for
-        example, this is the sub model of RNN H-to-H model at the first time
-        step.
-        It has batch size 1 for robustness.
+        It must of defined a function $f$ by form:
+        $$
+        y = f(\theta, x)
+        $$
+        where $y$ is output, $\theta$ is parameter and $x$ is input.
         """
         # /
         # ANNOTATE VARIABLES
         # /
         ...
 
-        def null(
+        def f(
+            parameter: Parameter,
+            input: Dict[str, torch.Tensor],
             *args: ArgT,
             **kargs: KArgT,
         ) -> Dict[str, torch.Tensor]:
             r"""
-            Generate null input on device.
+            Forward a batch input.
 
             Args
             ----
+            - parameter
+                Parameter.
+            - input
+                Input.
             - *args
             - **kargs
 
@@ -201,265 +447,28 @@ class GradModelSeq(GradModel):
             # /
             # ANNOTATE VARIABLES
             # /
-            ...
+            output: Dict[str, torch.Tensor]
 
-            # return all-zero.
-            return self.models[0].nullin()
-
-        # Return the function.
-        return null
-
-    def __nullout__(
-        self: GradModelSeq,
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> NullFunction:
-        r"""
-        Generate null output.
-
-        Args
-        ----
-        - self
-        - *kargs
-        - **kargs
-
-        Returns
-        -------
-        - null
-            Null output generation function.
-
-        After setup, the null output to a model is fixed.
-        This is helpful to understand the expectation of output.
-        This is also useful when the default model output is required, for
-        example, this is the sub model of RNN H-to-H model at the first time
-        step.
-        It has batch size 1 for robustness.
-        """
-        # /
-        # ANNOTATE VARIABLES
-        # /
-        ...
-
-        def null(
-            *args: ArgT,
-            **kargs: KArgT,
-        ) -> Dict[str, torch.Tensor]:
-            r"""
-            Generate null output on device.
-
-            Args
-            ----
-            - *args
-            - **kargs
-
-            Returns
-            -------
-            - output
-                Output.
-
-            """
-            # /
-            # ANNOTATE VARIABLES
-            # /
-            ...
-
-            # return all-zero.
-            return self.models[-1].nullout()
-
-        # Return the function.
-        return null
-
-    def configure(
-        self: GradModelSeq,
-        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> None:
-        r"""
-        Configure model.
-
-        Args
-        ----
-        - self
-        - xargs
-            Extra arguments to specific configuration.
-        - xkargs
-            Extra keyword arguments to specific configuration.
-        - *args
-        - **kargs
-
-        Returns
-        -------
-
-        """
-        # \
-        # ANNOTATE VARIABLES
-        # \
-        self.models: List[GradModel]
-
-        # Save necessary attributes.
-        self.models = []
-        for model in xargs:
-            self.models.append(model)
-
-    def workflow_diffuse(
-        self: GradModelSeq,
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> Dict[str, List[List[Tuple[str, str, str]]]]:
-        r"""
-        Diffuse workflow defined by sub models and IO keys.
-
-        Args
-        ----
-        - self
-        - *args
-        - **kargs
-
-        Returns
-        -------
-        - flows.
-            Work flows of each sub model.
-            The model itself is defined as sub model "".
-            Work flow is a list of lists of section, input key and output key
-            items.
-            Same section name is aggregated in the same list.
-
-        """
-        # \
-        # ANNOTATE VARIABLES
-        # \
-        flows: Dict[str, List[List[Tuple[str, str, str]]]]
-
-        # Get sub model flows.
-        flows = {}
-        for i, val in enumerate(self.models):
-            key = "{:d}".format(i)
-            for sub, grouped in val.workflow.items():
-                if (sub == ""):
-                    flows[key] = grouped
+            # Keep always-pass inputs.
+            output = {}
+            for key, tensor in input.items():
+                if (key[0] == "$"):
+                    output[key] = tensor
                 else:
-                    flows[key + "." + sub] = grouped
-        return flows
+                    pass
 
-    def __initialize__(
-        self: GradModelSeq,
-        *args: ArgT,
-        xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
-        **kargs: KArgT,
-    ) -> None:
-        r"""
-        Initialize model parameters and sub models.
+            # Join directly.
+            tensor = input[self.ky_inputs[0]]
+            for key in self.ky_inputs[1:]:
+                tensor *= input[key]
+            output[self.ky_output] = tensor
 
-        Args
-        ----
-        - self
-        - *args
-        - xargs
-            Extra arguments to specific initialization.
-        - xkargs
-            Extra keyword arguments to specific initialization.
-        - **kargs
+            # Add residual-from-input outputs.
+            for ky_inres, ky_outres in zip(
+                self.ky_input_residuals, self.ky_output_residuals,
+            ):
+                output[ky_outres] = input[ky_inres]
+            return output
 
-        Returns
-        -------
-
-        Use Kaiming Uniform as PyTorch default.
-        """
-        # /
-        # ANNOTATE VARIABLES
-        # /
-        ...
-
-        # Initialize weight.
-        for i, ini in enumerate(xargs):
-            self.models[i].initialize(
-                self.rng.get_state(), xargs=ini["xargs"], xkargs=ini["xkargs"],
-            )
-
-    def __len__(
-        self: GradModelSeq,
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> int:
-        r"""
-        Get length.
-
-        Args
-        ----
-        - self
-        - *args
-        - **kargs
-
-        Returns
-        -------
-
-        """
-        # \
-        # ANNOTATE VARIABLES
-        # \
-        ...
-
-        # Get memory length.
-        return len(self.models)
-
-    def __getitem__(
-        self: GradModelSeq,
-        i: int,
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> GradModel:
-        r"""
-        Get length.
-
-        Args
-        ----
-        - self
-        - i
-            Index.
-        - *args
-        - **kargs
-
-        Returns
-        -------
-
-        """
-        # \
-        # ANNOTATE VARIABLES
-        # \
-        ...
-
-        # Get item from saved models.
-        return self.models[i]
-
-    def register(
-        self: GradModelSeq,
-        *args: ArgT,
-        **kargs: KArgT,
-    ) -> None:
-        r"""
-        Register parameters and sub models.
-
-        Args
-        ----
-        - self
-        - *args
-        - **kargs
-
-        Returns
-        -------
-
-        """
-        # /
-        # ANNOTATE VARIABLES
-        # /
-        ...
-
-        # Super.
-        GradModel.register(self)
-
-        # Manually register the model list.
-        for i, model in enumerate(self.models):
-            self.parameter.registar_submodel(
-                "{:d}".format(i), model.parameter,
-            )
+        # Return the function.
+        return f

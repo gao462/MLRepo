@@ -243,7 +243,6 @@ class GradModel(abc.ABC):
         ...
 
         def null(
-            device: str,
             *args: ArgT,
             **kargs: KArgT,
         ) -> Dict[str, torch.Tensor]:
@@ -252,8 +251,6 @@ class GradModel(abc.ABC):
 
             Args
             ----
-            - device
-                Device.
             - *args
             - **kargs
 
@@ -304,7 +301,6 @@ class GradModel(abc.ABC):
         ...
 
         def null(
-            device: str,
             *args: ArgT,
             **kargs: KArgT,
         ) -> Dict[str, torch.Tensor]:
@@ -313,8 +309,6 @@ class GradModel(abc.ABC):
 
             Args
             ----
-            - device
-                Device.
             - *args
             - **kargs
 
@@ -503,6 +497,7 @@ class GradModel(abc.ABC):
 
     def set(
         self: GradModel,
+        device: str,
         *args: ArgT,
         xargs: Tuple[Naive, ...], xkargs: Dict[str, Naive],
         **kargs: KArgT,
@@ -513,7 +508,8 @@ class GradModel(abc.ABC):
         Args
         ----
         - self
-        - rng
+        - device
+            Device to keep the model.
         - *args
         - **kargs
 
@@ -530,10 +526,11 @@ class GradModel(abc.ABC):
         # \
         # ANNOTATE VARIABLES
         # \
-        ...
+        self.device: str
 
         # Save necessary attributes.
-        self.rng = getattr(torch, "Generator")()
+        self.device = device
+        self.rng = getattr(torch, "Generator")(self.device)
 
         # Configure model with given extra arguments.
         self.configure(xargs, xkargs)
@@ -1224,7 +1221,6 @@ class NullFunction(Protocol):
     """
     def __call__(
         self: NullFunction,
-        device: str,
         *args: ArgT,
         **kargs: KArgT,
     ) -> Dict[str, torch.Tensor]:
@@ -1234,8 +1230,6 @@ class NullFunction(Protocol):
         Args
         ----
         - self
-        - device
-            Device
         - *args
         - **kargs
 

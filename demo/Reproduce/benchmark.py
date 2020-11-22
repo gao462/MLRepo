@@ -52,7 +52,7 @@ class BackwardBenchmark(object):
     """
     def __init__(
         self: BackwardBenchmark,
-        bat: Batch, repcls: type, tarcls: type,
+        device: str, bat: Batch, repcls: type, tarcls: type,
         checkon: List[Tuple[
             Tuple[str, List[Tuple[int, int]]],
             Tuple[str, List[Tuple[int, int]]],
@@ -69,6 +69,8 @@ class BackwardBenchmark(object):
         Args
         ----
         - self
+        - device
+            Device.
         - bat
             Batching.
         - repcls
@@ -104,7 +106,7 @@ class BackwardBenchmark(object):
 
         # Get randomness
         seed = 47
-        rng = getattr(torch, "Generator")()
+        rng = getattr(torch, "Generator")(device)
         rng.manual_seed(47)
 
         # Update randomness.
@@ -116,7 +118,7 @@ class BackwardBenchmark(object):
             sub=False, dtype="float32",
             iokeys=iokeys,
         ).set(
-            xargs=set_xargs, xkargs=set_xkargs,
+            device, xargs=set_xargs, xkargs=set_xkargs,
         ).initialize(
             rngmem, xargs=ini_xargs, xkargs=ini_xkargs,
         )
@@ -131,7 +133,7 @@ class BackwardBenchmark(object):
             sub=False, dtype="float32",
             iokeys=iokeys,
         ).set(
-            xargs=set_xargs, xkargs=set_xkargs,
+            device, xargs=set_xargs, xkargs=set_xkargs,
         ).initialize(
             rngmem, xargs=ini_xargs, xkargs=ini_xkargs,
         )
@@ -139,6 +141,11 @@ class BackwardBenchmark(object):
             "Targeting model \"\033[35;1m{:s}\033[0m\" is ready.",
             tarmod.fullname,
         )
+
+        # Get randomness
+        seed = 47
+        rng = getattr(torch, "Generator")()
+        rng.manual_seed(47)
 
         # Update randomness.
         rngmem = rng.get_state()

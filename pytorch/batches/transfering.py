@@ -346,10 +346,12 @@ class Transfering(object):
         batch = self.batch_responses.get()
 
         # Transfer to device without blocking.
-        device = {
-            key: val.clone().to(self.DEVICE, non_blocking=True)
-            for key, val in batch.items()
-        }
+        device = {}
+        for key, val in batch.items():
+            if (key[0] == "$"):
+                device[key] = val.clone()
+            else:
+                device[key] = val.clone().to(self.DEVICE, non_blocking=True)
         del batch
         return device
 
