@@ -622,6 +622,12 @@ class GradModel(abc.ABC):
                     flows[""][-1].append((section, inkey, outkey))
                 else:
                     flows[""][-1].append(("", inkey, outkey))
+
+            # Deal with null case.
+            if (len(flows[""][-1]) == 0):
+                flows[""][-1].append((section, "---", "---"))
+            else:
+                pass
         return flows
 
     def workflow_logging(
@@ -686,9 +692,9 @@ class GradModel(abc.ABC):
             # Defined no-self-flow need special logging.
             if (subname == "" and len(submodel) == 0):
                 debug(
-                    "\" {:s} {:s} | {:s} --- {:s} \".",
+                    "\" {:s} {:s} | {:s} ==> {:s} \".",
                     subname.rjust(max_sub), "".rjust(max_sec),
-                    "-".rjust(max_in), "-".ljust(max_out),
+                    "---".rjust(max_in), "---".ljust(max_out),
                     highlight=highlight,
                 )
             else:
@@ -704,22 +710,19 @@ class GradModel(abc.ABC):
 
                 # Output focusing section head.
                 section, inkey, outkey = grouped[0]
-                if (len(inkey) == 0 or len(outkey) == 0):
-                    debug(
-                        "\" {:s} {:s} | \033[34{highlight:s}m{:s}\033[0m" \
-                        "     \033[32{highlight:s}m{:s}\033[0m \".",
-                        subname.rjust(max_sub), section.rjust(max_sec),
-                        inkey.rjust(max_in), outkey.ljust(max_out),
-                        highlight=highlight,
-                    )
+                if (len(inkey) == 0):
+                    inkey = "---"
+                elif (len(outkey) == 0):
+                    outkey = "---"
                 else:
-                    debug(
-                        "\" {:s} {:s} | \033[34{highlight:s}m{:s}\033[0m ==>" \
-                        " \033[32{highlight:s}m{:s}\033[0m \".",
-                        subname.rjust(max_sub), section.rjust(max_sec),
-                        inkey.rjust(max_in), outkey.ljust(max_out),
-                        highlight=highlight,
-                    )
+                    pass
+                debug(
+                    "\" {:s} {:s} | \033[34{highlight:s}m{:s}\033[0m ==>" \
+                    " \033[32{highlight:s}m{:s}\033[0m \".",
+                    subname.rjust(max_sub), section.rjust(max_sec),
+                    inkey.rjust(max_in), outkey.ljust(max_out),
+                    highlight=highlight,
+                )
 
                 # Output remaining focusing section.
                 for section, inkey, outkey in grouped[1:]:

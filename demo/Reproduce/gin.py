@@ -131,19 +131,19 @@ def main(
         bat, RepGIN, TarGIN,
         [
             (
-                ("update.linear1.weight", [(0, 5), (0, 7)]),
+                ("update.dualin.0.weight", [(0, 5), (0, 7)]),
                 ("weight1", [(0, 5), (0, 7)]),
             ),
             (
-                ("update.linear1.bias", [(0, 5)]),
+                ("update.dualin.0.bias", [(0, 5)]),
                 ("bias1", [(0, 5)]),
             ),
             (
-                ("update.linear2.weight", [(0, 5), (0, 5)]),
+                ("update.dualin.2.weight", [(0, 5), (0, 5)]),
                 ("weight2", [(0, 5), (0, 5)]),
             ),
             (
-                ("update.linear2.bias", [(0, 5)]),
+                ("update.dualin.2.bias", [(0, 5)]),
                 ("bias2", [(0, 5)]),
             ),
         ],
@@ -174,9 +174,7 @@ def main(
             message=dict(xargs=(), xkargs=dict()),
             aggregate=dict(xargs=(), xkargs=dict()),
             update=dict(xargs=(), xkargs=dict(
-                bilin=dict(xargs=(), xkargs=dict(
-                    activation="relu", negative_slope=0,
-                )),
+                activation="relu", negative_slope=0,
             )),
         ),
     )

@@ -35,6 +35,8 @@ from pytorch.models.model import GradModel
 from pytorch.models.model import Parameter, ForwardFunction, NullFunction
 from pytorch.models.graph.update import Update
 from pytorch.models.linear import Linear
+from pytorch.models.activation import Activation
+from pytorch.models.collect import GradModelSeq
 from pytorch.models.graph.msgpass import MessagePass
 from pytorch.models.graph.message import ConcatMessage
 from pytorch.models.graph.aggregate import SumNeighborAgg
@@ -122,17 +124,8 @@ class GINUpdate(Update):
             tensor = (1 + eps) * input[self.ky_input_v] + input[self.ky_agg]
 
             # Transfer it by dual linear
-            transient = {self.ky_output: tensor}
-            transient = self.linear1.forward(
-                parameter.sub("linear1"), transient,
-            )
-            transient[self.ky_output] = getattr(torch.nn.functional, "relu")(
-                transient[self.ky_output],
-            )
-            transient = self.linear2.forward(
-                parameter.sub("linear2"), transient,
-            )
-            output = {self.ky_output: transient[self.ky_output]}
+            output = {self.ky_output: tensor}
+            output = self.dualin.forward(parameter.sub("dualin"), output)
             return output
 
         # Return the function.
@@ -197,8 +190,8 @@ class GINUpdate(Update):
 
             # Get linear inputs applied on destination and aggregation.
             return {
-                self.ky_input_v: self.linear1.nullin(device)[self.ky_output],
-                self.ky_agg: self.linear1.nullin(device)[self.ky_output],
+                self.ky_input_v: self.dualin.nullin(device)[self.ky_output],
+                self.ky_agg: self.dualin.nullin(device)[self.ky_output],
             }
 
         # Return the function.
@@ -263,7 +256,7 @@ class GINUpdate(Update):
 
 
             # Get linear input directly.
-            return self.linear2.nullout(device)
+            return self.dualin.nullout(device)
 
         # Return the function.
         return null
@@ -301,11 +294,11 @@ class GINUpdate(Update):
         self.num_outputs = xkargs["num_outputs"]
 
         # Create dual linear layers.
-        _, (key,) = self.IOKEYS["gin_update"]
-        self.linear1 = Linear(
+        _, (key,) = self.IOKEYS[self.main]
+        linear1 = Linear(
             self.ROOT,
             sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
-                linear=([key], [key]),
+                linear=([key], ["{:s}.dualin1".format(key)]),
             ),
         ).set(
             xargs=(),
@@ -314,10 +307,20 @@ class GINUpdate(Update):
                 no_bias=False,
             ),
         )
-        self.linear2 = Linear(
+        activation1 = Activation(
             self.ROOT,
             sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
-                linear=([key], [key]),
+                act_residuals=([], []),
+                act=(
+                    ["{:s}.dualin1".format(key)],
+                    ["{:s}.dualin1".format(key)],
+                ),
+            ),
+        ).set(xargs=(), xkargs=dict(activation="relu"))
+        linear2 = Linear(
+            self.ROOT,
+            sub=True, dtype=self.DTYPE_NAME, iokeys=dict(
+                linear=(["{:s}.dualin1".format(key)], [key]),
             ),
         ).set(
             xargs=(),
@@ -325,6 +328,15 @@ class GINUpdate(Update):
                 num_inputs=self.num_outputs, num_outputs=self.num_outputs,
                 no_bias=False,
             ),
+        )
+
+        # Put them together as a sequence.
+        self.dualin = GradModelSeq(
+            self.ROOT,
+            sub=True, dtype=self.DTYPE_NAME, iokeys=dict(),
+        ).set(
+            xargs=(linear1, activation1, linear2),
+            xkargs=dict(),
         )
 
     def __initialize__(
@@ -356,13 +368,8 @@ class GINUpdate(Update):
         ...
 
         # Initialize recursively.
-        self.linear1.initialize(
-            self.rng.get_state(),
-            xargs=xkargs["bilin"]["xargs"], xkargs=xkargs["bilin"]["xkargs"],
-        )
-        self.linear2.initialize(
-            self.rng.get_state(),
-            xargs=xkargs["bilin"]["xargs"], xkargs=xkargs["bilin"]["xkargs"],
+        self.dualin.initialize(
+            self.rng.get_state(), xargs=xargs, xkargs=xkargs,
         )
 
 
@@ -730,10 +737,26 @@ class __GIN__(GIN):
 
         # Copy data to correct place.
         self.update = cast(GINUpdate, self.update)
-        self.weight1.data.copy_(cast(Linear, self.update.linear1).weight.data)
-        self.weight2.data.copy_(cast(Linear, self.update.linear2).weight.data)
-        self.bias1.data.copy_(cast(Linear, self.update.linear1).bias.data)
-        self.bias2.data.copy_(cast(Linear, self.update.linear2).bias.data)
+        self.weight1.data.copy_(
+            cast(
+                Linear, cast(GradModelSeq, self.update.dualin)[0],
+            ).weight.data,
+        )
+        self.weight2.data.copy_(
+            cast(
+                Linear, cast(GradModelSeq, self.update.dualin)[2],
+            ).weight.data,
+        )
+        self.bias1.data.copy_(
+            cast(
+                Linear, cast(GradModelSeq, self.update.dualin)[0],
+            ).bias.data,
+        )
+        self.bias2.data.copy_(
+            cast(
+                Linear, cast(GradModelSeq, self.update.dualin)[2],
+            ).bias.data,
+        )
 
         # Remove from registration.
         del self.parameter.submodels["message"]
